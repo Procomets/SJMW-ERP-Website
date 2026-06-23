@@ -1,0 +1,467 @@
+import { useState, useEffect } from 'react';
+import {
+  Box, Typography, Button, Card, CardContent,
+  Table, TableHead, TableBody, TableRow, TableCell,
+  TableContainer, IconButton, Chip, Tooltip,
+  CircularProgress, Divider, TextField, InputAdornment,
+  Dialog, DialogTitle, DialogContent, DialogActions,
+} from '@mui/material';
+import {
+  Plus, Search, Edit2, Trash2, ToggleLeft, ToggleRight,
+  Package, RefreshCw, Database, Eye, EyeOff, AlertTriangle,
+  CheckCircle, XCircle, Settings,
+} from 'lucide-react';
+import type { MaterialMaster, MaterialMasterFormData } from '../types/materialMaster.types';
+import {
+  subscribeMaterials,
+  addMaterial,
+  updateMaterial,
+  toggleMaterialStatus,
+  deleteMaterial,
+  seedDefaultMaterials,
+} from '../services/materialMaster.service';
+import MaterialDialog from '../components/MaterialDialog';
+import { Timestamp } from 'firebase/firestore';
+
+// Visibility indicator pills
+const VisPill = ({ active, label }: { active: boolean; label: string }) => (
+  <Chip
+    label={label}
+    size="small"
+    sx={{
+      fontSize: '0.6rem',
+      height: 18,
+      fontWeight: 600,
+      bgcolor: active ? '#dbeafe' : '#f1f5f9',
+      color: active ? '#1d4ed8' : '#94a3b8',
+      border: `1px solid ${active ? '#bfdbfe' : '#e2e8f0'}`,
+      '& .MuiChip-label': { px: 0.75 },
+    }}
+  />
+);
+
+const MasterControllerPage = () => {
+  const [materials, setMaterials] = useState<MaterialMaster[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<'All' | 'Active' | 'Disabled'>('All');
+
+  // Dialog states
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editMaterial, setEditMaterial] = useState<MaterialMaster | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<MaterialMaster | null>(null);
+  const [seeding, setSeeding] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsub = subscribeMaterials((data) => {
+      setMaterials(data);
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  const filtered = materials.filter((m) => {
+    const matchSearch =
+      m.materialName.toLowerCase().includes(search.toLowerCase()) ||
+      m.materialCode.toLowerCase().includes(search.toLowerCase()) ||
+      m.materialId.toLowerCase().includes(search.toLowerCase());
+    const matchFilter = filter === 'All' || m.status === filter;
+    return matchSearch && matchFilter;
+  });
+
+  const stats = {
+    total: materials.length,
+    active: materials.filter((m) => m.status === 'Active').length,
+    disabled: materials.filter((m) => m.status === 'Disabled').length,
+  };
+
+  // Handlers
+  const handleOpenAdd = () => { setEditMaterial(null); setDialogOpen(true); };
+  const handleOpenEdit = (m: MaterialMaster) => { setEditMaterial(m); setDialogOpen(true); };
+
+  const handleSave = async (form: MaterialMasterFormData) => {
+    if (editMaterial) {
+      await updateMaterial(editMaterial.id, form);
+    } else {
+      await addMaterial(form, materials);
+    }
+  };
+
+  const handleToggleStatus = async (m: MaterialMaster) => {
+    setActionLoading(m.id + '_toggle');
+    try { await toggleMaterialStatus(m.id, m.status); }
+    finally { setActionLoading(null); }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    setActionLoading(deleteConfirm.id + '_delete');
+    try {
+      await deleteMaterial(deleteConfirm.id);
+      setDeleteConfirm(null);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleSeedDefaults = async () => {
+    setSeeding(true);
+    try { await seedDefaultMaterials(); }
+    finally { setSeeding(false); }
+  };
+
+  const formatDate = (ts: Timestamp | undefined) => {
+    if (!ts) return '—';
+    return ts.toDate().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+
+  return (
+    <Box>
+      {/* Page Header */}
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <Settings size={20} color="#1565C0" />
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>Master Controller</Typography>
+          </Box>
+          <Typography variant="body1" color="text.secondary">
+            Central configuration for all ERP materials. Changes reflect across all modules instantly.
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+          {materials.length === 0 && !loading && (
+            <Button
+              variant="outlined"
+              startIcon={seeding ? <CircularProgress size={14} /> : <Database size={16} />}
+              onClick={handleSeedDefaults}
+              disabled={seeding}
+              sx={{ borderRadius: 2, fontWeight: 600, fontSize: '0.8rem' }}
+            >
+              {seeding ? 'Seeding...' : 'Load Defaults'}
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            startIcon={<Plus size={16} />}
+            onClick={handleOpenAdd}
+            sx={{ borderRadius: 2, fontWeight: 600, px: 2.5 }}
+          >
+            Add Material
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Stats Row */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+        {[
+          { label: 'Total Materials', value: stats.total, color: '#1565C0', bg: '#dbeafe', icon: <Package size={16} /> },
+          { label: 'Active', value: stats.active, color: '#15803d', bg: '#dcfce7', icon: <CheckCircle size={16} /> },
+          { label: 'Disabled', value: stats.disabled, color: '#64748b', bg: '#f1f5f9', icon: <XCircle size={16} /> },
+        ].map((s) => (
+          <Card key={s.label} sx={{ flex: '1 1 160px', boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderRadius: 2.5 }}>
+            <CardContent sx={{ py: 2, px: 2.5, '&:last-child': { pb: 2 } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box>
+                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.label}</Typography>
+                  <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: s.color, lineHeight: 1.2 }}>{s.value}</Typography>
+                </Box>
+                <Box sx={{ p: 1, bgcolor: s.bg, borderRadius: 1.5, color: s.color }}>{s.icon}</Box>
+              </Box>
+            </CardContent>
+          </Card>
+        ))}
+      </Box>
+
+      {/* Search + Filter */}
+      <Card sx={{ mb: 2, borderRadius: 2.5, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
+        <CardContent sx={{ py: 1.5, px: 2.5, '&:last-child': { pb: 1.5 } }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+            <TextField
+              size="small"
+              placeholder="Search by name, code or ID..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search size={16} color="#94a3b8" />
+                    </InputAdornment>
+                  ),
+                }
+              }}
+              sx={{ flex: 1, minWidth: 220, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+            />
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {(['All', 'Active', 'Disabled'] as const).map((f) => (
+                <Button
+                  key={f}
+                  size="small"
+                  variant={filter === f ? 'contained' : 'outlined'}
+                  onClick={() => setFilter(f)}
+                  sx={{ borderRadius: 2, px: 2, fontWeight: 600, fontSize: '0.78rem' }}
+                >
+                  {f}
+                </Button>
+              ))}
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Material Table */}
+      <Card sx={{ borderRadius: 2.5, boxShadow: '0 1px 8px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+            <CircularProgress size={32} />
+            <Typography sx={{ ml: 2, color: 'text.secondary' }}>Loading materials...</Typography>
+          </Box>
+        ) : filtered.length === 0 ? (
+          <Box sx={{ textAlign: 'center', py: 8 }}>
+            <Package size={40} color="#cbd5e1" />
+            <Typography sx={{ mt: 2, color: 'text.secondary', fontWeight: 500 }}>
+              {search ? 'No materials match your search.' : 'No materials found. Add a material or load defaults.'}
+            </Typography>
+            {!search && materials.length === 0 && (
+              <Button variant="outlined" sx={{ mt: 2, borderRadius: 2 }} onClick={handleSeedDefaults} startIcon={<Database size={14} />}>
+                Load Default Materials
+              </Button>
+            )}
+          </Box>
+        ) : (
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                  {['ID', 'Code', 'Material Name', 'Efficiency', 'Min. Stock', 'Unit', 'Visibility', 'Status', 'Updated', 'Actions'].map((h) => (
+                    <TableCell key={h} sx={{
+                      fontSize: '0.65rem', fontWeight: 700, color: '#64748b',
+                      textTransform: 'uppercase', letterSpacing: 0.6,
+                      borderBottom: '1px solid #e2e8f0', py: 1.5, px: 2,
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {h}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filtered.map((m) => {
+                  const isToggling = actionLoading === m.id + '_toggle';
+                  const isActive = m.status === 'Active';
+                  return (
+                    <TableRow
+                      key={m.id}
+                      sx={{
+                        '&:hover': { bgcolor: '#f8fafc' },
+                        opacity: isActive ? 1 : 0.65,
+                        transition: 'opacity 0.2s',
+                        borderBottom: '1px solid #f1f5f9',
+                      }}
+                    >
+                      {/* ID */}
+                      <TableCell sx={{ px: 2, py: 1.5 }}>
+                        <Typography sx={{ fontSize: '0.72rem', fontFamily: 'monospace', color: '#64748b', fontWeight: 600 }}>
+                          {m.materialId}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Code */}
+                      <TableCell sx={{ px: 2, py: 1.5 }}>
+                        <Box sx={{
+                          display: 'inline-block', px: 1, py: 0.25,
+                          bgcolor: '#eff6ff', color: '#1d4ed8',
+                          borderRadius: 1, fontSize: '0.72rem', fontWeight: 700,
+                          border: '1px solid #bfdbfe', fontFamily: 'monospace',
+                        }}>
+                          {m.materialCode}
+                        </Box>
+                      </TableCell>
+
+                      {/* Name */}
+                      <TableCell sx={{ px: 2, py: 1.5 }}>
+                        <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#1e293b' }}>
+                          {m.materialName}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Efficiency */}
+                      <TableCell sx={{ px: 2, py: 1.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Box sx={{
+                            width: 36, height: 36, borderRadius: '50%',
+                            border: `2.5px solid`,
+                            borderColor: m.efficiencyPercentage >= 90 ? '#22c55e' : m.efficiencyPercentage >= 80 ? '#f59e0b' : '#ef4444',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}>
+                            <Typography sx={{
+                              fontSize: '0.6rem', fontWeight: 800,
+                              color: m.efficiencyPercentage >= 90 ? '#15803d' : m.efficiencyPercentage >= 80 ? '#b45309' : '#dc2626',
+                            }}>
+                              {m.efficiencyPercentage}%
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+
+                      {/* Min Stock */}
+                      <TableCell sx={{ px: 2, py: 1.5 }}>
+                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151' }}>
+                          {m.minimumStockKg.toLocaleString()} {m.unit}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Unit */}
+                      <TableCell sx={{ px: 2, py: 1.5 }}>
+                        <Typography sx={{ fontSize: '0.78rem', color: '#64748b' }}>{m.unit}</Typography>
+                      </TableCell>
+
+                      {/* Visibility */}
+                      <TableCell sx={{ px: 2, py: 1.5 }}>
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                          <VisPill active={m.showInWarehouse}  label="WH" />
+                          <VisPill active={m.showInProduction} label="PR" />
+                          <VisPill active={m.showInCostLedger} label="CL" />
+                          <VisPill active={m.showInReports}    label="RP" />
+                        </Box>
+                      </TableCell>
+
+                      {/* Status */}
+                      <TableCell sx={{ px: 2, py: 1.5 }}>
+                        <Chip
+                          label={m.status}
+                          size="small"
+                          sx={{
+                            fontSize: '0.68rem', fontWeight: 700,
+                            bgcolor: isActive ? '#dcfce7' : '#f1f5f9',
+                            color: isActive ? '#15803d' : '#64748b',
+                            border: `1px solid ${isActive ? '#bbf7d0' : '#e2e8f0'}`,
+                          }}
+                        />
+                      </TableCell>
+
+                      {/* Updated */}
+                      <TableCell sx={{ px: 2, py: 1.5 }}>
+                        <Typography sx={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                          {formatDate(m.updatedAt)}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Actions */}
+                      <TableCell sx={{ px: 2, py: 1.5 }}>
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                          <Tooltip title="Edit Material">
+                            <IconButton size="small" onClick={() => handleOpenEdit(m)} sx={{ color: '#1565C0', '&:hover': { bgcolor: '#eff6ff' } }}>
+                              <Edit2 size={15} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title={isActive ? 'Disable Material' : 'Enable Material'}>
+                            <IconButton size="small" onClick={() => handleToggleStatus(m)} disabled={isToggling}
+                              sx={{ color: isActive ? '#64748b' : '#22c55e', '&:hover': { bgcolor: isActive ? '#f1f5f9' : '#dcfce7' } }}
+                            >
+                              {isToggling
+                                ? <CircularProgress size={13} />
+                                : isActive ? <ToggleRight size={15} /> : <ToggleLeft size={15} />
+                              }
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete Material">
+                            <IconButton size="small" onClick={() => setDeleteConfirm(m)}
+                              sx={{ color: '#ef4444', '&:hover': { bgcolor: '#fef2f2' } }}
+                            >
+                              <Trash2 size={15} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+
+        {/* Footer */}
+        {!loading && filtered.length > 0 && (
+          <Box sx={{ px: 2, py: 1.5, borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography sx={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+              Showing {filtered.length} of {materials.length} materials
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, fontSize: '0.68rem', color: '#94a3b8', alignItems: 'center' }}>
+              <span><b style={{ color: '#1d4ed8' }}>WH</b> = Warehouse</span>
+              <span><b style={{ color: '#1d4ed8' }}>PR</b> = Production</span>
+              <span><b style={{ color: '#1d4ed8' }}>CL</b> = Cost Ledger</span>
+              <span><b style={{ color: '#1d4ed8' }}>RP</b> = Reports</span>
+            </Box>
+          </Box>
+        )}
+      </Card>
+
+      {/* Info Banner */}
+      <Box sx={{
+        mt: 3, p: 2, bgcolor: '#eff6ff', borderRadius: 2,
+        border: '1px solid #bfdbfe', display: 'flex', alignItems: 'flex-start', gap: 1.5
+      }}>
+        <AlertTriangle size={16} color="#1d4ed8" style={{ marginTop: 2, flexShrink: 0 }} />
+        <Box>
+          <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#1d4ed8', mb: 0.5 }}>
+            How Material Master works
+          </Typography>
+          <Typography sx={{ fontSize: '0.72rem', color: '#3b82f6', lineHeight: 1.7 }}>
+            • <b>Active</b> materials appear in all enabled modules dynamically. <br />
+            • <b>Disabled</b> materials are hidden from new entries but historical records remain unchanged. <br />
+            • <b>Visibility toggles</b> (WH / PR / CL / RP) control per-module presence without disabling globally. <br />
+            • Changes take effect <b>immediately</b> across all modules — no page refresh required.
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Material Add/Edit Dialog */}
+      <MaterialDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onSave={handleSave}
+        editMaterial={editMaterial}
+      />
+
+      {/* Delete Confirmation */}
+      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
+          <Box sx={{ p: 1, bgcolor: '#fef2f2', borderRadius: 1.5, display: 'flex' }}>
+            <AlertTriangle size={18} color="#dc2626" />
+          </Box>
+          <Typography sx={{ fontWeight: 700 }}>Delete Material?</Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', lineHeight: 1.6 }}>
+            You are about to permanently delete{' '}
+            <b style={{ color: '#1e293b' }}>{deleteConfirm?.materialName}</b> ({deleteConfirm?.materialCode}).
+          </Typography>
+          <Box sx={{ mt: 1.5, p: 1.5, bgcolor: '#fef2f2', borderRadius: 1.5, border: '1px solid #fecaca' }}>
+            <Typography sx={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 600 }}>
+              ⚠ This action cannot be undone. Consider disabling the material instead to preserve history.
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button onClick={() => setDeleteConfirm(null)} variant="outlined" sx={{ borderRadius: 2 }}>Cancel</Button>
+          <Button
+            onClick={handleDelete}
+            variant="contained"
+            color="error"
+            disabled={!!actionLoading}
+            sx={{ borderRadius: 2, fontWeight: 600 }}
+          >
+            {actionLoading ? <CircularProgress size={14} sx={{ color: 'white' }} /> : 'Delete Permanently'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+};
+
+export default MasterControllerPage;
