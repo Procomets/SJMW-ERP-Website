@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
-    Box, Typography, Card, CardContent, Button, InputBase,
+    Box, Typography, Card, CardContent, Button,
     Table, TableBody, TableCell, TableContainer, TableHead,
     TableRow, Paper, IconButton, Chip, Tooltip,
     CircularProgress, Dialog, DialogTitle, DialogContent,
-    DialogActions, Skeleton, useTheme, TextField, FormControl,
+    DialogActions, Skeleton, TextField, FormControl,
     InputLabel, Select, MenuItem,
 } from '@mui/material';
 import {
@@ -60,7 +60,6 @@ const bodyCell = {
 
 // ─── component ─────────────────────────────────────────────────────────────────
 const ProductionLedgerPage = () => {
-    const theme = useTheme();
     const { getByModule, loading: materialsLoading } = useMaterials();
     const productionMaterials = getByModule('production');
 

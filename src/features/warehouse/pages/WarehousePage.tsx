@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   Box, Typography, Card, CardContent, IconButton,
   Tooltip, CircularProgress, Dialog, DialogTitle, DialogContent,
-  DialogActions, Button, Skeleton, TextField, Chip,
+  DialogActions, Button, Skeleton, Chip,
   LinearProgress,
 } from '@mui/material';
 import {
@@ -329,7 +329,7 @@ const ReceiptDetailDialog = ({ receipt, onClose }: ReceiptDetailDialogProps) => 
   if (!receipt) return null;
   return (
     <Dialog open={!!receipt} onClose={onClose} maxWidth="md" fullWidth
-      PaperProps={{ sx: { borderRadius: 3 } }}>
+      slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
       <DialogTitle sx={{ fontWeight: 800, fontSize: '1.1rem', pb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
         <Eye size={20} style={{ color: '#2563eb' }} />
         Receipt Detail — {receipt.receiptNumber}
@@ -551,7 +551,7 @@ const WarehousePage = () => {
               fontSize: '0.82rem',
               color: activeTab === tab.key ? '#2563eb' : '#64748b',
               borderBottom: activeTab === tab.key ? '2.5px solid #2563eb' : '2.5px solid transparent',
-              background: 'none', border: 'none', borderBottom: activeTab === tab.key ? '2.5px solid #2563eb' : '2.5px solid transparent',
+              background: 'none', border: 'none',
               cursor: 'pointer', transition: 'all 0.15s',
               marginBottom: -1,
             }}
@@ -980,7 +980,7 @@ const WarehousePage = () => {
 
       {/* ── Delete Confirmation ── */}
       <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}>
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
         <DialogTitle sx={{ fontWeight: 800, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
           <X style={{ color: '#dc2626' }} size={20} /> Delete Receipt
         </DialogTitle>

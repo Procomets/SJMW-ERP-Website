@@ -171,7 +171,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
       onClose={onClose}
       maxWidth="md"
       fullWidth
-      PaperProps={{ sx: { borderRadius: 3, maxHeight: '92vh' } }}
+      slotProps={{ paper: { sx: { borderRadius: 3, maxHeight: '92vh' } } }}
     >
       {/* Header */}
       <DialogTitle sx={{
@@ -400,7 +400,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   fullWidth
                   value={form.companyAddress.pinCode}
                   onChange={(e) => setAddress('pinCode', e.target.value.replace(/\D/, ''))}
-                  inputProps={{ maxLength: 6 }}
+                  slotProps={{ htmlInput: { maxLength: 6 } }}
                   placeholder="6 digits"
                 />
               </Grid>
@@ -459,7 +459,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                     value={form.gstNumber}
                     onChange={(e) => set('gstNumber', e.target.value.toUpperCase())}
                     placeholder="e.g. 33ABCDE1234F1Z5"
-                    inputProps={{ maxLength: 15, style: { textTransform: 'uppercase', fontFamily: 'monospace' } }}
+                    slotProps={{ htmlInput: { maxLength: 15, style: { textTransform: 'uppercase', fontFamily: 'monospace' } } }}
                     helperText="15 character GST Identification Number"
                   />
                 </Grid>
@@ -473,7 +473,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   value={form.panNumber}
                   onChange={(e) => set('panNumber', e.target.value.toUpperCase())}
                   placeholder="e.g. ABCDE1234F"
-                  inputProps={{ maxLength: 10, style: { textTransform: 'uppercase', fontFamily: 'monospace' } }}
+                  slotProps={{ htmlInput: { maxLength: 10, style: { textTransform: 'uppercase', fontFamily: 'monospace' } } }}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -484,7 +484,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   value={form.tanNumber}
                   onChange={(e) => set('tanNumber', e.target.value.toUpperCase())}
                   placeholder="Optional"
-                  inputProps={{ style: { textTransform: 'uppercase', fontFamily: 'monospace' } }}
+                  slotProps={{ htmlInput: { style: { textTransform: 'uppercase', fontFamily: 'monospace' } } }}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -507,7 +507,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                     value={form.aadhaarNumber}
                     onChange={(e) => set('aadhaarNumber', e.target.value.replace(/\D/, '').slice(0, 12))}
                     placeholder="12 digit Aadhaar"
-                    inputProps={{ maxLength: 12, style: { fontFamily: 'monospace' } }}
+                    slotProps={{ htmlInput: { maxLength: 12, style: { fontFamily: 'monospace' } } }}
                     helperText="Required for Proprietorship"
                   />
                 </Grid>
@@ -539,7 +539,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   value={form.contactNumber}
                   onChange={(e) => set('contactNumber', e.target.value.replace(/\D/, '').slice(0, 10))}
                   placeholder="10-digit mobile number"
-                  inputProps={{ inputMode: 'numeric', maxLength: 10 }}
+                  slotProps={{ htmlInput: { inputMode: 'numeric' as const, maxLength: 10 } }}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -550,7 +550,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   value={form.alternateContactNumber}
                   onChange={(e) => set('alternateContactNumber', e.target.value.replace(/\D/, '').slice(0, 10))}
                   placeholder="Optional"
-                  inputProps={{ inputMode: 'numeric', maxLength: 10 }}
+                  slotProps={{ htmlInput: { inputMode: 'numeric' as const, maxLength: 10 } }}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -611,7 +611,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   value={form.bankDetails.accountNumber}
                   onChange={(e) => setBank('accountNumber', e.target.value.replace(/\D/, ''))}
                   placeholder="Bank account number"
-                  inputProps={{ style: { fontFamily: 'monospace' } }}
+                  slotProps={{ htmlInput: { style: { fontFamily: 'monospace' } } }}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -622,7 +622,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   value={form.bankDetails.ifscCode}
                   onChange={(e) => setBank('ifscCode', e.target.value.toUpperCase())}
                   placeholder="e.g. SBIN0001234"
-                  inputProps={{ maxLength: 11, style: { textTransform: 'uppercase', fontFamily: 'monospace' } }}
+                  slotProps={{ htmlInput: { maxLength: 11, style: { textTransform: 'uppercase' as const, fontFamily: 'monospace' } } }}
                   helperText="11-character IFSC code"
                 />
               </Grid>

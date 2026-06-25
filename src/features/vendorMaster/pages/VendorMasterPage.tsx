@@ -11,7 +11,7 @@ import {
   Plus, Search, Edit2, Trash2, Eye, Building2,
   CheckCircle, XCircle, AlertTriangle, Users,
   ShoppingCart, Handshake, Filter, RefreshCw,
-  MoreVertical, Ban, Download,
+  MoreVertical, Ban,
 } from 'lucide-react';
 import type { VendorMaster, VendorMasterFormData, VendorCategory, VendorStatus } from '../types/vendorMaster.types';
 import {
@@ -537,7 +537,7 @@ const VendorMasterPage = () => {
       />
 
       {/* Delete Confirmation */}
-      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
           <Box sx={{ p: 1, bgcolor: '#fef2f2', borderRadius: 1.5, display: 'flex' }}>
             <AlertTriangle size={18} color="#dc2626" />
@@ -570,7 +570,7 @@ const VendorMasterPage = () => {
       </Dialog>
 
       {/* Status Change Confirmation */}
-      <Dialog open={!!statusConfirm} onClose={() => setStatusConfirm(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+      <Dialog open={!!statusConfirm} onClose={() => setStatusConfirm(null)} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
           <Box sx={{ p: 1, bgcolor: '#fef9c3', borderRadius: 1.5, display: 'flex' }}>
             <AlertTriangle size={18} color="#b45309" />

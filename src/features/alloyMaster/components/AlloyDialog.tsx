@@ -306,13 +306,15 @@ const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
                       '& .MuiAutocomplete-clearIndicator': { color: 'white' },
                       input: { color: 'white', '&::placeholder': { color: 'rgba(255,255,255,0.7)' } },
                     }}
-                    InputProps={{
-                      ...params.InputProps,
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Zap size={14} color="rgba(255,255,255,0.8)" />
-                        </InputAdornment>
-                      ),
+                    slotProps={{
+                      input: {
+                        ...params.InputProps,
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Zap size={14} color="rgba(255,255,255,0.8)" />
+                          </InputAdornment>
+                        ),
+                      },
                     }}
                   />
                 )}

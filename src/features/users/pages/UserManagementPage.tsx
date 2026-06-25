@@ -18,8 +18,6 @@ import {
   FormControl,
   InputLabel,
   TextField,
-  Chip,
-  InputAdornment,
   Alert,
 } from '@mui/material';
 import {
@@ -762,7 +760,7 @@ const UserManagementPage = () => {
         onClose={() => !submitting && setAddDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ className: 'rounded-2xl text-slate-800' }}
+        slotProps={{ paper: { className: 'rounded-2xl text-slate-800' } }}
       >
         <form onSubmit={handleAddSubmit}>
           <DialogTitle className="flex items-center justify-between border-b border-slate-100 py-4 px-6 bg-slate-50/50">
@@ -877,7 +875,7 @@ const UserManagementPage = () => {
         onClose={() => !submitting && setEditDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ className: 'rounded-2xl text-slate-800' }}
+        slotProps={{ paper: { className: 'rounded-2xl text-slate-800' } }}
       >
         <form onSubmit={handleEditSubmit}>
           <DialogTitle className="flex items-center justify-between border-b border-slate-100 py-4 px-6 bg-slate-50/50">
@@ -971,7 +969,7 @@ const UserManagementPage = () => {
         onClose={() => !submitting && setPasswordDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ className: 'rounded-2xl text-slate-800' }}
+        slotProps={{ paper: { className: 'rounded-2xl text-slate-800' } }}
       >
         <form onSubmit={handlePasswordSubmit}>
           <DialogTitle className="flex items-center justify-between border-b border-slate-100 py-4 px-6 bg-slate-50/50">
@@ -1077,7 +1075,7 @@ const UserManagementPage = () => {
         onClose={() => !submitting && setDeleteDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ className: 'rounded-2xl text-slate-800' }}
+        slotProps={{ paper: { className: 'rounded-2xl text-slate-800' } }}
       >
         <DialogTitle className="flex items-center justify-between border-b border-slate-100 py-4 px-6 bg-red-50/20">
           <div className="flex items-center gap-2">

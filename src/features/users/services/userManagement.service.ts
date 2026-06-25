@@ -17,7 +17,6 @@ import {
   getDocs,
   query,
   orderBy,
-  Timestamp,
   serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../../../firebase/firebaseConfig';

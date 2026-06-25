@@ -69,7 +69,7 @@ const VendorViewDialog = ({ open, onClose, vendor }: Props) => {
       onClose={onClose}
       maxWidth="md"
       fullWidth
-      PaperProps={{ sx: { borderRadius: 3, maxHeight: '92vh' } }}
+      slotProps={{ paper: { sx: { borderRadius: 3, maxHeight: '92vh' } } }}
     >
       {/* Header */}
       <DialogTitle sx={{

@@ -224,6 +224,8 @@ export const updateProductionEntry = async (
     totalInputKg: totalInput,
     goodIngotsKg: Number(form.goodIngots),
     notified: true,
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
   };
 
   // Trigger auto sync to cost ledger first

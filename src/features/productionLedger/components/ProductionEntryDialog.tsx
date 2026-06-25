@@ -8,7 +8,7 @@ import {
 import { X, Package } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
 import { useMaterials } from '../../../context/MaterialContext';
-import type { MaterialMaster } from '../../masterController/types/materialMaster.types';
+
 import {
   buildEmptyForm,
   calcTotalInput,
@@ -129,7 +129,7 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth
-      PaperProps={{ sx: { borderRadius: 3, maxHeight: '92vh' } }}
+      slotProps={{ paper: { sx: { borderRadius: 3, maxHeight: '92vh' } } }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -175,12 +175,12 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
 
         {/* Header fields */}
         <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={12} sm={3}>
+          <Grid size={{ xs: 12, sm: 3 }}>
             <TextField label="Heat No *" fullWidth size="small" value={form.heatNo}
               onChange={(e) => setField('heatNo', e.target.value)}
               error={!!error && !form.heatNo.trim()} />
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid size={{ xs: 12, sm: 3 }}>
             <TextField 
               label="Date *" 
               type="date" 
@@ -200,13 +200,13 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
               }} 
             />
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid size={{ xs: 12, sm: 3 }}>
             <TextField label="Alloy Type *" fullWidth size="small" value={form.alloyType}
               onChange={(e) => setField('alloyType', e.target.value)}
               placeholder="e.g. ADC12, LM6"
               error={!!error && !form.alloyType.trim()} />
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid size={{ xs: 12, sm: 3 }}>
             <TextField label="Supervisor Name" fullWidth size="small" value={form.supervisorName}
               onChange={(e) => setField('supervisorName', e.target.value)}
               placeholder="Optional" />
@@ -214,35 +214,35 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
         </Grid>
 
         <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <TextField label="Furnace No *" fullWidth size="small" value={form.furnaceNo}
               onChange={(e) => setField('furnaceNo', e.target.value)}
               placeholder="e.g. U-10"
               error={!!error && !form.furnaceNo.trim()} />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <TextField label="Operator Name *" fullWidth size="small" value={form.operatorName}
               onChange={(e) => setField('operatorName', e.target.value)}
               placeholder="e.g. A Santhosh"
               error={!!error && !form.operatorName.trim()} />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <TextField label="Expected Efficiency % *" type="number" fullWidth size="small"
               value={form.expectedEfficiencyPercentage}
               onChange={(e) => setField('expectedEfficiencyPercentage', parseFloat(e.target.value) || 0)}
-              inputProps={{ min: 0, max: 100 }}
+              slotProps={{ htmlInput: { min: 0, max: 100 } }}
               error={!!error && (Number(form.expectedEfficiencyPercentage) <= 0)} />
           </Grid>
         </Grid>
 
         <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={12} sm={3}>
+          <Grid size={{ xs: 12, sm: 3 }}>
             <TextField label="Shift Start Time *" fullWidth size="small" value={form.shiftStartTime}
               onChange={(e) => setField('shiftStartTime', e.target.value)}
               placeholder="e.g. 09:00"
               error={!!error && !form.shiftStartTime.trim()} />
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid size={{ xs: 12, sm: 3 }}>
             <FormControl size="small" fullWidth>
               <InputLabel id="shift-start-period-label">Start Period</InputLabel>
               <Select
@@ -257,13 +257,13 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid size={{ xs: 12, sm: 3 }}>
             <TextField label="Shift End Time *" fullWidth size="small" value={form.shiftEndTime}
               onChange={(e) => setField('shiftEndTime', e.target.value)}
               placeholder="e.g. 12:00"
               error={!!error && !form.shiftEndTime.trim()} />
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid size={{ xs: 12, sm: 3 }}>
             <FormControl size="small" fullWidth>
               <InputLabel id="shift-end-period-label">End Period</InputLabel>
               <Select
@@ -303,7 +303,7 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
         ) : (
           <Grid container spacing={1.5}>
             {form.materials.map((mat) => (
-              <Grid item xs={6} sm={3} key={mat.materialId}>
+              <Grid size={{ xs: 6, sm: 3 }} key={mat.materialId}>
                 <TextField
                   label={mat.materialCode}
                   title={`${mat.materialName} (Eff: ${mat.efficiencyPercentage}%)`}
@@ -312,15 +312,17 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
                   fullWidth
                   value={mat.weightKg === 0 ? '' : mat.weightKg}
                   onChange={(e) => setMaterialWeight(mat.materialId, e.target.value)}
-                  inputProps={{ min: 0, step: 0.01 }}
-                  sx={numFieldSx}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled' }}>Kg</Typography>
-                      </InputAdornment>
-                    ),
+                  slotProps={{
+                    htmlInput: { min: 0, step: 0.01 },
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled' }}>Kg</Typography>
+                        </InputAdornment>
+                      ),
+                    },
                   }}
+                  sx={numFieldSx}
                   helperText={
                     <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>
                       {mat.materialName}
@@ -339,19 +341,21 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
         </Divider>
 
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={2.4}>
+          <Grid size={{ xs: 12, sm: 2.4 }}>
             <TextField
               label="Good Ingots (Kg) *" type="number" fullWidth size="small"
               value={form.goodIngots === 0 ? '' : form.goodIngots}
               onChange={(e) => setField('goodIngots', parseFloat(e.target.value) || 0)}
-              inputProps={{ min: 0, step: 0.01 }}
-              sx={numFieldSx}
-              InputProps={{
-                endAdornment: <InputAdornment position="end"><Typography sx={{ fontSize: '0.65rem', color: 'success.main' }}>Kg</Typography></InputAdornment>
+              slotProps={{
+                htmlInput: { min: 0, step: 0.01 },
+                input: {
+                  endAdornment: <InputAdornment position="end"><Typography sx={{ fontSize: '0.65rem', color: 'success.main' }}>Kg</Typography></InputAdornment>
+                },
               }}
+              sx={numFieldSx}
             />
           </Grid>
-          <Grid item xs={12} sm={2.4}>
+          <Grid size={{ xs: 12, sm: 2.4 }}>
             <TextField
               label="No. of Pieces" type="number" fullWidth size="small"
               value={form.noOfPieces === 0 ? '' : form.noOfPieces}
@@ -359,11 +363,11 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
                 const val = parseInt(e.target.value) || 0;
                 setForm((prev) => ({ ...prev, noOfPieces: val, totalPieces: val }));
               }}
-              inputProps={{ min: 0 }}
+              slotProps={{ htmlInput: { min: 0 } }}
               sx={numFieldSx}
             />
           </Grid>
-          <Grid item xs={12} sm={2.4}>
+          <Grid size={{ xs: 12, sm: 2.4 }}>
             <FormControl size="small" fullWidth>
               <InputLabel id="eff-status-dialog-label">Efficiency Status</InputLabel>
               <Select
@@ -380,15 +384,15 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={2.4}>
+          <Grid size={{ xs: 12, sm: 2.4 }}>
             <TextField label="Total Input (auto)" fullWidth size="small"
               value={`${totalInput.toLocaleString()} Kg`} disabled sx={numFieldSx} />
           </Grid>
-          <Grid item xs={12} sm={2.4}>
+          <Grid size={{ xs: 12, sm: 2.4 }}>
             <TextField label="Efficiency % (auto)" fullWidth size="small"
               value={`${efficiency}%`} disabled sx={numFieldSx} />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <TextField
               label="Remarks" fullWidth size="small" multiline rows={2}
               value={form.remarks}

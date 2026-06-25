@@ -3,12 +3,12 @@ import {
   Box, Typography, Button, Card, CardContent,
   Table, TableHead, TableBody, TableRow, TableCell,
   TableContainer, IconButton, Chip, Tooltip,
-  CircularProgress, Divider, TextField, InputAdornment,
+  CircularProgress, TextField, InputAdornment,
   Dialog, DialogTitle, DialogContent, DialogActions,
 } from '@mui/material';
 import {
   Plus, Search, Edit2, Trash2, ToggleLeft, ToggleRight,
-  Package, RefreshCw, Database, Eye, EyeOff, AlertTriangle,
+  Package, Database, AlertTriangle,
   CheckCircle, XCircle, Settings,
 } from 'lucide-react';
 import type { MaterialMaster, MaterialMasterFormData } from '../types/materialMaster.types';
@@ -428,7 +428,7 @@ const MasterControllerPage = () => {
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
           <Box sx={{ p: 1, bgcolor: '#fef2f2', borderRadius: 1.5, display: 'flex' }}>

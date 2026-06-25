@@ -4,12 +4,10 @@ import {
   IconButton,
   Typography,
   Box,
-  InputBase,
   Avatar,
   useTheme,
-  alpha
 } from '@mui/material';
-import { Menu as MenuIcon, Search, Settings } from 'lucide-react';
+import { Menu as MenuIcon } from 'lucide-react';
 
 interface NavbarProps {
   handleDrawerToggle: () => void;

@@ -79,7 +79,7 @@ const MaterialDialog = ({ open, onClose, onSave, editMaterial }: Props) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth
-      PaperProps={{ sx: { borderRadius: 3 } }}
+      slotProps={{ paper: { sx: { borderRadius: 3 } } }}
     >
       {/* Header */}
       <DialogTitle sx={{
@@ -125,7 +125,7 @@ const MaterialDialog = ({ open, onClose, onSave, editMaterial }: Props) => {
               value={form.materialCode}
               onChange={(e) => set('materialCode', e.target.value)}
               placeholder="e.g. RTR"
-              inputProps={{ style: { textTransform: 'uppercase' } }}
+              slotProps={{ htmlInput: { style: { textTransform: 'uppercase' as const } } }}
             />
           </Grid>
           <Grid size={{ xs: 6 }}>
@@ -167,8 +167,10 @@ const MaterialDialog = ({ open, onClose, onSave, editMaterial }: Props) => {
               type="number"
               value={form.efficiencyPercentage}
               onChange={(e) => set('efficiencyPercentage', parseFloat(e.target.value) || 0)}
-              inputProps={{ min: 0, max: 100, step: 0.1 }}
-              slotProps={{ input: { endAdornment: <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>%</span> } }}
+              slotProps={{
+                htmlInput: { min: 0, max: 100, step: 0.1 },
+                input: { endAdornment: <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>%</span> }
+              }}
             />
           </Grid>
           <Grid size={{ xs: 4 }}>
@@ -179,8 +181,10 @@ const MaterialDialog = ({ open, onClose, onSave, editMaterial }: Props) => {
               type="number"
               value={form.minimumStockKg}
               onChange={(e) => set('minimumStockKg', parseFloat(e.target.value) || 0)}
-              inputProps={{ min: 0, step: 1 }}
-              slotProps={{ input: { endAdornment: <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>Kg</span> } }}
+              slotProps={{
+                htmlInput: { min: 0, step: 1 },
+                input: { endAdornment: <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>Kg</span> }
+              }}
             />
           </Grid>
           <Grid size={{ xs: 4 }}>
