@@ -5,6 +5,7 @@ import {
   TableContainer, IconButton, Chip, Tooltip,
   CircularProgress, TextField, InputAdornment,
   Dialog, DialogTitle, DialogContent, DialogActions,
+  useTheme, useMediaQuery,
 } from '@mui/material';
 import {
   Plus, Search, Edit2, Trash2, ToggleLeft, ToggleRight,
@@ -41,6 +42,8 @@ const VisPill = ({ active, label }: { active: boolean; label: string }) => (
 );
 
 const MasterControllerPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [materials, setMaterials] = useState<MaterialMaster[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -119,7 +122,7 @@ const MasterControllerPage = () => {
   return (
     <Box>
       {/* Page Header */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
+      <Box sx={{ mb: 3, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'flex-start' }, flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
             <Settings size={20} color="#1565C0" />
@@ -129,14 +132,14 @@ const MasterControllerPage = () => {
             Central configuration for all ERP materials. Changes reflect across all modules instantly.
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5, alignItems: { xs: 'stretch', sm: 'center' }, width: { xs: '100%', sm: 'auto' } }}>
           {materials.length === 0 && !loading && (
             <Button
               variant="outlined"
               startIcon={seeding ? <CircularProgress size={14} /> : <Database size={16} />}
               onClick={handleSeedDefaults}
               disabled={seeding}
-              sx={{ borderRadius: 2, fontWeight: 600, fontSize: '0.8rem' }}
+              sx={{ borderRadius: 2, fontWeight: 600, fontSize: '0.8rem', width: { xs: '100%', sm: 'auto' } }}
             >
               {seeding ? 'Seeding...' : 'Load Defaults'}
             </Button>
@@ -145,7 +148,7 @@ const MasterControllerPage = () => {
             variant="contained"
             startIcon={<Plus size={16} />}
             onClick={handleOpenAdd}
-            sx={{ borderRadius: 2, fontWeight: 600, px: 2.5 }}
+            sx={{ borderRadius: 2, fontWeight: 600, px: 2.5, width: { xs: '100%', sm: 'auto' } }}
           >
             Add Material
           </Button>
@@ -159,7 +162,7 @@ const MasterControllerPage = () => {
           { label: 'Active', value: stats.active, color: '#15803d', bg: '#dcfce7', icon: <CheckCircle size={16} /> },
           { label: 'Disabled', value: stats.disabled, color: '#64748b', bg: '#f1f5f9', icon: <XCircle size={16} /> },
         ].map((s) => (
-          <Card key={s.label} sx={{ flex: '1 1 160px', boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderRadius: 2.5 }}>
+          <Card key={s.label} sx={{ flex: { xs: '1 1 100%', sm: '1 1 160px' }, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderRadius: 2.5 }}>
             <CardContent sx={{ py: 2, px: 2.5, '&:last-child': { pb: 2 } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box>
@@ -191,16 +194,16 @@ const MasterControllerPage = () => {
                   ),
                 }
               }}
-              sx={{ flex: 1, minWidth: 220, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+              sx={{ flex: { xs: '1 1 100%', sm: 1 }, minWidth: { xs: '100%', sm: 220 }, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: 'flex', gap: 1, width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'space-between', sm: 'flex-start' } }}>
               {(['All', 'Active', 'Disabled'] as const).map((f) => (
                 <Button
                   key={f}
                   size="small"
                   variant={filter === f ? 'contained' : 'outlined'}
                   onClick={() => setFilter(f)}
-                  sx={{ borderRadius: 2, px: 2, fontWeight: 600, fontSize: '0.78rem' }}
+                  sx={{ borderRadius: 2, px: 2, fontWeight: 600, fontSize: '0.78rem', flex: { xs: 1, sm: 'initial' } }}
                 >
                   {f}
                 </Button>
@@ -230,7 +233,7 @@ const MasterControllerPage = () => {
             )}
           </Box>
         ) : (
-          <TableContainer>
+          <TableContainer sx={{ overflowX: 'auto', width: '100%' }}>
             <Table size="small">
               <TableHead>
                 <TableRow sx={{ bgcolor: '#f8fafc' }}>
@@ -385,11 +388,11 @@ const MasterControllerPage = () => {
 
         {/* Footer */}
         {!loading && filtered.length > 0 && (
-          <Box sx={{ px: 2, py: 1.5, borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ px: 2, py: 1.5, borderTop: '1px solid #f1f5f9', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5, alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography sx={{ fontSize: '0.72rem', color: '#94a3b8' }}>
               Showing {filtered.length} of {materials.length} materials
             </Typography>
-            <Box sx={{ display: 'flex', gap: 2, fontSize: '0.68rem', color: '#94a3b8', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 2, fontSize: '0.68rem', color: '#94a3b8', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
               <span><b style={{ color: '#1d4ed8' }}>WH</b> = Warehouse</span>
               <span><b style={{ color: '#1d4ed8' }}>PR</b> = Production</span>
               <span><b style={{ color: '#1d4ed8' }}>CL</b> = Cost Ledger</span>
@@ -427,8 +430,8 @@ const MasterControllerPage = () => {
       />
 
       {/* Delete Confirmation */}
-      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth fullScreen={isMobile}
+        slotProps={{ paper: { sx: { borderRadius: isMobile ? 0 : 3 } } }}
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
           <Box sx={{ p: 1, bgcolor: '#fef2f2', borderRadius: 1.5, display: 'flex' }}>

@@ -79,6 +79,12 @@ export const syncFinishedGoodsFromProduction = async (): Promise<{
     const existing = existingByHeat.get(prod.heatNo);
 
     if (existing) {
+      // Guard: Only sync docs that have been explicitly approved by an admin.
+      if (existing.data.manuallyApproved !== true) {
+        skipped++;
+        continue;
+      }
+
       // Update production-derived fields only; preserve dispatch tracking
       const dispatchedKg = existing.data.dispatchedWeightKg ?? 0;
       const remainingKg = Math.max(0, goodOutputKg - dispatchedKg);
@@ -289,6 +295,14 @@ export const syncFinishedGoodsForHeat = async (
 
     if (fgDoc) {
       const existingData = fgDoc.data() as FinishedGoodEntry;
+
+      // Guard: Only update finished goods docs that have been explicitly approved by an admin.
+      // If manuallyApproved is not true, skip the update — this heat must go through the
+      // Approval Queue before its data is stored in Finished Goods.
+      if (existingData.manuallyApproved !== true) {
+        continue;
+      }
+
       const dispatchedKg = existingData.dispatchedWeightKg ?? 0;
       const remainingKg = Math.max(0, goodOutputKg - dispatchedKg);
 
@@ -319,7 +333,7 @@ export const syncFinishedGoodsForHeat = async (
         updatedAt: serverTimestamp(),
       });
     } else {
-      // If it doesn't exist, we DO NOT auto-create it (must be approved first)
+      // If it doesn't exist, we DO NOT auto-create it (must be approved first via Approval Queue)
     }
   }
 };

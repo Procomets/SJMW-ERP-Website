@@ -1,3 +1,4 @@
+import { useTheme, useMediaQuery } from '@mui/material';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, Typography, Box, Grid, Chip, Divider,
@@ -58,6 +59,9 @@ const statusColors: Record<string, { bg: string; color: string; border: string }
 };
 
 const VendorViewDialog = ({ open, onClose, vendor }: Props) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   if (!vendor) return null;
 
   const catStyle = categoryColors[vendor.vendorCategory] || categoryColors.Supplier;
@@ -69,19 +73,21 @@ const VendorViewDialog = ({ open, onClose, vendor }: Props) => {
       onClose={onClose}
       maxWidth="md"
       fullWidth
-      slotProps={{ paper: { sx: { borderRadius: 3, maxHeight: '92vh' } } }}
+      fullScreen={isMobile}
+      slotProps={{ paper: { sx: { borderRadius: isMobile ? 0 : 3, maxHeight: isMobile ? '100vh' : '92vh' } } }}
     >
       {/* Header */}
       <DialogTitle sx={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         borderBottom: '1px solid #e2e8f0', py: 2, px: 3, bgcolor: '#f8fafc',
+        flexWrap: 'wrap', gap: 1
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
           <Box sx={{ p: 1, bgcolor: '#1565C0', color: 'white', borderRadius: 1.5, display: 'flex' }}>
             <Building2 size={18} />
           </Box>
           <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
               <Typography sx={{ fontWeight: 700, fontSize: '1rem', lineHeight: 1.2 }}>
                 {vendor.vendorName}
               </Typography>
@@ -113,22 +119,22 @@ const VendorViewDialog = ({ open, onClose, vendor }: Props) => {
             <Grid size={{ xs: 12 }}>
               <LabelValue label="Address" value={[vendor.companyAddress.addressLine1, vendor.companyAddress.addressLine2].filter(Boolean).join(', ')} />
             </Grid>
-            <Grid size={{ xs: 4 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <LabelValue label="City" value={vendor.companyAddress.city} />
             </Grid>
-            <Grid size={{ xs: 4 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <LabelValue label="District" value={vendor.companyAddress.district} />
             </Grid>
-            <Grid size={{ xs: 4 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <LabelValue label="Pin Code" value={vendor.companyAddress.pinCode} mono />
             </Grid>
-            <Grid size={{ xs: 4 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <LabelValue label="State" value={vendor.companyAddress.state} />
             </Grid>
-            <Grid size={{ xs: 4 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <LabelValue label="State Code" value={vendor.companyAddress.stateCode} mono />
             </Grid>
-            <Grid size={{ xs: 4 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <LabelValue label="Country" value={vendor.companyAddress.country} />
             </Grid>
           </Grid>
@@ -137,23 +143,23 @@ const VendorViewDialog = ({ open, onClose, vendor }: Props) => {
         {/* Compliance */}
         <SectionCard title="GST & Tax Compliance" icon={<FileText size={14} />}>
           <Grid container spacing={2}>
-            <Grid size={{ xs: 4 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <LabelValue label="GST Registration" value={vendor.gstRegistered ? 'Registered' : 'Unregistered'} />
             </Grid>
-            <Grid size={{ xs: 4 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <LabelValue label="GST Number" value={vendor.gstNumber} mono />
             </Grid>
-            <Grid size={{ xs: 4 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <LabelValue label="PAN Number" value={vendor.panNumber} mono />
             </Grid>
-            <Grid size={{ xs: 4 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <LabelValue label="TAN Number" value={vendor.tanNumber} mono />
             </Grid>
-            <Grid size={{ xs: 4 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <LabelValue label="MSME Number" value={vendor.msmeNumber} />
             </Grid>
             {vendor.vendorType === 'Proprietorship' && (
-              <Grid size={{ xs: 4 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <LabelValue label="Aadhaar Number" value={vendor.aadhaarNumber ? vendor.aadhaarNumber.replace(/\d(?=\d{4})/g, '*') : undefined} mono />
               </Grid>
             )}
@@ -163,28 +169,28 @@ const VendorViewDialog = ({ open, onClose, vendor }: Props) => {
         {/* Contact */}
         <SectionCard title="Contact Information" icon={<Phone size={14} />}>
           <Grid container spacing={2}>
-            <Grid size={{ xs: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 <User size={12} color="#64748b" />
                 <LabelValue label="Contact Person" value={vendor.contactPersonName} />
               </Box>
             </Grid>
-            <Grid size={{ xs: 3 }}>
+            <Grid size={{ xs: 12, sm: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 <Smartphone size={12} color="#64748b" />
                 <LabelValue label="Contact Number" value={vendor.contactNumber} mono />
               </Box>
             </Grid>
-            <Grid size={{ xs: 3 }}>
+            <Grid size={{ xs: 12, sm: 3 }}>
               <LabelValue label="Alternate Contact" value={vendor.alternateContactNumber} mono />
             </Grid>
-            <Grid size={{ xs: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 <Mail size={12} color="#64748b" />
                 <LabelValue label="Email" value={vendor.email} />
               </Box>
             </Grid>
-            <Grid size={{ xs: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 <Globe size={12} color="#64748b" />
                 <LabelValue label="Website" value={vendor.website} />
@@ -197,16 +203,16 @@ const VendorViewDialog = ({ open, onClose, vendor }: Props) => {
         {vendor.bankDetails && (vendor.bankDetails.bankName || vendor.bankDetails.accountNumber) && (
           <SectionCard title="Bank Account Details" icon={<CreditCard size={14} />}>
             <Grid container spacing={2}>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <LabelValue label="Bank Name" value={vendor.bankDetails.bankName} />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <LabelValue label="Branch Name" value={vendor.bankDetails.branchName} />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <LabelValue label="Account Number" value={vendor.bankDetails.accountNumber ? '•••• ' + vendor.bankDetails.accountNumber.slice(-4) : undefined} mono />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <LabelValue label="IFSC Code" value={vendor.bankDetails.ifscCode} mono />
               </Grid>
             </Grid>
@@ -218,22 +224,22 @@ const VendorViewDialog = ({ open, onClose, vendor }: Props) => {
         {/* Audit Trail */}
         <SectionCard title="Audit Trail" icon={<Calendar size={14} />}>
           <Grid container spacing={2}>
-            <Grid size={{ xs: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 <Hash size={11} color="#64748b" />
                 <LabelValue label="Vendor Code" value={vendor.vendorCode} mono />
               </Box>
             </Grid>
-            <Grid size={{ xs: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <LabelValue label="Created By" value={vendor.createdBy} />
             </Grid>
-            <Grid size={{ xs: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <LabelValue label="Created At" value={formatDate(vendor.createdAt)} />
             </Grid>
-            <Grid size={{ xs: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <LabelValue label="Last Updated By" value={vendor.updatedBy} />
             </Grid>
-            <Grid size={{ xs: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <LabelValue label="Last Updated At" value={formatDate(vendor.updatedAt)} />
             </Grid>
           </Grid>

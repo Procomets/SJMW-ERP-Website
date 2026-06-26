@@ -6,6 +6,7 @@ import {
   Divider, InputAdornment, Switch,
   Table, TableHead, TableBody, TableRow, TableCell,
   Tooltip, IconButton, Chip, Autocomplete,
+  useTheme, useMediaQuery,
 } from '@mui/material';
 import {
   Percent, Palette, Zap, CheckCircle2, XCircle,
@@ -139,6 +140,8 @@ const CompositionRow = ({
 
 // ─── Main Dialog ────────────────────────────────────────────────────────────
 const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [form, setForm] = useState<AlloyMasterFormData>(getEmptyAlloyForm());
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof AlloyMasterFormData, string>>>({});
@@ -260,25 +263,28 @@ const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
       onClose={onClose}
       maxWidth="md"
       fullWidth
-      slotProps={{ paper: { sx: { borderRadius: 3, overflow: 'hidden', maxHeight: '92vh' } } }}
+      fullScreen={isMobile}
+      slotProps={{ paper: { sx: { borderRadius: isMobile ? 0 : 3, overflow: 'hidden', maxHeight: isMobile ? '100vh' : '92vh' } } }}
     >
       {/* ── Header ── */}
       <Box sx={{ px: 3, py: 2.5, background: 'linear-gradient(135deg, #1565C0 0%, #0d47a1 100%)', color: 'white', flexShrink: 0 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-          <Box sx={{ p: 1, bgcolor: 'rgba(255,255,255,0.15)', borderRadius: 1.5, display: 'flex' }}>
-            <FlaskConical size={18} />
-          </Box>
-          <Box>
-            <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>
-              {isEdit ? 'Edit Alloy' : 'Add New Alloy'}
-            </Typography>
-            <Typography sx={{ fontSize: '0.72rem', opacity: 0.8 }}>
-              {isEdit ? `Editing ${editAlloy?.alloyCode}` : 'Configure alloy details, composition & compliance'}
-            </Typography>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, gap: 1.5, mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{ p: 1, bgcolor: 'rgba(255,255,255,0.15)', borderRadius: 1.5, display: 'flex' }}>
+              <FlaskConical size={18} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>
+                {isEdit ? 'Edit Alloy' : 'Add New Alloy'}
+              </Typography>
+              <Typography sx={{ fontSize: '0.72rem', opacity: 0.8 }}>
+                {isEdit ? `Editing ${editAlloy?.alloyCode}` : 'Configure alloy details, composition & compliance'}
+              </Typography>
+            </Box>
           </Box>
           {/* Load Template (only for new) */}
           {!isEdit && (
-            <Box sx={{ ml: 'auto', minWidth: 220 }}>
+            <Box sx={{ ml: { xs: 0, sm: 'auto' }, mt: { xs: 1, sm: 0 }, minWidth: { xs: '100%', sm: 220 } }}>
               <Autocomplete
                 size="small"
                 options={ALLOY_TEMPLATES.map((t) => t.alloyCode)}
@@ -338,7 +344,7 @@ const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
         </Box>
 
         {/* Tab Bar */}
-        <Box sx={{ display: 'flex', gap: 0.5 }}>
+        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
           {tabs.map((t) => (
             <Box
               key={t.key}
@@ -363,7 +369,7 @@ const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
         {/* ══ TAB: BASIC INFO ══ */}
         {activeTab === 'basic' && (
           <Box>
-            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2 }}>
               <TextField
                 label="Alloy Code *"
                 value={form.alloyCode}
@@ -429,7 +435,7 @@ const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
 
             <Divider sx={{ mb: 2.5 }} />
 
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: { xs: 'stretch', sm: 'flex-start' } }}>
               <TextField
                 label="Default Selling Margin %"
                 value={form.defaultSellingMarginPercentage}
@@ -451,7 +457,7 @@ const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
                 }}
               />
 
-              <FormControl size="small" sx={{ minWidth: 160 }}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 }, flex: { xs: '1 1 100%', sm: 'auto' } }}>
                 <InputLabel>Status</InputLabel>
                 <Select
                   label="Status"
@@ -498,7 +504,7 @@ const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
               </Button>
             </Box>
 
-            <Box sx={{ border: '1px solid #e2e8f0', borderRadius: 2, overflow: 'hidden' }}>
+            <Box sx={{ border: '1px solid #e2e8f0', borderRadius: 2, overflowX: 'auto', width: '100%' }}>
               <Table size="small">
                 <TableHead>
                   <TableRow sx={{ bgcolor: '#f8fafc' }}>
@@ -545,7 +551,7 @@ const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
               Quality Standards & Compliance
             </Typography>
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 3 }}>
               {/* BIS */}
               <Box sx={{
                 flex: 1, p: 2, borderRadius: 2,
@@ -573,7 +579,7 @@ const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
                   Bureau of Indian Standards (IS standards for aluminium casting alloys)
                 </Typography>
                 {form.bisCompliant && (
-                  <Chip label="BIS Certified" size="small" sx={{ mt: 1, bgcolor: '#dcfce7', color: '#15803d', fontSize: '0.62rem', fontWeight: 700 }} />
+                  <Box><Chip label="BIS Certified" size="small" sx={{ mt: 1, bgcolor: '#dcfce7', color: '#15803d', fontSize: '0.62rem', fontWeight: 700 }} /></Box>
                 )}
               </Box>
 
@@ -604,7 +610,7 @@ const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
                   International Organization for Standardization (ISO 3522 etc.)
                 </Typography>
                 {form.isoCompliant && (
-                  <Chip label="ISO Certified" size="small" sx={{ mt: 1, bgcolor: '#dbeafe', color: '#1d4ed8', fontSize: '0.62rem', fontWeight: 700 }} />
+                  <Box><Chip label="ISO Certified" size="small" sx={{ mt: 1, bgcolor: '#dbeafe', color: '#1d4ed8', fontSize: '0.62rem', fontWeight: 700 }} /></Box>
                 )}
               </Box>
             </Box>
@@ -633,7 +639,7 @@ const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
               </Typography>
             </Box>
 
-            <Box sx={{ display: 'flex', gap: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3 }}>
               <Box sx={{ flex: 1 }}>
                 <MiniColorPicker
                   label="Primary Color *"
@@ -641,7 +647,7 @@ const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
                   onChange={(v) => set('displayColors', { ...form.displayColors, primaryColor: v })}
                 />
               </Box>
-              <Box sx={{ flex: 1 }}>
+              <Box sx={{ flex: 1, mt: { xs: 2, sm: 0 } }}>
                 <MiniColorPicker
                   label="Secondary Color"
                   value={form.displayColors.secondaryColor}
@@ -653,9 +659,9 @@ const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
         )}
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 3, gap: 1, borderTop: '1px solid #f1f5f9', flexShrink: 0 }}>
+      <DialogActions sx={{ px: 3, pb: 3, gap: 1, borderTop: '1px solid #f1f5f9', flexShrink: 0, flexWrap: 'wrap' }}>
         {/* Tab Navigation inside footer */}
-        <Box sx={{ flex: 1, display: 'flex', gap: 0.5 }}>
+        <Box sx={{ flex: 1, display: 'flex', gap: 0.5, minWidth: { xs: '100%', sm: 'auto' }, mb: { xs: 1, sm: 0 } }}>
           {activeTab !== 'basic' && (
             <Button
               size="small"
@@ -677,20 +683,22 @@ const AlloyDialog = ({ open, onClose, onSave, editAlloy }: Props) => {
             </Button>
           )}
         </Box>
-        <Button onClick={onClose} variant="outlined" sx={{ borderRadius: 2 }} disabled={saving}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          disabled={saving}
-          sx={{ borderRadius: 2, fontWeight: 600, px: 3 }}
-        >
-          {saving
-            ? <CircularProgress size={14} sx={{ color: 'white' }} />
-            : isEdit ? 'Save Changes' : 'Add Alloy'
-          }
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1, ml: 'auto', width: { xs: '100%', sm: 'auto' }, justifyContent: 'flex-end' }}>
+          <Button onClick={onClose} variant="outlined" sx={{ borderRadius: 2 }} disabled={saving}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            disabled={saving}
+            sx={{ borderRadius: 2, fontWeight: 600, px: 3 }}
+          >
+            {saving
+              ? <CircularProgress size={14} sx={{ color: 'white' }} />
+              : isEdit ? 'Save Changes' : 'Add Alloy'
+            }
+          </Button>
+        </Box>
       </DialogActions>
     </Dialog>
   );

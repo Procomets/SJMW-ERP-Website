@@ -3,7 +3,7 @@ import {
   Box, Typography, Card, CardContent, IconButton,
   Tooltip, CircularProgress, Dialog, DialogTitle, DialogContent,
   DialogActions, Button, Skeleton, Chip,
-  LinearProgress,
+  LinearProgress, useTheme, useMediaQuery,
 } from '@mui/material';
 import {
   Warehouse, Package, AlertTriangle, TrendingDown, RefreshCw,
@@ -142,7 +142,7 @@ const InventoryOverview = ({ inventory, receipts }: OverviewProps) => {
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
       {kpis.map((k, idx) => (
         <Card key={idx} sx={{
           border: '1px solid #f1f5f9',
@@ -326,16 +326,19 @@ interface ReceiptDetailDialogProps {
 }
 
 const ReceiptDetailDialog = ({ receipt, onClose }: ReceiptDetailDialogProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   if (!receipt) return null;
   return (
-    <Dialog open={!!receipt} onClose={onClose} maxWidth="md" fullWidth
-      slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
+    <Dialog open={!!receipt} onClose={onClose} maxWidth="md" fullWidth fullScreen={isMobile}
+      slotProps={{ paper: { sx: { borderRadius: isMobile ? 0 : 3 } } }}>
       <DialogTitle sx={{ fontWeight: 800, fontSize: '1.1rem', pb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
         <Eye size={20} style={{ color: '#2563eb' }} />
         Receipt Detail — {receipt.receiptNumber}
       </DialogTitle>
       <DialogContent dividers>
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 3 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 3 }}>
           {[
             { label: 'Receipt No', value: receipt.receiptNumber },
             { label: 'Vendor', value: receipt.vendorName },
@@ -411,6 +414,8 @@ const ReceiptDetailDialog = ({ receipt, onClose }: ReceiptDetailDialogProps) => 
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const WarehousePage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [receipts, setReceipts] = useState<MaterialReceipt[]>([]);
   const [loading, setLoading] = useState(true);
@@ -508,7 +513,7 @@ const WarehousePage = () => {
     <Box className="space-y-6 text-slate-800 antialiased">
 
       {/* ── Page Header ── */}
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { md: 'center' }, justifyContent: 'space-between', gap: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between', gap: 2 }}>
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
             <Box sx={{ p: 1, backgroundColor: '#eff6ff', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -526,6 +531,7 @@ const WarehousePage = () => {
           <IconButton onClick={loadData} disabled={loading} sx={{
             border: '1px solid #e2e8f0', backgroundColor: '#fff', borderRadius: 2,
             '&:hover': { backgroundColor: '#f8fafc' },
+            alignSelf: { xs: 'flex-start', sm: 'auto' }
           }}>
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} style={{ color: '#64748b' }} />
           </IconButton>
@@ -536,7 +542,7 @@ const WarehousePage = () => {
       <InventoryOverview inventory={enrichedInventory} receipts={receipts} />
 
       {/* ── Tab Toggle ── */}
-      <Box sx={{ display: 'flex', gap: 1.5, borderBottom: '1px solid #e2e8f0', pb: 0 }}>
+      <Box sx={{ display: 'flex', gap: 1.5, borderBottom: '1px solid #e2e8f0', pb: 0, flexWrap: 'wrap' }}>
         {([
           { key: 'overview', label: 'Stock Overview', icon: <Package size={15} /> },
           { key: 'receipts', label: 'Inward Receipts', icon: <TrendingDown size={15} /> },
@@ -565,8 +571,8 @@ const WarehousePage = () => {
       {activeTab === 'overview' && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           {/* Search */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box sx={{ position: 'relative', flex: 1, maxWidth: 320 }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'stretch', md: 'center' }, gap: 1.5 }}>
+            <Box sx={{ position: 'relative', flex: 1, maxWidth: { xs: '100%', sm: 320 }, width: '100%' }}>
               <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               <input
                 type="text"
@@ -608,7 +614,7 @@ const WarehousePage = () => {
       {activeTab === 'receipts' && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {/* Search */}
-          <Box sx={{ position: 'relative', maxWidth: 360 }}>
+          <Box sx={{ position: 'relative', maxWidth: { xs: '100%', sm: 360 }, width: '100%' }}>
             <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
             <input
               type="text"
@@ -979,8 +985,8 @@ const WarehousePage = () => {
       <ReceiptDetailDialog receipt={viewReceipt} onClose={() => setViewReceipt(null)} />
 
       {/* ── Delete Confirmation ── */}
-      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
+      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth fullScreen={isMobile}
+        slotProps={{ paper: { sx: { borderRadius: isMobile ? 0 : 3 } } }}>
         <DialogTitle sx={{ fontWeight: 800, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
           <X style={{ color: '#dc2626' }} size={20} /> Delete Receipt
         </DialogTitle>

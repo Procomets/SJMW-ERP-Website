@@ -3,7 +3,7 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, Typography, Box,
   CircularProgress, MenuItem,
-  FormControlLabel, Checkbox,
+  FormControlLabel, Checkbox, useTheme, useMediaQuery
 } from '@mui/material';
 import { X, Calculator, RefreshCw } from 'lucide-react';
 import {
@@ -27,6 +27,8 @@ interface Props {
 }
 
 const CostEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { getByModule, loading: materialsLoading } = useMaterials();
   const activeMaterials = useMemo(() => getByModule('costLedger'), [getByModule]);
 
@@ -210,8 +212,13 @@ const CostEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
   const isFormLoading = materialsLoading;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth
-      slotProps={{ paper: { className: "rounded-xl max-h-[95vh] text-slate-800" } }}
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="lg" 
+      fullWidth
+      fullScreen={isMobile}
+      slotProps={{ paper: { className: isMobile ? "text-slate-800 m-0 w-full h-full" : "rounded-xl max-h-[95vh] text-slate-800" } }}
     >
       {/* Header */}
       <DialogTitle className="flex items-center justify-between border-b border-slate-100 py-4 px-6 bg-slate-50/50">
@@ -330,7 +337,7 @@ const CostEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
                 </div>
 
                 {/* Employee attribution */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <TextField
                     label="Employee Name *"
                     size="small"
@@ -403,7 +410,7 @@ const CostEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <TextField
                     label="Selling Margin (%) *"
                     size="small"
@@ -491,7 +498,7 @@ const CostEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
                   </span>
                 </div>
 
-                <div className="overflow-y-auto max-h-[500px] flex-1">
+                <div className="overflow-y-auto overflow-x-auto max-h-[500px] flex-1 w-full">
                   <table className="min-w-full divide-y divide-slate-200 border-collapse">
                     <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
                       <tr>

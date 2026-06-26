@@ -6,6 +6,7 @@ import {
   CircularProgress, TextField, InputAdornment,
   Dialog, DialogTitle, DialogContent, DialogActions,
   MenuItem, Select, FormControl, InputLabel, Tab, Tabs,
+  useTheme, useMediaQuery,
 } from '@mui/material';
 import {
   Plus, Search, Edit2, Trash2, Beaker,
@@ -89,6 +90,8 @@ const fmtRange = (min: number, max: number) => {
 
 // ─── Main Page ────────────────────────────────────────────────────────────
 const AlloyMasterPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user } = useAuth();
   const [alloys, setAlloys] = useState<AlloyMaster[]>([]);
   const [loading, setLoading] = useState(true);
@@ -220,7 +223,7 @@ const AlloyMasterPage = () => {
   return (
     <Box>
       {/* ── Page Header ── */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
+      <Box sx={{ mb: 3, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'flex-start' }, flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
             <FlaskConical size={20} color="#1565C0" />
@@ -234,7 +237,7 @@ const AlloyMasterPage = () => {
           variant="contained"
           startIcon={<Plus size={16} />}
           onClick={handleOpenAdd}
-          sx={{ borderRadius: 2, fontWeight: 600, px: 2.5 }}
+          sx={{ borderRadius: 2, fontWeight: 600, px: 2.5, width: { xs: '100%', sm: 'auto' } }}
         >
           Add Alloy
         </Button>
@@ -249,7 +252,7 @@ const AlloyMasterPage = () => {
           { label: 'ISO Certified',   value: stats.isoCount,      color: '#7c3aed', bg: '#f5f3ff', icon: <ShieldCheck size={16} /> },
           { label: 'Avg. Margin',     value: `${stats.avgMargin}%`, color: '#9333ea', bg: '#fdf4ff', icon: <Percent size={16} /> },
         ].map((s) => (
-          <Card key={s.label} sx={{ flex: '1 1 120px', boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderRadius: 2.5 }}>
+          <Card key={s.label} sx={{ flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 120px' }, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderRadius: 2.5 }}>
             <CardContent sx={{ py: 2, px: 2.5, '&:last-child': { pb: 2 } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box>
@@ -272,6 +275,8 @@ const AlloyMasterPage = () => {
         <Tabs
           value={pageTab}
           onChange={(_, v) => setPageTab(v)}
+          variant="scrollable"
+          scrollButtons="auto"
           sx={{
             '& .MuiTab-root': { fontSize: '0.8rem', fontWeight: 600, minHeight: 40 },
             '& .MuiTabs-indicator': { height: 3, borderRadius: '3px 3px 0 0' },
@@ -304,16 +309,16 @@ const AlloyMasterPage = () => {
                       ),
                     },
                   }}
-                  sx={{ flex: 1, minWidth: 220, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                  sx={{ flex: { xs: '1 1 100%', sm: 1 }, minWidth: { xs: '100%', sm: 220 }, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
-                <FormControl size="small" sx={{ minWidth: 150 }}>
+                <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 150 }, flex: { xs: '1 1 100%', sm: 'auto' } }}>
                   <InputLabel sx={{ fontSize: '0.8rem' }}>Category</InputLabel>
                   <Select label="Category" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} sx={{ borderRadius: 2, fontSize: '0.8rem' }}>
                     <MenuItem value="All">All Categories</MenuItem>
                     {ALLOY_CATEGORIES.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
                   </Select>
                 </FormControl>
-                <FormControl size="small" sx={{ minWidth: 110 }}>
+                <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 110 }, flex: { xs: '1 1 100%', sm: 'auto' } }}>
                   <InputLabel sx={{ fontSize: '0.8rem' }}>Status</InputLabel>
                   <Select label="Status" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as any)} sx={{ borderRadius: 2, fontSize: '0.8rem' }}>
                     <MenuItem value="All">All</MenuItem>
@@ -321,7 +326,7 @@ const AlloyMasterPage = () => {
                     <MenuItem value="Inactive">Inactive</MenuItem>
                   </Select>
                 </FormControl>
-                <FormControl size="small" sx={{ minWidth: 100 }}>
+                <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 100 }, flex: { xs: '1 1 100%', sm: 'auto' } }}>
                   <InputLabel sx={{ fontSize: '0.8rem' }}>BIS</InputLabel>
                   <Select label="BIS" value={filterBIS} onChange={(e) => setFilterBIS(e.target.value as any)} sx={{ borderRadius: 2, fontSize: '0.8rem' }}>
                     <MenuItem value="All">All</MenuItem>
@@ -329,7 +334,7 @@ const AlloyMasterPage = () => {
                     <MenuItem value="No">No</MenuItem>
                   </Select>
                 </FormControl>
-                <FormControl size="small" sx={{ minWidth: 100 }}>
+                <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 100 }, flex: { xs: '1 1 100%', sm: 'auto' } }}>
                   <InputLabel sx={{ fontSize: '0.8rem' }}>ISO</InputLabel>
                   <Select label="ISO" value={filterISO} onChange={(e) => setFilterISO(e.target.value as any)} sx={{ borderRadius: 2, fontSize: '0.8rem' }}>
                     <MenuItem value="All">All</MenuItem>
@@ -339,7 +344,7 @@ const AlloyMasterPage = () => {
                 </FormControl>
                 {hasActiveFilters && (
                   <Tooltip title="Clear all filters">
-                    <IconButton size="small" onClick={resetFilters} sx={{ color: '#ef4444', '&:hover': { bgcolor: '#fef2f2' } }}>
+                    <IconButton size="small" onClick={resetFilters} sx={{ color: '#ef4444', '&:hover': { bgcolor: '#fef2f2' }, ml: { xs: 'auto', sm: 0 } }}>
                       <RefreshCw size={15} />
                     </IconButton>
                   </Tooltip>
@@ -377,7 +382,7 @@ const AlloyMasterPage = () => {
                 )}
               </Box>
             ) : (
-              <TableContainer>
+              <TableContainer sx={{ overflowX: 'auto', width: '100%' }}>
                 <Table size="small">
                   <TableHead>
                     <TableRow sx={{ bgcolor: '#f8fafc' }}>
@@ -609,7 +614,7 @@ const AlloyMasterPage = () => {
               <CircularProgress size={28} />
             </Box>
           ) : (
-            <TableContainer sx={{ maxHeight: 'calc(100vh - 380px)' }}>
+            <TableContainer sx={{ maxHeight: 'calc(100vh - 380px)', overflowX: 'auto', width: '100%' }}>
               <Table size="small" stickyHeader>
                 <TableHead>
                   <TableRow>
@@ -709,7 +714,7 @@ const AlloyMasterPage = () => {
       />
 
       {/* Delete Confirmation */}
-      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
+      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth fullScreen={isMobile} slotProps={{ paper: { sx: { borderRadius: isMobile ? 0 : 3 } } }}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
           <Box sx={{ p: 1, bgcolor: '#fef2f2', borderRadius: 1.5, display: 'flex' }}>
             <AlertTriangle size={18} color="#dc2626" />
@@ -736,7 +741,7 @@ const AlloyMasterPage = () => {
       </Dialog>
 
       {/* Status Change Confirmation */}
-      <Dialog open={!!statusConfirm} onClose={() => setStatusConfirm(null)} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
+      <Dialog open={!!statusConfirm} onClose={() => setStatusConfirm(null)} maxWidth="xs" fullWidth fullScreen={isMobile} slotProps={{ paper: { sx: { borderRadius: isMobile ? 0 : 3 } } }}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
           <Box sx={{ p: 1, bgcolor: '#fef9c3', borderRadius: 1.5, display: 'flex' }}>
             <AlertTriangle size={18} color="#b45309" />

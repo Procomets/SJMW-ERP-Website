@@ -4,6 +4,7 @@ import {
   Button, TextField, Typography, Box,
   Divider, CircularProgress, MenuItem,
   FormControlLabel, Switch, Grid,
+  useTheme, useMediaQuery,
 } from '@mui/material';
 import { X, Package, ShieldCheck } from 'lucide-react';
 import type { MaterialMaster, MaterialMasterFormData } from '../types/materialMaster.types';
@@ -24,6 +25,8 @@ const VISIBILITY_FIELDS = [
 ] as const;
 
 const MaterialDialog = ({ open, onClose, onSave, editMaterial }: Props) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [form, setForm] = useState<MaterialMasterFormData>(getEmptyMaterialForm());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -78,8 +81,8 @@ const MaterialDialog = ({ open, onClose, onSave, editMaterial }: Props) => {
   const isEdit = !!editMaterial;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth
-      slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth fullScreen={isMobile}
+      slotProps={{ paper: { sx: { borderRadius: isMobile ? 0 : 3, maxHeight: isMobile ? '100vh' : '92vh' } } }}
     >
       {/* Header */}
       <DialogTitle sx={{
@@ -117,7 +120,7 @@ const MaterialDialog = ({ open, onClose, onSave, editMaterial }: Props) => {
           Basic Information
         </Typography>
         <Grid container spacing={2}>
-          <Grid size={{ xs: 6 }}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <TextField
               label="Material Code *"
               size="small"
@@ -128,7 +131,7 @@ const MaterialDialog = ({ open, onClose, onSave, editMaterial }: Props) => {
               slotProps={{ htmlInput: { style: { textTransform: 'uppercase' as const } } }}
             />
           </Grid>
-          <Grid size={{ xs: 6 }}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <TextField
               label="Material ID"
               size="small"
@@ -159,7 +162,7 @@ const MaterialDialog = ({ open, onClose, onSave, editMaterial }: Props) => {
           Technical Properties
         </Typography>
         <Grid container spacing={2}>
-          <Grid size={{ xs: 4 }}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <TextField
               label="Efficiency %"
               size="small"
@@ -173,7 +176,7 @@ const MaterialDialog = ({ open, onClose, onSave, editMaterial }: Props) => {
               }}
             />
           </Grid>
-          <Grid size={{ xs: 4 }}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <TextField
               label="Min. Stock"
               size="small"
@@ -187,7 +190,7 @@ const MaterialDialog = ({ open, onClose, onSave, editMaterial }: Props) => {
               }}
             />
           </Grid>
-          <Grid size={{ xs: 4 }}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <TextField
               label="Unit"
               size="small"

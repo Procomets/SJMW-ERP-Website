@@ -6,6 +6,7 @@ import {
   CircularProgress, TextField, InputAdornment,
   Dialog, DialogTitle, DialogContent, DialogActions,
   MenuItem, Select, FormControl, InputLabel,
+  useTheme, useMediaQuery,
 } from '@mui/material';
 import {
   Plus, Search, Edit2, Trash2, Eye, Building2,
@@ -67,6 +68,8 @@ const StatusBadge = ({ status }: { status: VendorStatus }) => {
 // ─── Main Page ────────────────────────────────────────────────
 const VendorMasterPage = () => {
   const { user } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [vendors, setVendors] = useState<VendorMaster[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -186,7 +189,7 @@ const VendorMasterPage = () => {
   return (
     <Box>
       {/* ── Page Header ── */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
+      <Box sx={{ mb: 3, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'flex-start' }, justifyContent: 'space-between', gap: 2 }}>
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
             <Building2 size={20} color="#1565C0" />
@@ -200,7 +203,7 @@ const VendorMasterPage = () => {
           variant="contained"
           startIcon={<Plus size={16} />}
           onClick={handleOpenAdd}
-          sx={{ borderRadius: 2, fontWeight: 600, px: 2.5 }}
+          sx={{ borderRadius: 2, fontWeight: 600, px: 2.5, width: { xs: '100%', sm: 'auto' } }}
         >
           Add Vendor / Customer
         </Button>
@@ -216,7 +219,7 @@ const VendorMasterPage = () => {
           { label: 'Inactive', value: stats.inactive, color: '#b45309', bg: '#fef9c3', icon: <XCircle size={16} /> },
           { label: 'Blocked', value: stats.blocked, color: '#dc2626', bg: '#fee2e2', icon: <Ban size={16} /> },
         ].map((s) => (
-          <Card key={s.label} sx={{ flex: '1 1 130px', boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderRadius: 2.5 }}>
+          <Card key={s.label} sx={{ flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 130px' }, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderRadius: 2.5 }}>
             <CardContent sx={{ py: 2, px: 2.5, '&:last-child': { pb: 2 } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box>
@@ -237,7 +240,7 @@ const VendorMasterPage = () => {
       {/* ── Search & Filters ── */}
       <Card sx={{ mb: 2, borderRadius: 2.5, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
         <CardContent sx={{ py: 1.5, px: 2.5, '&:last-child': { pb: 1.5 } }}>
-          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 1.5, flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, flexWrap: 'wrap' }}>
             <TextField
               size="small"
               placeholder="Search by name, code, GST, PAN, phone, email, state..."
@@ -252,10 +255,10 @@ const VendorMasterPage = () => {
                   ),
                 }
               }}
-              sx={{ flex: 1, minWidth: 250, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+              sx={{ flex: { xs: '1 1 100%', sm: 1 }, minWidth: { xs: '100%', sm: 250 }, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
 
-            <FormControl size="small" sx={{ minWidth: 130 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 130 } }}>
               <InputLabel sx={{ fontSize: '0.8rem' }}>Category</InputLabel>
               <Select
                 label="Category"
@@ -270,7 +273,7 @@ const VendorMasterPage = () => {
               </Select>
             </FormControl>
 
-            <FormControl size="small" sx={{ minWidth: 120 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 120 } }}>
               <InputLabel sx={{ fontSize: '0.8rem' }}>Status</InputLabel>
               <Select
                 label="Status"
@@ -285,7 +288,7 @@ const VendorMasterPage = () => {
               </Select>
             </FormControl>
 
-            <FormControl size="small" sx={{ minWidth: 140 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 140 } }}>
               <InputLabel sx={{ fontSize: '0.8rem' }}>GST</InputLabel>
               <Select
                 label="GST"
@@ -340,7 +343,7 @@ const VendorMasterPage = () => {
             )}
           </Box>
         ) : (
-          <TableContainer>
+          <TableContainer sx={{ overflowX: 'auto', width: '100%' }}>
             <Table size="small">
               <TableHead>
                 <TableRow sx={{ bgcolor: '#f8fafc' }}>
@@ -537,7 +540,7 @@ const VendorMasterPage = () => {
       />
 
       {/* Delete Confirmation */}
-      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
+      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth fullScreen={isMobile} slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
           <Box sx={{ p: 1, bgcolor: '#fef2f2', borderRadius: 1.5, display: 'flex' }}>
             <AlertTriangle size={18} color="#dc2626" />
@@ -570,7 +573,7 @@ const VendorMasterPage = () => {
       </Dialog>
 
       {/* Status Change Confirmation */}
-      <Dialog open={!!statusConfirm} onClose={() => setStatusConfirm(null)} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
+      <Dialog open={!!statusConfirm} onClose={() => setStatusConfirm(null)} maxWidth="xs" fullWidth fullScreen={isMobile} slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
           <Box sx={{ p: 1, bgcolor: '#fef9c3', borderRadius: 1.5, display: 'flex' }}>
             <AlertTriangle size={18} color="#b45309" />

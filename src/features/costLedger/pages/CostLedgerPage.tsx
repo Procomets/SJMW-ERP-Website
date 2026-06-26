@@ -3,7 +3,7 @@ import {
   Box, Typography, Card, CardContent, Button, IconButton,
   Tooltip, CircularProgress, Dialog, DialogTitle, DialogContent,
   DialogActions, Skeleton, Select, MenuItem,
-  FormControl, InputLabel, TextField
+  FormControl, InputLabel, TextField, useTheme, useMediaQuery
 } from '@mui/material';
 import {
   Search, Plus, Edit, Trash2, RefreshCw, Download, FileSpreadsheet,
@@ -44,6 +44,8 @@ const fmtQty = (val: number | undefined) => {
 };
 
 const CostLedgerPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { getByModule, loading: materialsLoading } = useMaterials();
   const costMaterials = getByModule('costLedger');
 
@@ -352,17 +354,19 @@ const CostLedgerPage = () => {
             Material Cost Analysis and Production Cost Tracking
           </Typography>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Tooltip title="Refresh Ledger">
-            <IconButton onClick={loadData} disabled={loading} className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg p-2.5">
-              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-            </IconButton>
-          </Tooltip>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <Tooltip title="Refresh Ledger">
+              <IconButton onClick={loadData} disabled={loading} className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg p-2.5">
+                <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+              </IconButton>
+            </Tooltip>
+          </div>
           <Button
             onClick={handleExportCSV}
             variant="outlined"
             startIcon={<Download size={16} />}
-            className="text-slate-700 border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 font-semibold px-4 rounded-lg h-10 text-xs"
+            className="text-slate-700 border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 font-semibold px-4 rounded-lg h-10 text-xs w-full sm:w-auto"
           >
             Export CSV
           </Button>
@@ -370,7 +374,7 @@ const CostLedgerPage = () => {
             onClick={handleExportExcel}
             variant="outlined"
             startIcon={<FileSpreadsheet size={16} />}
-            className="text-emerald-700 border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50 hover:border-emerald-200 font-semibold px-4 rounded-lg h-10 text-xs"
+            className="text-emerald-700 border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50 hover:border-emerald-200 font-semibold px-4 rounded-lg h-10 text-xs w-full sm:w-auto"
           >
             Export Excel
           </Button>
@@ -378,7 +382,7 @@ const CostLedgerPage = () => {
             onClick={openAddEntry}
             variant="contained"
             startIcon={<Plus size={16} />}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 rounded-lg h-10 text-xs shadow-md shadow-blue-500/20"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 rounded-lg h-10 text-xs shadow-md shadow-blue-500/20 w-full sm:w-auto"
           >
             Add Cost Entry
           </Button>
@@ -803,8 +807,13 @@ const CostLedgerPage = () => {
       />
 
       {/* ── Delete Confirmation Dialog ── */}
-      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth
-        slotProps={{ paper: { className: "rounded-xl text-slate-800" } }}
+      <Dialog 
+        open={!!deleteTarget} 
+        onClose={() => setDeleteTarget(null)} 
+        maxWidth="xs" 
+        fullWidth
+        fullScreen={isMobile}
+        slotProps={{ paper: { className: isMobile ? "text-slate-800 m-0 w-full h-full" : "rounded-xl text-slate-800" } }}
       >
         <DialogTitle className="font-bold text-lg pb-1.5 flex items-center gap-1.5">
           <X className="text-red-500" size={20} /> Delete Cost Entry

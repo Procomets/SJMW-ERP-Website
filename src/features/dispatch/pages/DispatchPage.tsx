@@ -3,7 +3,7 @@ import {
   Box, Typography, Card, CardContent, Button, IconButton,
   Tooltip, CircularProgress, Dialog, DialogTitle, DialogContent,
   DialogActions, TextField, Select, MenuItem, FormControl,
-  InputLabel, Chip, Divider, Autocomplete,
+  InputLabel, Chip, Divider, Autocomplete, useTheme, useMediaQuery,
 } from '@mui/material';
 import {
   Truck, Plus, Edit2, Trash2, RefreshCw, Search,
@@ -211,6 +211,8 @@ interface DispatchDialogProps {
 }
 
 const DispatchDialog = ({ open, onClose, onSave, initial, finishedGoods, customers, saving }: DispatchDialogProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const emptyForm = (): DispatchFormData => ({
     dispatchDate: new Date().toISOString().slice(0, 10),
     customerId: '',
@@ -331,7 +333,14 @@ const DispatchDialog = ({ open, onClose, onSave, initial, finishedGoods, custome
 
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth slotProps={{ paper: { sx: { borderRadius: 3, maxHeight: '90vh' } } }}>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="md" 
+      fullWidth 
+      fullScreen={isMobile}
+      slotProps={{ paper: { sx: { borderRadius: isMobile ? 0 : 3, maxHeight: isMobile ? '100vh' : '90vh' } } }}
+    >
       <DialogTitle sx={{ pb: 1, borderBottom: '1px solid #f1f5f9' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -346,7 +355,7 @@ const DispatchDialog = ({ open, onClose, onSave, initial, finishedGoods, custome
 
       <DialogContent sx={{ pt: 2.5, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
         {/* Row 1: Date + Customer */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 2 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 2fr' }, gap: 2 }}>
           <TextField
             label="Dispatch Date"
             type="date"
@@ -381,7 +390,7 @@ const DispatchDialog = ({ open, onClose, onSave, initial, finishedGoods, custome
         </Box>
 
         {/* Row 2: Vehicle + Driver */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
           <TextField
             label="Vehicle Number"
             size="small"
@@ -458,7 +467,7 @@ const DispatchDialog = ({ open, onClose, onSave, initial, finishedGoods, custome
           ) : (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {/* Header */}
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: 1, px: 1.5 }}>
+              <Box sx={{ display: { xs: 'none', sm: 'grid' }, gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: 1, px: 1.5 }}>
                 {['Heat No.', 'Dispatch Wt (kg)', 'Max Avail (kg)', 'Dispatch Pcs', ''].map((h) => (
                   <Typography key={h} sx={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>{h}</Typography>
                 ))}
@@ -466,38 +475,67 @@ const DispatchDialog = ({ open, onClose, onSave, initial, finishedGoods, custome
               {form.dispatchItems.map((item, idx) => (
                 <Box
                   key={idx}
-                  sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: 1, alignItems: 'center', bgcolor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 1.5, px: 1.5, py: 1 }}
+                  sx={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr 1fr auto' }, 
+                    gap: 1.5, 
+                    alignItems: 'center', 
+                    bgcolor: '#f8fafc', 
+                    border: '1px solid #e2e8f0', 
+                    borderRadius: 1.5, 
+                    px: 1.5, 
+                    py: 1 
+                  }}
                 >
-                  <Box>
-                    <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: THEME }}>{item.heatNo}</Typography>
-                    <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8' }}>Avail: {item.availablePieces} pcs</Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gridColumn: { xs: '1 / -1', sm: 'auto' } }}>
+                    <Box>
+                      <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: THEME }}>{item.heatNo}</Typography>
+                      <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8' }}>Avail: {item.availablePieces} pcs</Typography>
+                    </Box>
+                    <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+                      <IconButton size="small" onClick={() => removeHeat(idx)} sx={{ color: '#ef4444' }}>
+                        <X size={16} />
+                      </IconButton>
+                    </Box>
                   </Box>
-                  <TextField
-                    size="small"
-                    type="number"
-                    value={item.dispatchWeightKg}
-                    onChange={(e) => updateItem(idx, 'dispatchWeightKg', e.target.value)}
-                    error={!!errors[`wt_${idx}`]}
-                    helperText={errors[`wt_${idx}`]}
-                    slotProps={{ htmlInput: { min: 0, max: item.availableWeightKg, step: 0.1 } }}
-                    sx={{ '& .MuiInputBase-input': { fontSize: '0.82rem' } }}
-                  />
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', pl: 0.5 }}>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    <Typography sx={{ display: { xs: 'block', sm: 'none' }, fontSize: '0.65rem', fontWeight: 700, color: '#64748b' }}>Dispatch Wt (kg)</Typography>
+                    <TextField
+                      size="small"
+                      type="number"
+                      value={item.dispatchWeightKg}
+                      onChange={(e) => updateItem(idx, 'dispatchWeightKg', e.target.value)}
+                      error={!!errors[`wt_${idx}`]}
+                      helperText={errors[`wt_${idx}`] || (isMobile ? `Max: ${item.availableWeightKg} kg` : '')}
+                      slotProps={{ htmlInput: { min: 0, max: item.availableWeightKg, step: 0.1 } }}
+                      sx={{ '& .MuiInputBase-input': { fontSize: '0.82rem' } }}
+                    />
+                  </Box>
+
+                  <Typography sx={{ display: { xs: 'none', sm: 'block' }, fontSize: '0.75rem', color: '#64748b', pl: 0.5 }}>
                     ≤ {item.availableWeightKg} kg
                   </Typography>
-                  <TextField
-                    size="small"
-                    type="number"
-                    value={item.dispatchPieces}
-                    onChange={(e) => updateItem(idx, 'dispatchPieces', e.target.value)}
-                    error={!!errors[`pcs_${idx}`]}
-                    helperText={errors[`pcs_${idx}`]}
-                    slotProps={{ htmlInput: { min: 0, max: item.availablePieces, step: 1 } }}
-                    sx={{ '& .MuiInputBase-input': { fontSize: '0.82rem' } }}
-                  />
-                  <IconButton size="small" onClick={() => removeHeat(idx)} sx={{ color: '#ef4444' }}>
-                    <X size={14} />
-                  </IconButton>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    <Typography sx={{ display: { xs: 'block', sm: 'none' }, fontSize: '0.65rem', fontWeight: 700, color: '#64748b' }}>Dispatch Pieces</Typography>
+                    <TextField
+                      size="small"
+                      type="number"
+                      value={item.dispatchPieces}
+                      onChange={(e) => updateItem(idx, 'dispatchPieces', e.target.value)}
+                      error={!!errors[`pcs_${idx}`]}
+                      helperText={errors[`pcs_${idx}`] || (isMobile ? `Max: ${item.availablePieces} pcs` : '')}
+                      slotProps={{ htmlInput: { min: 0, max: item.availablePieces, step: 1 } }}
+                      sx={{ '& .MuiInputBase-input': { fontSize: '0.82rem' } }}
+                    />
+                  </Box>
+
+                  <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                    <IconButton size="small" onClick={() => removeHeat(idx)} sx={{ color: '#ef4444' }}>
+                      <X size={14} />
+                    </IconButton>
+                  </Box>
                 </Box>
               ))}
 
@@ -548,8 +586,18 @@ const DeleteConfirmDialog = ({
   onClose: () => void;
   onConfirm: () => Promise<void>;
   deleting: boolean;
-}) => (
-  <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
+}) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  return (
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="xs" 
+      fullWidth 
+      fullScreen={isMobile}
+      slotProps={{ paper: { sx: { borderRadius: isMobile ? 0 : 3 } } }}
+    >
     <DialogTitle sx={{ pb: 1 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <AlertTriangle size={20} color="#dc2626" />
@@ -562,24 +610,25 @@ const DeleteConfirmDialog = ({
       </Typography>
     </DialogContent>
     <DialogActions sx={{ px: 2.5, pb: 2, gap: 1 }}>
-      <Button onClick={onClose} variant="outlined" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Cancel</Button>
-      <Button
-        onClick={onConfirm}
-        variant="contained"
-        color="error"
-        disabled={deleting}
-        startIcon={deleting ? <CircularProgress size={13} color="inherit" /> : <Trash2 size={13} />}
-        sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
-      >
-        {deleting ? 'Deleting…' : 'Delete'}
-      </Button>
-    </DialogActions>
-  </Dialog>
-);
+        <Button onClick={onClose} variant="outlined" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Cancel</Button>
+        <Button
+          onClick={onConfirm}
+          variant="contained"
+          color="error"
+          disabled={deleting}
+          startIcon={deleting ? <CircularProgress size={13} color="inherit" /> : <Trash2 size={13} />}
+          sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+        >
+          {deleting ? 'Deleting…' : 'Delete'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
 const KpiCard = ({ icon, label, value, sub, color }: { icon: React.ReactNode; label: string; value: string; sub?: string; color: string }) => (
-  <Card elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 2.5, flex: 1, minWidth: 0 }}>
+  <Card elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 2.5, flex: { xs: '1 1 100%', sm: '1 1 200px' }, minWidth: 0 }}>
     <CardContent sx={{ p: '16px !important' }}>
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <Box>
@@ -780,7 +829,7 @@ export default function DispatchPage() {
             Track all outgoing finished goods delivered to customers
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, width: { xs: '100%', sm: 'auto' }, alignItems: 'center' }}>
           <Tooltip title="Refresh">
             <IconButton onClick={load} disabled={loading} sx={{ border: '1px solid #e2e8f0', borderRadius: 2 }}>
               <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
@@ -790,7 +839,7 @@ export default function DispatchPage() {
             variant="contained"
             startIcon={<Plus size={16} />}
             onClick={() => { setEditTarget(null); setDialogOpen(true); }}
-            sx={{ bgcolor: THEME, borderRadius: 2, textTransform: 'none', fontWeight: 700, px: 2.5 }}
+            sx={{ bgcolor: THEME, borderRadius: 2, textTransform: 'none', fontWeight: 700, px: 2.5, flexGrow: { xs: 1, sm: 0 } }}
           >
             New Dispatch
           </Button>
@@ -809,7 +858,7 @@ export default function DispatchPage() {
       <Card elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 2.5, mb: 2 }}>
         <CardContent sx={{ p: '12px 16px !important' }}>
           <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: '1 1 220px', bgcolor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 1.5, px: 1.5, py: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: { xs: '1 1 100%', sm: '1 1 220px' }, bgcolor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 1.5, px: 1.5, py: 0.5 }}>
               <Search size={14} color="#94a3b8" />
               <input
                 placeholder="Search dispatch no., customer, vehicle, heat…"
@@ -818,7 +867,7 @@ export default function DispatchPage() {
                 style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.82rem', width: '100%', color: '#1e293b' }}
               />
             </Box>
-            <FormControl size="small" sx={{ minWidth: 160 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
               <InputLabel sx={{ fontSize: '0.8rem' }}>Customer</InputLabel>
               <Select
                 label="Customer" value={customerFilter} onChange={(e) => { setCustomerFilter(e.target.value as string); setPage(1); }}
@@ -828,7 +877,7 @@ export default function DispatchPage() {
                 {uniqueCustomers.map((c) => <MenuItem key={c} value={c} sx={{ fontSize: '0.82rem' }}>{c}</MenuItem>)}
               </Select>
             </FormControl>
-            <FormControl size="small" sx={{ minWidth: 130 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 130 } }}>
               <InputLabel sx={{ fontSize: '0.8rem' }}>Alloy</InputLabel>
               <Select
                 label="Alloy" value={alloyFilter} onChange={(e) => { setAlloyFilter(e.target.value as string); setPage(1); }}

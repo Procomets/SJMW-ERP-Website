@@ -5,7 +5,7 @@ import {
     TableRow, Paper, IconButton, Chip, Tooltip,
     CircularProgress, Dialog, DialogTitle, DialogContent,
     DialogActions, Skeleton, TextField, FormControl,
-    InputLabel, Select, MenuItem,
+    InputLabel, Select, MenuItem, useTheme, useMediaQuery,
 } from '@mui/material';
 import {
     Search, Plus, Edit, Trash2, RefreshCw, Download,
@@ -60,6 +60,8 @@ const bodyCell = {
 
 // ─── component ─────────────────────────────────────────────────────────────────
 const ProductionLedgerPage = () => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const { getByModule, loading: materialsLoading } = useMaterials();
     const productionMaterials = getByModule('production');
 
@@ -234,18 +236,20 @@ const ProductionLedgerPage = () => {
                         Digital register for all production heats and material inputs.
                     </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', gap: 1.5 }}>
-                    <Tooltip title="Refresh">
-                        <IconButton onClick={load} disabled={loading}>
-                            <RefreshCw size={18} className={loading ? 'spin' : ''} />
-                        </IconButton>
-                    </Tooltip>
-                    <Button variant="outlined" startIcon={<Download size={16} />}>Export</Button>
+                <Box sx={{ display: 'flex', gap: 1.5, width: { xs: '100%', sm: 'auto' }, flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'stretch' }}>
+                    <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', alignSelf: { xs: 'flex-start', sm: 'auto' } }}>
+                        <Tooltip title="Refresh">
+                            <IconButton onClick={load} disabled={loading}>
+                                <RefreshCw size={18} className={loading ? 'spin' : ''} />
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+                    <Button variant="outlined" startIcon={<Download size={16} />} sx={{ width: { xs: '100%', sm: 'auto' } }}>Export</Button>
                     <Button
                         variant="contained"
                         startIcon={<Plus size={16} />}
                         onClick={openAdd}
-                        sx={{ background: 'linear-gradient(135deg, #1565C0, #1976d2)', fontWeight: 600 }}
+                        sx={{ background: 'linear-gradient(135deg, #1565C0, #1976d2)', fontWeight: 600, width: { xs: '100%', sm: 'auto' } }}
                     >
                         Add Entry
                     </Button>
@@ -259,7 +263,7 @@ const ProductionLedgerPage = () => {
                     { label: 'Avg Efficiency', value: `${avgEff}%`, color: '#2e7d32', bg: '#e8f5e9' },
                     { label: 'Total Good Ingots', value: `${totalGood} Kg`, color: '#e65100', bg: '#fff3e0' },
                 ].map((k) => (
-                    <Card key={k.label} sx={{ flex: '1 1 160px', borderRadius: 2, border: `1px solid ${k.bg}` }}>
+                    <Card key={k.label} sx={{ flex: { xs: '1 1 100%', sm: '1 1 160px' }, borderRadius: 2, border: `1px solid ${k.bg}` }}>
                         <CardContent sx={{ py: '12px !important', px: 2 }}>
                             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 0.5 }}>
                                 {k.label.toUpperCase()}
@@ -316,7 +320,7 @@ const ProductionLedgerPage = () => {
                             value={filterHeatNo}
                             onChange={(e) => setFilterHeatNo(e.target.value)}
                             sx={{
-                                flex: '1 1 180px',
+                                flex: { xs: '1 1 100%', sm: '1 1 180px' },
                                 '& .MuiOutlinedInput-root': {
                                     borderRadius: 2,
                                     backgroundColor: '#fff',
@@ -344,7 +348,7 @@ const ProductionLedgerPage = () => {
                                 }
                             }}
                             sx={{
-                                flex: '1 1 140px',
+                                flex: { xs: '1 1 100%', sm: '1 1 140px' },
                                 '& .MuiOutlinedInput-root': {
                                     borderRadius: 2,
                                     backgroundColor: '#fff',
@@ -372,7 +376,7 @@ const ProductionLedgerPage = () => {
                                 }
                             }}
                             sx={{
-                                flex: '1 1 140px',
+                                flex: { xs: '1 1 100%', sm: '1 1 140px' },
                                 '& .MuiOutlinedInput-root': {
                                     borderRadius: 2,
                                     backgroundColor: '#fff',
@@ -382,7 +386,7 @@ const ProductionLedgerPage = () => {
                         />
 
                         {/* Alloy Type */}
-                        <FormControl size="small" sx={{ flex: '1 1 140px' }}>
+                        <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '1 1 140px' } }}>
                             <InputLabel id="alloy-type-label" sx={{ fontSize: '0.8rem' }}>Alloy Type</InputLabel>
                             <Select
                                 labelId="alloy-type-label"
@@ -403,7 +407,7 @@ const ProductionLedgerPage = () => {
                         </FormControl>
 
                         {/* Employee */}
-                        <FormControl size="small" sx={{ flex: '1 1 140px' }}>
+                        <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '1 1 140px' } }}>
                             <InputLabel id="employee-label" sx={{ fontSize: '0.8rem' }}>Employee</InputLabel>
                             <Select
                                 labelId="employee-label"
@@ -424,7 +428,7 @@ const ProductionLedgerPage = () => {
                         </FormControl>
 
                         {/* Role */}
-                        <FormControl size="small" sx={{ flex: '1 1 140px' }}>
+                        <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '1 1 140px' } }}>
                             <InputLabel id="role-label" sx={{ fontSize: '0.8rem' }}>Role</InputLabel>
                             <Select
                                 labelId="role-label"
@@ -618,8 +622,13 @@ const ProductionLedgerPage = () => {
             />
 
             {/* ── Delete Confirm Dialog ── */}
-            <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth
-                slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+            <Dialog 
+                open={!!deleteTarget} 
+                onClose={() => setDeleteTarget(null)} 
+                maxWidth="xs" 
+                fullWidth
+                fullScreen={isMobile}
+                slotProps={{ paper: { sx: { borderRadius: isMobile ? 0 : 3 } } }}
             >
                 <DialogTitle sx={{ fontWeight: 700 }}>Delete Entry</DialogTitle>
                 <DialogContent>

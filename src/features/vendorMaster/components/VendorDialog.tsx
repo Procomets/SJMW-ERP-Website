@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTheme, useMediaQuery } from '@mui/material';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, Typography, Box, Divider,
@@ -40,6 +41,9 @@ const SectionHeading = ({ children }: { children: React.ReactNode }) => (
 );
 
 const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const [form, setForm] = useState<VendorMasterFormData>(getEmptyVendorForm());
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -171,7 +175,8 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
       onClose={onClose}
       maxWidth="md"
       fullWidth
-      slotProps={{ paper: { sx: { borderRadius: 3, maxHeight: '92vh' } } }}
+      fullScreen={isMobile}
+      slotProps={{ paper: { sx: { borderRadius: isMobile ? 0 : 3, maxHeight: isMobile ? '100vh' : '92vh' } } }}
     >
       {/* Header */}
       <DialogTitle sx={{
@@ -200,30 +205,37 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
       </DialogTitle>
 
       {/* Stepper */}
-      <Box sx={{ px: 3, pt: 2.5, pb: 1, bgcolor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-        <Stepper activeStep={step} alternativeLabel>
-          {STEPS.map((s, i) => (
-            <Step key={s.label} completed={i < step}>
-              <StepLabel
-                sx={{
-                  '& .MuiStepLabel-label': {
-                    fontSize: '0.7rem',
-                    fontWeight: i === step ? 700 : 500,
-                    color: i === step ? '#1565C0' : i < step ? '#15803d' : '#94a3b8',
-                    mt: 0.5,
-                  },
-                  '& .MuiStepIcon-root': {
-                    color: i < step ? '#15803d' : i === step ? '#1565C0' : '#e2e8f0',
-                    width: 24, height: 24,
-                  },
-                  '& .MuiStepIcon-text': { fontSize: '0.6rem', fontWeight: 700 },
-                }}
-              >
-                {s.label}
-              </StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+      <Box sx={{ px: 3, pt: 2.5, pb: 2, bgcolor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+          <Stepper activeStep={step} alternativeLabel>
+            {STEPS.map((s, i) => (
+              <Step key={s.label} completed={i < step}>
+                <StepLabel
+                  sx={{
+                    '& .MuiStepLabel-label': {
+                      fontSize: '0.7rem',
+                      fontWeight: i === step ? 700 : 500,
+                      color: i === step ? '#1565C0' : i < step ? '#15803d' : '#94a3b8',
+                      mt: 0.5,
+                    },
+                    '& .MuiStepIcon-root': {
+                      color: i < step ? '#15803d' : i === step ? '#1565C0' : '#e2e8f0',
+                      width: 24, height: 24,
+                    },
+                    '& .MuiStepIcon-text': { fontSize: '0.6rem', fontWeight: 700 },
+                  }}
+                >
+                  {s.label}
+                </StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+        </Box>
+        <Box sx={{ display: { xs: 'block', sm: 'none' }, textAlign: 'center' }}>
+          <Typography variant="body2" sx={{ fontWeight: 700, color: '#1565C0' }}>
+            Step {step + 1} of {STEPS.length}: {STEPS[step].label}
+          </Typography>
+        </Box>
       </Box>
 
       <DialogContent sx={{ py: 2.5, px: 3, overflowY: 'auto' }}>
@@ -249,7 +261,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   placeholder="e.g. ABC Metals Pvt Ltd"
                 />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Vendor Category *"
                   size="small"
@@ -271,7 +283,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   ))}
                 </TextField>
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Vendor Type *"
                   size="small"
@@ -288,7 +300,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
 
               {/* Preview category chip */}
               <Grid size={{ xs: 12 }}>
-                <Box sx={{ p: 1.5, bgcolor: '#f8fafc', borderRadius: 1.5, border: '1px solid #e2e8f0', display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Box sx={{ p: 1.5, bgcolor: '#f8fafc', borderRadius: 1.5, border: '1px solid #e2e8f0', display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
                   <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>Role in ERP:</Typography>
                   <Chip
                     label={form.vendorCategory}
@@ -308,7 +320,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                 </Box>
               </Grid>
 
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Status"
                   size="small"
@@ -351,7 +363,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   placeholder="Area / Landmark"
                 />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="City *"
                   size="small"
@@ -360,7 +372,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   onChange={(e) => setAddress('city', e.target.value)}
                 />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="District"
                   size="small"
@@ -369,7 +381,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   onChange={(e) => setAddress('district', e.target.value)}
                 />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="State *"
                   size="small"
@@ -383,7 +395,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   ))}
                 </TextField>
               </Grid>
-              <Grid size={{ xs: 3 }}>
+              <Grid size={{ xs: 6, sm: 3 }}>
                 <TextField
                   label="State Code"
                   size="small"
@@ -393,7 +405,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   sx={{ bgcolor: '#f8fafc' }}
                 />
               </Grid>
-              <Grid size={{ xs: 3 }}>
+              <Grid size={{ xs: 6, sm: 3 }}>
                 <TextField
                   label="Pin Code *"
                   size="small"
@@ -404,7 +416,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   placeholder="6 digits"
                 />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Country"
                   size="small"
@@ -465,7 +477,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                 </Grid>
               )}
 
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="PAN Number"
                   size="small"
@@ -476,7 +488,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   slotProps={{ htmlInput: { maxLength: 10, style: { textTransform: 'uppercase', fontFamily: 'monospace' } } }}
                 />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="TAN Number"
                   size="small"
@@ -487,7 +499,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   slotProps={{ htmlInput: { style: { textTransform: 'uppercase', fontFamily: 'monospace' } } }}
                 />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="MSME Number"
                   size="small"
@@ -499,7 +511,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
               </Grid>
 
               {form.vendorType === 'Proprietorship' && (
-                <Grid size={{ xs: 6 }}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     label="Aadhaar Number"
                     size="small"
@@ -531,7 +543,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   placeholder="Primary contact at this company"
                 />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Contact Number"
                   size="small"
@@ -542,7 +554,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   slotProps={{ htmlInput: { inputMode: 'numeric' as const, maxLength: 10 } }}
                 />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Alternate Contact"
                   size="small"
@@ -553,7 +565,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   slotProps={{ htmlInput: { inputMode: 'numeric' as const, maxLength: 10 } }}
                 />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Email Address"
                   size="small"
@@ -564,7 +576,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   placeholder="company@example.com"
                 />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Website"
                   size="small"
@@ -583,7 +595,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
           <Box>
             <SectionHeading>Bank Account Details (Optional)</SectionHeading>
             <Grid container spacing={2}>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Bank Name"
                   size="small"
@@ -593,7 +605,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   placeholder="e.g. State Bank of India"
                 />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Branch Name"
                   size="small"
@@ -603,7 +615,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   placeholder="e.g. Chennai Main Branch"
                 />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Account Number"
                   size="small"
@@ -614,7 +626,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   slotProps={{ htmlInput: { style: { fontFamily: 'monospace' } } }}
                 />
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="IFSC Code"
                   size="small"
@@ -646,7 +658,7 @@ const VendorDialog = ({ open, onClose, onSave, editVendor }: Props) => {
                   { label: 'Email', value: form.email || '—' },
                   { label: 'Status', value: form.status },
                 ].map((item) => (
-                  <Grid key={item.label} size={{ xs: 6 }}>
+                  <Grid key={item.label} size={{ xs: 12, sm: 6 }}>
                     <Box sx={{ display: 'flex', gap: 0.5 }}>
                       <Typography sx={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600, minWidth: 60 }}>{item.label}:</Typography>
                       <Typography sx={{ fontSize: '0.68rem', color: '#1e293b', fontWeight: 500, wordBreak: 'break-all' }}>{item.value || '—'}</Typography>

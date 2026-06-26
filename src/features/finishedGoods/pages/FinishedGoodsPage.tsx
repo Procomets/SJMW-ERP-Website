@@ -3,7 +3,7 @@ import {
   Box, Typography, Card, CardContent, Button, IconButton,
   Tooltip, CircularProgress, Dialog, DialogTitle, DialogContent,
   DialogActions, Skeleton, Select, MenuItem, FormControl,
-  InputLabel, TextField, Chip, LinearProgress,
+  InputLabel, TextField, Chip, LinearProgress, useTheme, useMediaQuery,
 } from '@mui/material';
 import {
   Package, Edit, Search, ChevronLeft, ChevronRight,
@@ -364,6 +364,8 @@ const STATUS_OPTIONS: FinishedGoodStatus[] = [
 ];
 
 const EditDialog = ({ open, entry, onClose, onSave }: EditDialogProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [form, setForm] = useState<FinishedGoodEditFormData>({
     estimatedSellingPrice: 0,
     dispatchedWeightKg: 0,
@@ -406,8 +408,13 @@ const EditDialog = ({ open, entry, onClose, onSave }: EditDialogProps) => {
   const remainingPiecesPreview = Math.max(0, (entry?.numberOfPieces ?? 0) - form.dispatchedPieces);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth
-      slotProps={{ paper: { className: 'rounded-2xl text-slate-800' } }}
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="sm" 
+      fullWidth
+      fullScreen={isMobile}
+      slotProps={{ paper: { className: isMobile ? 'text-slate-800 m-0 w-full h-full' : 'rounded-2xl text-slate-800' } }}
     >
       <DialogTitle className="flex items-center justify-between border-b border-slate-100 py-4 px-6 bg-slate-50/50">
         <div className="flex items-center gap-2">
@@ -432,7 +439,7 @@ const EditDialog = ({ open, entry, onClose, onSave }: EditDialogProps) => {
         )}
 
         {/* Read-only summary */}
-        <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
           <div>
             <p className="text-slate-400 font-semibold uppercase tracking-wider mb-0.5">Good Output / Remaining</p>
             <p className="font-bold text-slate-700">{fmtKg(entry?.goodOutputKg)} / <span className="text-blue-700">{fmtKg(remainingPreview)}</span></p>
@@ -1026,7 +1033,7 @@ const FinishedGoodsPage = () => {
       </Box>
 
       {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         <KpiCard
           icon={<Package size={20} />} label="Available Stock" loading={loading}
           value={fmtKg(analytics.totalAvailable)} sub="remaining weight"
@@ -1080,7 +1087,7 @@ const FinishedGoodsPage = () => {
             </FormControl>
 
             {/* View Toggle */}
-            <div className="flex items-center gap-1.5 ml-auto">
+            <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto sm:ml-auto">
               <span className="text-xs text-slate-500 font-semibold">View:</span>
               <button
                 onClick={() => { setViewMode('group'); setSelectedAlloy(null); }}

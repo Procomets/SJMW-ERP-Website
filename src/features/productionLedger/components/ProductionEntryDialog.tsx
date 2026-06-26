@@ -3,7 +3,7 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, Grid, Typography, Box,
   Divider, CircularProgress, InputAdornment, Chip,
-  FormControl, InputLabel, Select, MenuItem,
+  FormControl, InputLabel, Select, MenuItem, useTheme, useMediaQuery,
 } from '@mui/material';
 import { X, Package } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
@@ -26,6 +26,8 @@ interface Props {
 }
 
 const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { getByModule, loading: materialsLoading } = useMaterials();
   const activeMaterials = useMemo(() => getByModule('production'), [getByModule]);
 
@@ -128,8 +130,13 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth
-      slotProps={{ paper: { sx: { borderRadius: 3, maxHeight: '92vh' } } }}
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="md" 
+      fullWidth
+      fullScreen={isMobile}
+      slotProps={{ paper: { sx: { borderRadius: isMobile ? 0 : 3, maxHeight: isMobile ? '100vh' : '92vh' } } }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>

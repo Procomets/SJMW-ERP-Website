@@ -19,6 +19,8 @@ import {
   InputLabel,
   TextField,
   Alert,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Users,
@@ -141,6 +143,8 @@ const KpiCard = ({ icon, label, value, sub, color, bg, loading }: KpiCardProps) 
 // ─── Main Page Component ──────────────────────────────────────────────────────
 const UserManagementPage = () => {
   const { user: currentAuthUser } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
   const [users, setUsers] = useState<UserEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -454,7 +458,7 @@ const UserManagementPage = () => {
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: '100%' }}>
       {/* ── Page Header ── */}
-      <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+      <Box sx={{ mb: 3, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'flex-start' }, justifyContent: 'space-between', gap: 2 }}>
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
             <Box sx={{ p: 1, background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', borderRadius: 2, display: 'flex' }}>
@@ -464,18 +468,18 @@ const UserManagementPage = () => {
               User Management
             </Typography>
           </Box>
-          <Typography sx={{ fontSize: '0.8rem', color: '#64748b', ml: 6 }}>
+          <Typography sx={{ fontSize: '0.8rem', color: '#64748b', ml: { xs: 0, sm: 6 }, mt: { xs: 0.5, sm: 0 } }}>
             Manage access credentials, change passwords, assign system roles and statuses
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', width: { xs: '100%', sm: 'auto' } }}>
           <Button
             variant="outlined"
             onClick={load}
             disabled={loading}
             startIcon={<RefreshCw size={14} className={loading ? 'animate-spin' : ''} />}
-            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, fontSize: '0.8rem' }}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', flex: { xs: 1, sm: 'initial' } }}
           >
             Refresh
           </Button>
@@ -488,6 +492,7 @@ const UserManagementPage = () => {
               textTransform: 'none',
               fontWeight: 700,
               fontSize: '0.8rem',
+              flex: { xs: 1, sm: 'initial' },
               background: 'linear-gradient(135deg,#7c3aed,#6d28d9)',
               '&:hover': { background: 'linear-gradient(135deg,#6d28d9,#5b21b6)' },
               boxShadow: '0 2px 8px rgba(124,58,237,0.3)',
@@ -499,7 +504,7 @@ const UserManagementPage = () => {
       </Box>
 
       {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         <KpiCard
           icon={<Users size={20} />}
           label="Total Users"
@@ -541,9 +546,9 @@ const UserManagementPage = () => {
       {/* ── Filters & Search ── */}
       <Card sx={{ mb: 2.5, borderRadius: 3, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', border: '1px solid #f1f5f9' }}>
         <CardContent sx={{ py: 2, px: 3, '&:last-child': { pb: 2 } }}>
-          <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 items-stretch sm:items-center">
             {/* Search query input */}
-            <div className="relative flex-1 min-w-[200px]">
+            <div className="relative flex-1 min-w-[200px] w-full">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 value={searchQuery}
@@ -554,7 +559,7 @@ const UserManagementPage = () => {
             </div>
 
             {/* Role Filter dropdown */}
-            <FormControl size="small" sx={{ minWidth: 160 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
               <InputLabel sx={{ fontSize: '0.75rem' }}>Role</InputLabel>
               <Select
                 label="Role"
@@ -570,7 +575,7 @@ const UserManagementPage = () => {
             </FormControl>
 
             {/* Status Filter dropdown */}
-            <FormControl size="small" sx={{ minWidth: 130 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 130 } }}>
               <InputLabel sx={{ fontSize: '0.75rem' }}>Status</InputLabel>
               <Select
                 label="Status"
@@ -760,6 +765,7 @@ const UserManagementPage = () => {
         onClose={() => !submitting && setAddDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
         slotProps={{ paper: { className: 'rounded-2xl text-slate-800' } }}
       >
         <form onSubmit={handleAddSubmit}>
@@ -875,6 +881,7 @@ const UserManagementPage = () => {
         onClose={() => !submitting && setEditDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
         slotProps={{ paper: { className: 'rounded-2xl text-slate-800' } }}
       >
         <form onSubmit={handleEditSubmit}>
@@ -969,6 +976,7 @@ const UserManagementPage = () => {
         onClose={() => !submitting && setPasswordDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
         slotProps={{ paper: { className: 'rounded-2xl text-slate-800' } }}
       >
         <form onSubmit={handlePasswordSubmit}>
@@ -1075,6 +1083,7 @@ const UserManagementPage = () => {
         onClose={() => !submitting && setDeleteDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
         slotProps={{ paper: { className: 'rounded-2xl text-slate-800' } }}
       >
         <DialogTitle className="flex items-center justify-between border-b border-slate-100 py-4 px-6 bg-red-50/20">
