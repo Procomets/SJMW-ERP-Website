@@ -27,7 +27,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Listen to auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
       if (currentUser) {
         try {
           const { getDoc } = await import('firebase/firestore');
@@ -51,10 +50,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             role: 'Plant Manager',
           });
         }
+        setUser(currentUser);
+        setLoading(false);
       } else {
+        setUser(null);
         setProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();

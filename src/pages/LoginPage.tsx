@@ -17,6 +17,7 @@ export const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
