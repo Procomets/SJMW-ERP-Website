@@ -8,7 +8,7 @@ import {
     InputLabel, Select, MenuItem, useTheme, useMediaQuery,
 } from '@mui/material';
 import {
-    Search, Plus, Edit, Trash2, RefreshCw, Download, ArrowUpDown, Maximize2, Minimize2, X,
+    Search, Plus, Edit, Trash2, RefreshCw, Download, ArrowUpDown, Maximize2, Minimize2,
 } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
 import {

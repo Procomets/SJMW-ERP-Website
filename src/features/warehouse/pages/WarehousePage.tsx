@@ -417,7 +417,6 @@ const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const gridBorder = isDark ? '1px solid #4a5568' : '1px solid #cbd5e1';
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [tableMaximized, setTableMaximized] = useState(false);
   const [receipts, setReceipts] = useState<MaterialReceipt[]>([]);

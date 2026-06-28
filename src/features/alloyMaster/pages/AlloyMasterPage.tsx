@@ -898,6 +898,7 @@ const AlloyMasterPage = () => {
             </TableContainer>
           )}
         </Card>
+        </>
       )}
 
       {/* ── Dialogs ── */}
