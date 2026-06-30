@@ -35,6 +35,9 @@ export interface CostLedgerEntry {
   marginPercentage: number;          // renamed from sellingMarginPercentage
   sellingPricePerKg: number;
 
+  // Admin-only: actual price at which the product was sold (set independently, never overwritten by form)
+  soldPricePerKg?: number;
+
   // Aliases for legacy/backward compatibility (so Finished Goods / Dispatch and other parts don't break)
   totalMaterialCostPerKg?: number;
   sellingMarginPercentage?: number;

@@ -1183,8 +1183,16 @@ const FinishedGoodsPage = ({ readOnly = false }: FinishedGoodsPageProps) => {
     }
   };
 
+  const filteredUnapprovedHeats = useMemo(() => {
+    return unapprovedHeats.filter((item) => {
+      if (searchHeat && !item.prod.heatNo?.toLowerCase().includes(searchHeat.toLowerCase())) return false;
+      if (alloyFilter && item.prod.alloyType !== alloyFilter) return false;
+      return true;
+    });
+  }, [unapprovedHeats, searchHeat, alloyFilter]);
+
   const sortedUnapprovedHeats = useMemo(() => {
-    const arr = [...unapprovedHeats];
+    const arr = [...filteredUnapprovedHeats];
     arr.sort((a, b) => {
       let av: any;
       let bv: any;
@@ -1224,7 +1232,7 @@ const FinishedGoodsPage = ({ readOnly = false }: FinishedGoodsPageProps) => {
       return 0;
     });
     return arr;
-  }, [unapprovedHeats, aqSortKey, aqSortDir]);
+  }, [filteredUnapprovedHeats, aqSortKey, aqSortDir]);
 
   // ── Approved Entries (Only explicitly approved via queue, with both prod and cost ledger) ───
   const approvedEntries = useMemo(() => {
@@ -1237,10 +1245,11 @@ const FinishedGoodsPage = ({ readOnly = false }: FinishedGoodsPageProps) => {
   }, [entries, productionEntries, costEntries]);
 
   // ── Unique filter values ──────────────────────────────────────────────────
-  const uniqueAlloys = useMemo(
-    () => Array.from(new Set(approvedEntries.map((e) => e.alloyType).filter(Boolean))).sort(),
-    [approvedEntries],
-  );
+  const uniqueAlloys = useMemo(() => {
+    const approvedAlloys = approvedEntries.map((e) => e.alloyType);
+    const unapprovedAlloys = unapprovedHeats.map((h) => h.prod.alloyType);
+    return Array.from(new Set([...approvedAlloys, ...unapprovedAlloys].filter(Boolean))).sort();
+  }, [approvedEntries, unapprovedHeats]);
 
   // ── Analytics / KPIs ──────────────────────────────────────────────────────
   const analytics = useMemo(() => {
@@ -1508,7 +1517,7 @@ const FinishedGoodsPage = ({ readOnly = false }: FinishedGoodsPageProps) => {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Chip
-                  label={`${unapprovedHeats.length} pending heats`}
+                  label={`${sortedUnapprovedHeats.length} pending heats`}
                   size="small"
                   sx={{ bgcolor: isDark ? 'rgba(217, 119, 6, 0.15)' : '#fff8e1', color: isDark ? '#fbbf24' : '#b78103', fontWeight: 700, border: isDark ? '1px solid rgba(217, 119, 6, 0.3)' : '1px solid #ffe082', fontSize: '0.7rem' }}
                 />

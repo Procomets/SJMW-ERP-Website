@@ -46,6 +46,7 @@ export interface TimeSeriesPoint {
   date: string;   // 'DD MMM' e.g. '01 Jun'
   value: number;
   value2?: number;
+  value3?: number; // used in costTrend: soldPricePerKg (actual sold price, admin-set)
 }
 
 // ─── Named value (for bar/pie charts) ────────────────────────────────────────
@@ -83,7 +84,7 @@ export interface DashboardAnalytics {
   materialShare: NamedValue[];
 
   // Financial
-  costTrend: TimeSeriesPoint[];        // value = productionCostPerKg, value2 = sellingPrice
+  costTrend: TimeSeriesPoint[];        // value = productionCostPerKg, value2 = sellingPricePerKg (expected), value3 = soldPricePerKg (actual, admin-set)
   materialCostDistribution: NamedValue[];
 
   // Dispatch

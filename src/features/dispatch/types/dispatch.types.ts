@@ -20,6 +20,8 @@ export interface DispatchEntry {
   // Customer
   customerId: string;
   customerName: string;
+  customerCode?: string; // Resolved from vendor code
+  vendor?: any;          // Resolved matched VendorMaster object
 
   alloyType: string;
 

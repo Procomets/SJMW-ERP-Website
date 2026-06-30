@@ -57,6 +57,8 @@ export const fetchCostLedger = async (): Promise<CostLedgerEntry[]> => {
     const totalProductionCostPerKg = Number(data.totalProductionCostPerKg) || (goodIngotsKg > 0 ? parseFloat((totalProductionCost / goodIngotsKg).toFixed(4)) : 0);
     const marginPercentage = Number(data.marginPercentage) || Number(data.sellingMarginPercentage) || 6;
     const sellingPricePerKg = Number(data.sellingPricePerKg) || 0;
+    // Admin-only field — preserved as-is (undefined if never set)
+    const soldPricePerKg = data.soldPricePerKg !== undefined ? Number(data.soldPricePerKg) : undefined;
 
     const totalRevenue = Number(data.totalRevenue) || goodIngotsKg * sellingPricePerKg;
     const totalProfit = Number(data.totalProfit) || (totalRevenue - totalProductionCost);
@@ -73,6 +75,7 @@ export const fetchCostLedger = async (): Promise<CostLedgerEntry[]> => {
       totalProductionCostPerKg,
       marginPercentage,
       sellingPricePerKg,
+      soldPricePerKg,
       totalRevenue,
       totalProfit,
       profitMarginPercentage,
@@ -228,6 +231,19 @@ export const updateCostEntry = async (
   } catch (err) {
     console.error("Failed to auto-sync finished goods on cost update:", err);
   }
+};
+
+// ─── Update sold price per kg (admin-only) ───────────────────────────────────
+// This is the ONLY way soldPricePerKg is written — deliberately separate from
+// the standard form update to prevent accidental overwrites.
+export const updateSoldPricePerKg = async (
+  id: string,
+  soldPrice: number,
+): Promise<void> => {
+  await updateDoc(doc(db, COL, id), {
+    soldPricePerKg: soldPrice,
+    updatedAt: serverTimestamp(),
+  });
 };
 
 // ─── Delete entry ─────────────────────────────────────────────────────────────

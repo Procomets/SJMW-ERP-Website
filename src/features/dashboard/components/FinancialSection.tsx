@@ -25,8 +25,8 @@ const FinancialSection = ({ analytics, loading }: Props) => (
 
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-      {/* 1. Cost vs Selling Price Dual Line */}
-      <ChartCard title="Cost vs Selling Price Trend" subtitle="Avg production cost & selling price per kg (₹)" loading={loading} empty={analytics.costTrend.length === 0} accentColor="#c62828">
+      {/* 1. Production Cost vs Sold Price */}
+      <ChartCard title="Production Cost vs Sold Price" subtitle="Avg production cost & actual sold price per kg (₹)" loading={loading} empty={analytics.costTrend.length === 0} accentColor="#c62828">
         <ResponsiveContainer width="100%" height={260}>
           <LineChart data={analytics.costTrend} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -34,12 +34,12 @@ const FinancialSection = ({ analytics, loading }: Props) => (
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${v}`} width={56} />
             <Tooltip {...tooltipStyle} formatter={(v: any, name: any) => [
               `₹${Number(v).toLocaleString('en-IN', { minimumFractionDigits: 2 })}/kg`,
-              name === 'value2' ? 'Selling Price' : 'Prod. Cost',
+              name === 'value3' ? 'Sold Price (Actual)' : 'Production Cost',
             ]} />
             <Legend wrapperStyle={{ fontSize: '0.68rem', fontWeight: 700 }}
-              formatter={(v) => v === 'value2' ? 'Selling Price' : 'Prod. Cost'} />
+              formatter={(v) => v === 'value3' ? 'Sold Price (Actual)' : 'Production Cost'} />
             <Line type="monotone" dataKey="value" stroke="#c62828" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} name="cost" />
-            <Line type="monotone" dataKey="value2" stroke="#2e7d32" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} name="value2" strokeDasharray="5 4" />
+            <Line type="monotone" dataKey="value3" stroke="#7c3aed" strokeWidth={2.5} dot={{ r: 3, fill: '#7c3aed' }} activeDot={{ r: 5 }} name="value3" strokeDasharray="5 4" connectNulls={false} />
           </LineChart>
         </ResponsiveContainer>
       </ChartCard>
@@ -86,15 +86,21 @@ const FinancialSection = ({ analytics, loading }: Props) => (
         </ResponsiveContainer>
       </ChartCard>
 
-      {/* 4. Selling Price Trend */}
-      <ChartCard title="Selling Price Trend" subtitle="Selling price per kg over time (₹/kg)" loading={loading} empty={analytics.costTrend.filter(p => (p.value2 ?? 0) > 0).length === 0} accentColor="#2e7d32">
+      {/* 4. Expected Selling Price vs Sold Price */}
+      <ChartCard title="Expected Selling Price vs Sold Price" subtitle="Expected vs actual selling price per kg (₹/kg)" loading={loading} empty={analytics.costTrend.filter(p => (p.value2 ?? 0) > 0 || (p.value3 ?? 0) > 0).length === 0} accentColor="#2e7d32">
         <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={analytics.costTrend.filter(p => (p.value2 ?? 0) > 0)} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+          <LineChart data={analytics.costTrend.filter(p => (p.value2 ?? 0) > 0 || (p.value3 ?? 0) > 0)} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
             <XAxis dataKey="date" tick={axisStyle} axisLine={false} tickLine={false} interval="preserveStartEnd" />
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${v}`} width={56} />
-            <Tooltip {...tooltipStyle} formatter={(v: any) => [`₹${Number(v).toFixed(2)}/kg`, 'Selling Price']} />
-            <Line type="monotone" dataKey="value2" stroke="#2e7d32" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: '#2e7d32' }} />
+            <Tooltip {...tooltipStyle} formatter={(v: any, name: any) => [
+              `₹${Number(v).toFixed(2)}/kg`,
+              name === 'value3' ? 'Sold Price (Actual)' : 'Expected Selling Price',
+            ]} />
+            <Legend wrapperStyle={{ fontSize: '0.68rem', fontWeight: 700 }}
+              formatter={(v) => v === 'value3' ? 'Sold Price (Actual)' : 'Expected Selling Price'} />
+            <Line type="monotone" dataKey="value2" stroke="#2e7d32" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} name="value2" strokeDasharray="5 4" />
+            <Line type="monotone" dataKey="value3" stroke="#7c3aed" strokeWidth={2.5} dot={{ r: 3, fill: '#7c3aed' }} activeDot={{ r: 5 }} name="value3" connectNulls={false} />
           </LineChart>
         </ResponsiveContainer>
       </ChartCard>

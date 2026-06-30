@@ -17,7 +17,8 @@ import {
   fetchCostLedger,
   addCostEntry,
   updateCostEntry,
-  deleteCostEntry
+  deleteCostEntry,
+  updateSoldPricePerKg,
 } from '../services/costLedger.service';
 import {
   type CostLedgerEntry,
@@ -26,6 +27,7 @@ import {
 import CostEntryDialog from '../components/CostEntryDialog';
 import { useMaterials } from '../../../context/MaterialContext';
 import { fetchFinishedGoods } from '../../finishedGoods/services/finishedGoods.service';
+import { useAuth } from '../../../context/AuthContext';
 
 // Formatting helpers
 const fmtDate = (ts: Timestamp | undefined) => {
@@ -50,6 +52,8 @@ const CostLedgerPage = () => {
   const [tableMaximized, setTableMaximized] = useState(false);
   const { getByModule, loading: materialsLoading } = useMaterials();
   const costMaterials = getByModule('costLedger');
+  const { profile } = useAuth();
+  const isAdmin = profile?.role?.toLowerCase() === 'admin';
 
   // Database state
   const [entries, setEntries] = useState<CostLedgerEntry[]>([]);
@@ -59,6 +63,10 @@ const CostLedgerPage = () => {
   const [editEntry, setEditEntry] = useState<CostLedgerEntry | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CostLedgerEntry | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Admin-only inline sold price edit state
+  const [editSoldPrice, setEditSoldPrice] = useState<{ id: string; value: string } | null>(null);
+  const [savingSoldPrice, setSavingSoldPrice] = useState(false);
 
   // Filters State
   const [searchHeat, setSearchHeat] = useState('');
@@ -255,6 +263,25 @@ const CostLedgerPage = () => {
     }
   };
 
+  // Admin: save sold price for a row
+  const handleSaveSoldPrice = async () => {
+    if (!editSoldPrice) return;
+    const val = parseFloat(editSoldPrice.value);
+    if (isNaN(val) || val < 0) return;
+    setSavingSoldPrice(true);
+    try {
+      await updateSoldPricePerKg(editSoldPrice.id, val);
+      setEntries((prev) =>
+        prev.map((e) => e.id === editSoldPrice.id ? { ...e, soldPricePerKg: val } : e)
+      );
+      setEditSoldPrice(null);
+    } catch (err) {
+      console.error('Failed to save sold price', err);
+    } finally {
+      setSavingSoldPrice(false);
+    }
+  };
+
   // Exports
   const handleExportExcel = () => {
     const excelData = sortedData.map((row) => {
@@ -289,6 +316,9 @@ const CostLedgerPage = () => {
       item['Production Cost/Kg (₹)'] = row.totalProductionCostPerKg || 0;
       item['Selling Margin %'] = row.marginPercentage || 0;
       item['Selling Price/Kg (₹)'] = row.sellingPricePerKg || 0;
+      if (isAdmin) {
+        item['Sold Price/Kg (₹)'] = row.soldPricePerKg !== undefined ? row.soldPricePerKg : '';
+      }
 
       return item;
     });
@@ -330,6 +360,9 @@ const CostLedgerPage = () => {
       item['Production Cost Per Kg'] = row.totalProductionCostPerKg || 0;
       item['Selling Margin %'] = row.marginPercentage || 0;
       item['Selling Price Per Kg'] = row.sellingPricePerKg || 0;
+      if (isAdmin) {
+        item['Sold Price Per Kg'] = row.soldPricePerKg !== undefined ? row.soldPricePerKg : '';
+      }
 
       return item;
     });
@@ -612,7 +645,7 @@ const CostLedgerPage = () => {
                 <th colSpan={3} className="px-4 py-1.5 text-center border-b border-r border-slate-200 bg-emerald-50 text-emerald-950 font-extrabold">
                   Production Section
                 </th>
-                <th colSpan={7} className="px-4 py-1.5 text-center border-b border-r border-slate-200 bg-amber-50 text-amber-950 font-extrabold">
+                <th colSpan={isAdmin ? 8 : 7} className="px-4 py-1.5 text-center border-b border-r border-slate-200 bg-amber-50 text-amber-950 font-extrabold">
                   Cost Analysis Section
                 </th>
                 <th className="px-4 py-2 text-center border-b border-slate-200 bg-slate-100 z-30 w-24"></th>
@@ -669,7 +702,15 @@ const CostLedgerPage = () => {
                 <th className="px-4 py-2 border-b border-slate-200 bg-amber-50/30 text-right w-28">Total Prod Cost</th>
                 <th className="px-4 py-2 border-b border-slate-200 bg-amber-50/30 text-right w-28">Production Cost/Kg</th>
                 <th className="px-4 py-2 border-b border-slate-200 bg-amber-50/30 text-right w-20">Margin %</th>
-                <th className="px-4 py-2 border-b border-r border-slate-200 bg-amber-50/30 text-right w-28">Sell Price/Kg</th>
+                <th className={`px-4 py-2 border-b border-slate-200 bg-amber-50/30 text-right w-28 ${isAdmin ? '' : 'border-r'}`}>Sell Price/Kg</th>
+                {isAdmin && (
+                  <th className="px-4 py-2 border-b border-r border-slate-200 bg-purple-50/50 text-right w-32 text-purple-800">
+                    <span className="flex items-center justify-end gap-1">
+                      Sold Price/Kg
+                      <span className="text-[8px] bg-purple-200 text-purple-800 px-1 rounded font-bold">ADMIN</span>
+                    </span>
+                  </th>
+                )}
 
                 {/* Actions (Edit / Delete) */}
                 <th className="px-4 py-2 border-b border-slate-200 text-center w-24 sticky right-0 bg-slate-100 shadow-[left_2px_0_4px_rgba(0,0,0,0.05)]">Actions</th>
@@ -767,9 +808,62 @@ const CostLedgerPage = () => {
                       <td className="px-4 py-2 bg-amber-50/5 font-mono text-right font-bold text-slate-700">{fmtMoney(row.totalProductionCost)}</td>
                       <td className="px-4 py-2 bg-amber-50/5 font-mono text-right font-bold text-amber-850">{fmtMoney(row.totalProductionCostPerKg)}</td>
                       <td className="px-4 py-2 bg-amber-50/5 font-mono text-right font-semibold text-slate-600">{row.marginPercentage}%</td>
-                      <td className="px-4 py-2 bg-amber-50/5 border-r border-slate-200 font-mono text-right font-black text-emerald-800">
+                      <td className={`px-4 py-2 bg-amber-50/5 font-mono text-right font-black text-emerald-800 ${isAdmin ? '' : 'border-r border-slate-200'}`}>
                         {fmtMoney(row.sellingPricePerKg)}
                       </td>
+
+                      {/* Admin-only: Sold Price per Kg inline edit */}
+                      {isAdmin && (
+                        <td className="px-3 py-1.5 bg-purple-50/20 border-r border-slate-200 text-right w-32">
+                          {editSoldPrice?.id === row.id ? (
+                            <div className="flex items-center justify-end gap-1">
+                              <span className="text-[10px] text-slate-400 font-semibold">₹</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                autoFocus
+                                value={editSoldPrice.value}
+                                onChange={(e) => setEditSoldPrice({ id: row.id, value: e.target.value })}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleSaveSoldPrice();
+                                  if (e.key === 'Escape') setEditSoldPrice(null);
+                                }}
+                                className="w-20 px-1.5 py-0.5 text-right text-xs bg-white border border-purple-400 rounded focus:outline-none focus:ring-1 focus:ring-purple-500 font-mono"
+                              />
+                              <button
+                                onClick={handleSaveSoldPrice}
+                                disabled={savingSoldPrice}
+                                className="text-emerald-600 hover:text-emerald-800 p-0.5"
+                                title="Save"
+                              >
+                                {savingSoldPrice ? <span className="text-[9px]">...</span> : '✓'}
+                              </button>
+                              <button
+                                onClick={() => setEditSoldPrice(null)}
+                                className="text-slate-400 hover:text-slate-600 p-0.5"
+                                title="Cancel"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-end gap-1.5 group/sold">
+                              <span className="font-mono font-bold text-purple-800">
+                                {row.soldPricePerKg !== undefined ? fmtMoney(row.soldPricePerKg) : <span className="text-slate-300 font-normal">—</span>}
+                              </span>
+                              <Tooltip title="Set Sold Price per Kg (Admin)">
+                                <button
+                                  onClick={() => setEditSoldPrice({ id: row.id, value: row.soldPricePerKg !== undefined ? String(row.soldPricePerKg) : '' })}
+                                  className="opacity-0 group-hover/sold:opacity-100 transition-opacity text-purple-400 hover:text-purple-700 p-0.5"
+                                >
+                                  <Edit size={11} />
+                                </button>
+                              </Tooltip>
+                            </div>
+                          )}
+                        </td>
+                      )}
 
                       {/* Actions */}
                       <td className="px-4 py-2 text-center sticky right-0 bg-slate-50 border-l border-slate-200 flex items-center justify-center gap-1.5 shadow-[left_2px_0_4px_rgba(0,0,0,0.03)] h-[41px] min-h-[41px] w-24">

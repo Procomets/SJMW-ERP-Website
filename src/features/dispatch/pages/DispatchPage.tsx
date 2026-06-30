@@ -710,27 +710,45 @@ export default function DispatchPage({ readOnly = false }: { readOnly?: boolean 
     if (toast) { const t = setTimeout(() => setToast(null), 3500); return () => clearTimeout(t); }
   }, [toast]);
 
+  // ── Processed Dispatches ──────────────────────────────────────────────────
+  const processedDispatches = useMemo(() => {
+    return dispatches.map((d) => {
+      const matchedVendor = customers.find(c =>
+        c.id === d.customerId ||
+        c.vendorCode.trim().toUpperCase() === (d.customerId || '').trim().toUpperCase() ||
+        c.vendorCode.trim().toUpperCase() === (d.customerName || '').trim().toUpperCase()
+      );
+      return {
+        ...d,
+        customerName: matchedVendor ? matchedVendor.vendorName : (d.customerName || '—'),
+        customerCode: matchedVendor ? matchedVendor.vendorCode : (d.customerId || '—'),
+        vendor: matchedVendor,
+      };
+    });
+  }, [dispatches, customers]);
+
   // ── Analytics ─────────────────────────────────────────────────────────────
   const analytics = useMemo(() => {
-    const totalWeight = dispatches.reduce((s, d) => s + (d.totalDispatchWeightKg ?? 0), 0);
-    const totalPieces = dispatches.reduce((s, d) => s + (d.totalDispatchPieces ?? 0), 0);
+    const totalWeight = processedDispatches.reduce((s, d) => s + (d.totalDispatchWeightKg ?? 0), 0);
+    const totalPieces = processedDispatches.reduce((s, d) => s + (d.totalDispatchPieces ?? 0), 0);
     const customerCounts: Record<string, number> = {};
-    dispatches.forEach((d) => { customerCounts[d.customerName] = (customerCounts[d.customerName] || 0) + 1; });
+    processedDispatches.forEach((d) => { customerCounts[d.customerName] = (customerCounts[d.customerName] || 0) + 1; });
     const topCustomer = Object.entries(customerCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—';
     return { totalWeight, totalPieces, topCustomer };
-  }, [dispatches]);
+  }, [processedDispatches]);
 
   // ── Filter / Sort / Paginate ──────────────────────────────────────────────
-  const uniqueCustomers = useMemo(() => [...new Set(dispatches.map((d) => d.customerName).filter(Boolean))].sort(), [dispatches]);
-  const uniqueAlloys = useMemo(() => [...new Set(dispatches.map((d) => d.alloyType).filter(Boolean))].sort(), [dispatches]);
+  const uniqueCustomers = useMemo(() => [...new Set(processedDispatches.map((d) => d.customerName).filter(Boolean))].sort(), [processedDispatches]);
+  const uniqueAlloys = useMemo(() => [...new Set(processedDispatches.map((d) => d.alloyType).filter(Boolean))].sort(), [processedDispatches]);
 
   const filtered = useMemo(() => {
-    let rows = [...dispatches];
+    let rows = [...processedDispatches];
     if (search) {
       const q = search.toLowerCase();
       rows = rows.filter((d) =>
         d.dispatchNumber?.toLowerCase().includes(q) ||
         d.customerName?.toLowerCase().includes(q) ||
+        (d.customerCode && d.customerCode.toLowerCase().includes(q)) ||
         d.vehicleNumber?.toLowerCase().includes(q) ||
         d.driverName?.toLowerCase().includes(q) ||
         d.dispatchItems?.some((i) => i.heatNo?.toLowerCase().includes(q))
@@ -740,8 +758,8 @@ export default function DispatchPage({ readOnly = false }: { readOnly?: boolean 
     if (alloyFilter) rows = rows.filter((d) => d.alloyType === alloyFilter);
 
     rows.sort((a, b) => {
-      let av: any = a[sortKey as keyof DispatchEntry];
-      let bv: any = b[sortKey as keyof DispatchEntry];
+      let av: any = a[sortKey as keyof typeof a];
+      let bv: any = b[sortKey as keyof typeof b];
       if (av instanceof Timestamp) av = av.toMillis();
       if (bv instanceof Timestamp) bv = bv.toMillis();
       if (av == null) return 1;
@@ -749,7 +767,7 @@ export default function DispatchPage({ readOnly = false }: { readOnly?: boolean 
       return sortDir === 'asc' ? (av < bv ? -1 : 1) : (av > bv ? -1 : 1);
     });
     return rows;
-  }, [dispatches, search, customerFilter, alloyFilter, sortKey, sortDir]);
+  }, [processedDispatches, search, customerFilter, alloyFilter, sortKey, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -1014,8 +1032,8 @@ export default function DispatchPage({ readOnly = false }: { readOnly?: boolean 
                   </th>
                   <th rowSpan={2} onClick={() => toggleSort('customerName')} style={{
                     padding: '10px 14px', textAlign: 'left', fontWeight: 700, color: '#475569', fontSize: '0.68rem',
-                    whiteSpace: 'nowrap', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e2e8f0',
-                    borderRight: '1px solid #e2e8f0', cursor: 'pointer', userSelect: 'none', backgroundColor: '#f8fafc'
+                    borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', cursor: 'pointer',
+                    userSelect: 'none', backgroundColor: '#f8fafc', width: '200px', minWidth: '200px'
                   }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       Customer
@@ -1082,7 +1100,7 @@ export default function DispatchPage({ readOnly = false }: { readOnly?: boolean 
               <tbody>
                 {paged.flatMap((d, idx) => {
                   const isEven = idx % 2 === 0;
-                  const vendor = customers.find((c) => c.id === d.customerId);
+                  const vendor = d.vendor;
                   const items = d.dispatchItems ?? [];
                   const isHovered = hoveredDispatchId === d.id;
 
@@ -1129,11 +1147,9 @@ export default function DispatchPage({ readOnly = false }: { readOnly?: boolean 
                               <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b', lineHeight: 1.3 }}>
                                 {d.customerName}
                               </Typography>
-                              {vendor?.companyAddress?.city && (
-                                <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8' }}>
-                                  {vendor.companyAddress.city}
-                                </Typography>
-                              )}
+                              <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8' }}>
+                                {d.customerCode} {vendor?.companyAddress?.city ? `· ${vendor.companyAddress.city}` : ''}
+                              </Typography>
                             </Box>
                           </Tooltip>
                         </td>
@@ -1229,11 +1245,9 @@ export default function DispatchPage({ readOnly = false }: { readOnly?: boolean 
                                   <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b', lineHeight: 1.3 }}>
                                     {d.customerName}
                                   </Typography>
-                                  {vendor?.companyAddress?.city && (
-                                    <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8' }}>
-                                      {vendor.companyAddress.city}
-                                    </Typography>
-                                  )}
+                                  <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8' }}>
+                                    {d.customerCode} {vendor?.companyAddress?.city ? `· ${vendor.companyAddress.city}` : ''}
+                                  </Typography>
                                 </Box>
                               </Tooltip>
                             </td>

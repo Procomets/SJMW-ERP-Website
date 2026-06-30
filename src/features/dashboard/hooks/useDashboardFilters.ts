@@ -253,8 +253,23 @@ export const useDashboardFilters = (data: DashboardRawData) => {
   const cost = useMemo(() => filterCost(data.costEntries, range), [data.costEntries, range, filters]);
   const prevCost = useMemo(() => filterCost(data.costEntries, prev), [data.costEntries, prev, filters]);
 
-  const dispatches = useMemo(() => filterDispatch(data.dispatches, range), [data.dispatches, range, filters]);
-  const prevDispatches = useMemo(() => filterDispatch(data.dispatches, prev), [data.dispatches, prev, filters]);
+  const processedDispatches = useMemo(() => {
+    return data.dispatches.map((d) => {
+      const matchedVendor = data.vendors.find(c =>
+        c.id === d.customerId ||
+        c.vendorCode.trim().toUpperCase() === (d.customerId || '').trim().toUpperCase() ||
+        c.vendorCode.trim().toUpperCase() === (d.customerName || '').trim().toUpperCase()
+      );
+      return {
+        ...d,
+        customerName: matchedVendor ? matchedVendor.vendorName : (d.customerName || '—'),
+        customerCode: matchedVendor ? matchedVendor.vendorCode : (d.customerId || '—'),
+      };
+    });
+  }, [data.dispatches, data.vendors]);
+
+  const dispatches = useMemo(() => filterDispatch(processedDispatches, range), [processedDispatches, range, filters]);
+  const prevDispatches = useMemo(() => filterDispatch(processedDispatches, prev), [processedDispatches, prev, filters]);
 
   const qc = useMemo(() => filterQC(data.qcEntries, range), [data.qcEntries, range, filters]);
   const prevQC = useMemo(() => filterQC(data.qcEntries, prev), [data.qcEntries, prev, filters]);
@@ -380,10 +395,10 @@ export const useDashboardFilters = (data: DashboardRawData) => {
     }));
 
     // Cost & Selling Price Trend (grouped by date)
-    const costBuckets = new Map<string, { costVals: number[]; sellingVals: number[] }>();
+    const costBuckets = new Map<string, { costVals: number[]; sellingVals: number[]; soldVals: number[] }>();
     const initDate = new Date(range.start);
     while (initDate <= range.end) {
-      costBuckets.set(fmtDateKey(initDate), { costVals: [], sellingVals: [] });
+      costBuckets.set(fmtDateKey(initDate), { costVals: [], sellingVals: [], soldVals: [] });
       initDate.setDate(initDate.getDate() + 1);
     }
     cost.forEach((c) => {
@@ -394,15 +409,17 @@ export const useDashboardFilters = (data: DashboardRawData) => {
       if (bucket) {
         if (c.totalProductionCostPerKg > 0) bucket.costVals.push(c.totalProductionCostPerKg);
         if (c.sellingPricePerKg > 0) bucket.sellingVals.push(c.sellingPricePerKg);
+        if (c.soldPricePerKg !== undefined && c.soldPricePerKg > 0) bucket.soldVals.push(c.soldPricePerKg);
       }
     });
     const avg = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
     const costTrend: TimeSeriesPoint[] = Array.from(costBuckets.entries())
-      .filter(([, b]) => b.costVals.length > 0 || b.sellingVals.length > 0)
+      .filter(([, b]) => b.costVals.length > 0 || b.sellingVals.length > 0 || b.soldVals.length > 0)
       .map(([k, b]) => ({
         date: fmtLabel(new Date(k)),
         value: Math.round(avg(b.costVals) * 100) / 100,
         value2: Math.round(avg(b.sellingVals) * 100) / 100,
+        value3: b.soldVals.length > 0 ? Math.round(avg(b.soldVals) * 100) / 100 : undefined,
       }));
 
     // Material Cost Distribution (from cost ledger)
@@ -532,9 +549,9 @@ export const useDashboardFilters = (data: DashboardRawData) => {
     alloyTypes: Array.from(new Set(data.productionEntries.map((e) => e.alloyType).filter(Boolean))).sort(),
     furnaceNos: Array.from(new Set(data.productionEntries.map((e) => e.furnaceNo ?? '').filter(Boolean))).sort(),
     supervisors: Array.from(new Set(data.productionEntries.map((e) => e.supervisorName ?? '').filter(Boolean))).sort(),
-    customers: Array.from(new Set(data.dispatches.map((d) => d.customerName).filter(Boolean))).sort(),
+    customers: Array.from(new Set(processedDispatches.map((d) => d.customerName).filter(Boolean))).sort(),
     shifts: ['Morning', 'Afternoon', 'Night'],
-  }), [data]);
+  }), [data, processedDispatches]);
 
   return {
     filters,

@@ -17,6 +17,8 @@ import {
   deleteMaterialReceipt,
 } from '../services/warehouse.service';
 import type { InventoryItem, MaterialReceipt, StockStatus } from '../types/warehouse.types';
+import { fetchVendors } from '../../vendorMaster/services/vendorMaster.service';
+import type { VendorMaster } from '../../vendorMaster/types/vendorMaster.types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmtDate = (ts: Timestamp | null | undefined) => {
@@ -341,7 +343,7 @@ const ReceiptDetailDialog = ({ receipt, onClose }: ReceiptDetailDialogProps) => 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 3 }}>
           {[
             { label: 'Receipt No', value: receipt.receiptNumber },
-            { label: 'Vendor', value: receipt.vendorName },
+            { label: 'Vendor', value: receipt.vendorName + ((receipt as any).vendorCode ? ` (${(receipt as any).vendorCode})` : '') },
             { label: 'Date Received', value: fmtDate(receipt.dateReceived) },
             { label: 'Created By', value: receipt.createdBy },
           ].map(f => (
@@ -420,6 +422,7 @@ const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [tableMaximized, setTableMaximized] = useState(false);
   const [receipts, setReceipts] = useState<MaterialReceipt[]>([]);
+  const [vendors, setVendors] = useState<VendorMaster[]>([]);
   const [loading, setLoading] = useState(true);
   const [stockSearch, setStockSearch] = useState('');
   const [receiptSearch, setReceiptSearch] = useState('');
@@ -437,9 +440,14 @@ const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [inv, rec] = await Promise.all([fetchInventory(), fetchMaterialReceipts()]);
+      const [inv, rec, vList] = await Promise.all([
+        fetchInventory(),
+        fetchMaterialReceipts(),
+        fetchVendors(),
+      ]);
       setInventory(inv);
       setReceipts(rec);
+      setVendors(vList);
     } catch (err) {
       console.error('Warehouse load error:', err);
     } finally {
@@ -449,14 +457,31 @@ const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
 
   useEffect(() => { loadData(); }, []);
 
+  // ── Processed Receipts (resolves vendorCode to vendorName) ─────────────────
+  const processedReceipts = useMemo(() => {
+    return receipts.map((r) => {
+      const matchedVendor = vendors.find(v =>
+        v.vendorCode.trim().toUpperCase() === (r.vendorName || '').trim().toUpperCase() ||
+        v.vendorName.trim().toUpperCase() === (r.vendorName || '').trim().toUpperCase() ||
+        v.id === (r as any).vendorId
+      );
+      return {
+        ...r,
+        vendorName: matchedVendor ? matchedVendor.vendorName : (r.vendorName || '—'),
+        vendorCode: matchedVendor ? matchedVendor.vendorCode : undefined,
+      };
+    });
+  }, [receipts, vendors]);
+
   // Filtered & sorted receipts
   const filteredReceipts = useMemo(() => {
-    let data = receipts.filter(r => {
+    let data = processedReceipts.filter(r => {
       if (!receiptSearch) return true;
       const s = receiptSearch.toLowerCase();
       return (
         r.receiptNumber?.toLowerCase().includes(s) ||
         r.vendorName?.toLowerCase().includes(s) ||
+        (r.vendorCode && r.vendorCode.toLowerCase().includes(s)) ||
         r.createdBy?.toLowerCase().includes(s) ||
         r.materials?.some(m => m.materialName.toLowerCase().includes(s) || m.materialCode.toLowerCase().includes(s))
       );
@@ -474,7 +499,7 @@ const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
       return 0;
     });
     return data;
-  }, [receipts, receiptSearch, sortConfig]);
+  }, [processedReceipts, receiptSearch, sortConfig]);
 
   const paginatedReceipts = useMemo(() => {
     const offset = (currentPage - 1) * pageSize;
@@ -709,8 +734,8 @@ const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
                     </th>
                     <th rowSpan={2} onClick={() => requestSort('vendorName')} style={{
                       padding: '10px 14px', textAlign: 'left', fontWeight: 700, color: '#475569', fontSize: '0.68rem',
-                      whiteSpace: 'nowrap', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e2e8f0',
-                      cursor: 'pointer', userSelect: 'none', borderRight: '1px solid #e2e8f0'
+                      borderBottom: '1px solid #e2e8f0', cursor: 'pointer', userSelect: 'none', borderRight: '1px solid #e2e8f0',
+                      width: '200px', minWidth: '200px'
                     }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         Vendor
@@ -831,6 +856,11 @@ const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
                             </td>
                             <td style={{ padding: '10px 14px', fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #f1f5f9', borderRight: '1px solid #f1f5f9' }}>
                               {r.vendorName}
+                              {(r as any).vendorCode && (
+                                <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
+                                  {(r as any).vendorCode}
+                                </span>
+                              )}
                             </td>
                             <td style={{ padding: '10px 14px', color: '#475569', whiteSpace: 'nowrap', borderBottom: '1px solid #f1f5f9', borderRight: '1px solid #f1f5f9' }}>
                               {fmtDate(r.dateReceived)}
@@ -895,6 +925,11 @@ const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
                                 </td>
                                 <td rowSpan={activeMs.length} style={{ padding: '10px 14px', fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', verticalAlign: 'middle' }}>
                                   {r.vendorName}
+                                  {(r as any).vendorCode && (
+                                    <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
+                                      {(r as any).vendorCode}
+                                    </span>
+                                  )}
                                 </td>
                                 <td rowSpan={activeMs.length} style={{ padding: '10px 14px', color: '#475569', whiteSpace: 'nowrap', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', verticalAlign: 'middle' }}>
                                   {fmtDate(r.dateReceived)}

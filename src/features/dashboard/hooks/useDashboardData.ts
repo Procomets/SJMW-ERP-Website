@@ -6,6 +6,8 @@ import { fetchFinishedGoods } from '../../finishedGoods/services/finishedGoods.s
 import { fetchInventory, fetchMaterialReceipts } from '../../warehouse/services/warehouse.service';
 import { fetchDispatches } from '../../dispatch/services/dispatch.service';
 import { fetchQualityControlEntries } from '../../qualityControl/services/qualityControl.service';
+import { fetchVendors } from '../../vendorMaster/services/vendorMaster.service';
+import type { VendorMaster } from '../../vendorMaster/types/vendorMaster.types';
 import type { ProductionLedgerEntry } from '../../productionLedger/types/productionLedger.types';
 import type { CostLedgerEntry } from '../../costLedger/types/costLedger.types';
 import type { FinishedGoodEntry } from '../../finishedGoods/types/finishedGoods.types';
@@ -21,6 +23,7 @@ export interface DashboardRawData {
   materialReceipts: MaterialReceipt[];
   dispatches: DispatchEntry[];
   qcEntries: QualityControlEntry[];
+  vendors: VendorMaster[];
 }
 
 const EMPTY_DATA: DashboardRawData = {
@@ -31,6 +34,7 @@ const EMPTY_DATA: DashboardRawData = {
   materialReceipts: [],
   dispatches: [],
   qcEntries: [],
+  vendors: [],
 };
 
 const REFRESH_INTERVAL_MS = 60_000; // 60 seconds
@@ -52,6 +56,7 @@ export const useDashboardData = () => {
         materialReceipts,
         dispatches,
         qcEntries,
+        vendors,
       ] = await Promise.all([
         fetchProductionLedger(),
         fetchCostLedger(),
@@ -60,8 +65,9 @@ export const useDashboardData = () => {
         fetchMaterialReceipts(),
         fetchDispatches(),
         fetchQualityControlEntries(),
+        fetchVendors(),
       ]);
-      setData({ productionEntries, costEntries, finishedGoods, inventoryItems, materialReceipts, dispatches, qcEntries });
+      setData({ productionEntries, costEntries, finishedGoods, inventoryItems, materialReceipts, dispatches, qcEntries, vendors });
       setLastRefreshed(new Date());
     } catch (err) {
       console.error('Dashboard data fetch error:', err);
