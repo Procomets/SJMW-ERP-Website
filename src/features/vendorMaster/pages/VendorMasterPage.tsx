@@ -210,15 +210,6 @@ const VendorMasterPage = ({ noDelete = false }: { noDelete?: boolean }) => {
     }
   };
 
-  const formatDate = (ts: any) => {
-    if (!ts) return '—';
-    if (typeof ts.toDate === 'function') {
-      return ts.toDate().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-    // serverTimestamp sentinel not yet resolved — show pending
-    return '…';
-  };
-
   const resetFilters = () => {
     setSearch('');
     setFilterCategory('All');
