@@ -95,7 +95,12 @@ export const addVendor = async (
   };
 
   // Clean up undefined fields
-  const cleanPayload = JSON.parse(JSON.stringify(payload));
+  const cleanPayload = { ...payload } as any;
+  Object.keys(cleanPayload).forEach((k) => {
+    if (cleanPayload[k] === undefined) {
+      delete cleanPayload[k];
+    }
+  });
   const ref = await addDoc(collection(db, COL), cleanPayload);
   return ref.id;
 };

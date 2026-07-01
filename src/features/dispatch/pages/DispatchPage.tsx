@@ -643,7 +643,7 @@ const KpiCard = ({ icon, label, value, sub, color }: { icon: React.ReactNode; la
 );
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
-export default function DispatchPage({ readOnly = false }: { readOnly?: boolean }) {
+export default function DispatchPage({ readOnly = false, noDelete = false }: { readOnly?: boolean; noDelete?: boolean }) {
   const { user } = useAuth();
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -1187,11 +1187,13 @@ export default function DispatchPage({ readOnly = false }: { readOnly?: boolean 
                                   <Edit2 size={14} />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Delete">
-                                <IconButton size="small" onClick={() => setDeleteTarget(d)} sx={{ color: '#ef4444', '&:hover': { bgcolor: '#fef2f2' } }}>
-                                  <Trash2 size={14} />
-                                </IconButton>
-                              </Tooltip>
+                              {!noDelete && (
+                                <Tooltip title="Delete">
+                                  <IconButton size="small" onClick={() => setDeleteTarget(d)} sx={{ color: '#ef4444', '&:hover': { bgcolor: '#fef2f2' } }}>
+                                    <Trash2 size={14} />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
                             </Box>
                           </td>
                         )}
@@ -1378,11 +1380,13 @@ export default function DispatchPage({ readOnly = false }: { readOnly?: boolean 
                                       <Edit2 size={14} />
                                     </IconButton>
                                   </Tooltip>
-                                  <Tooltip title="Delete">
-                                    <IconButton size="small" onClick={() => setDeleteTarget(d)} sx={{ color: '#ef4444', '&:hover': { bgcolor: '#fef2f2' } }}>
-                                      <Trash2 size={14} />
-                                    </IconButton>
-                                  </Tooltip>
+                                  {!noDelete && (
+                                    <Tooltip title="Delete">
+                                      <IconButton size="small" onClick={() => setDeleteTarget(d)} sx={{ color: '#ef4444', '&:hover': { bgcolor: '#fef2f2' } }}>
+                                        <Trash2 size={14} />
+                                      </IconButton>
+                                    </Tooltip>
+                                  )}
                                 </Box>
                               </td>
                             )}

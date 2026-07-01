@@ -99,7 +99,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'accounts/dispatch',
-            element: <DispatchPage readOnly />,
+            element: <DispatchPage noDelete />,
           },
           {
             path: 'accounts/vendor-master',

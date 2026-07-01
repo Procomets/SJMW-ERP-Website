@@ -443,7 +443,6 @@ const VendorMasterPage = ({ noDelete = false }: { noDelete?: boolean }) => {
                     { label: 'Email', key: 'email' },
                     { label: 'State', key: 'state' },
                     { label: 'Status', key: 'status' },
-                    { label: 'Created', key: 'createdAt' },
                     { label: 'Actions', key: '' }
                   ].map((col) => (
                     <TableCell
@@ -552,12 +551,7 @@ const VendorMasterPage = ({ noDelete = false }: { noDelete?: boolean }) => {
                       <StatusBadge status={v.status} />
                     </TableCell>
 
-                    {/* Created */}
-                    <TableCell sx={{ px: 1.5, py: 1.5 }}>
-                      <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                        {formatDate(v.createdAt)}
-                      </Typography>
-                    </TableCell>
+
 
                     {/* Actions */}
                     <TableCell sx={{ px: 1.5, py: 1.5 }}>

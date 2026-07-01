@@ -343,7 +343,7 @@ const ReceiptDetailDialog = ({ receipt, onClose }: ReceiptDetailDialogProps) => 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 3 }}>
           {[
             { label: 'Receipt No', value: receipt.receiptNumber },
-            { label: 'Vendor', value: receipt.vendorName + ((receipt as any).vendorCode ? ` (${(receipt as any).vendorCode})` : '') },
+            { label: 'Vendor', value: receipt.vendorName + ((receipt as any).vendorCode ? ` (${(receipt as any).vendorCode})` : '') + ((receipt as any).vendorDistrict ? ` - ${(receipt as any).vendorDistrict}` : '') },
             { label: 'Date Received', value: fmtDate(receipt.dateReceived) },
             { label: 'Created By', value: receipt.createdBy },
           ].map(f => (
@@ -414,6 +414,39 @@ const ReceiptDetailDialog = ({ receipt, onClose }: ReceiptDetailDialogProps) => 
   );
 };
 
+// ─── Vendor Hover Popup ───────────────────────────────────────────────────────
+const VendorHoverPopup = ({ vendor }: { vendor: VendorMaster | undefined }) => {
+  if (!vendor) return <Box sx={{ p: 1 }}><Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>Vendor details not found</Typography></Box>;
+  const addr = vendor.companyAddress;
+  const fullAddr = [addr?.addressLine1, addr?.city, addr?.state, addr?.pinCode].filter(Boolean).join(', ');
+  return (
+    <Box sx={{ p: 1.5, minWidth: 260, maxWidth: 340 }}>
+      <Box sx={{ borderBottom: '1px solid #e2e8f0', pb: 1, mb: 1 }}>
+        <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>{vendor.vendorName}</Typography>
+        <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+          <Chip label={vendor.vendorCode} size="small" sx={{ fontSize: '0.65rem', height: 18, bgcolor: '#eff6ff', color: '#2563eb', fontWeight: 700 }} />
+          <Chip label={vendor.vendorCategory} size="small" sx={{ fontSize: '0.65rem', height: 18, bgcolor: '#f0fdf4', color: '#15803d', fontWeight: 700 }} />
+          <Chip label={vendor.status} size="small" sx={{ fontSize: '0.65rem', height: 18, bgcolor: vendor.status === 'Active' ? '#f0fdf4' : '#fef2f2', color: vendor.status === 'Active' ? '#15803d' : '#dc2626', fontWeight: 700 }} />
+        </Box>
+      </Box>
+      {[
+        fullAddr && ['Address', fullAddr],
+        vendor.contactPersonName && ['Contact', vendor.contactPersonName],
+        vendor.contactNumber && ['Phone', vendor.contactNumber],
+        vendor.email && ['Email', vendor.email],
+        vendor.gstNumber && ['GST', vendor.gstNumber],
+        vendor.panNumber && ['PAN', vendor.panNumber],
+        vendor.vendorType && ['Type', vendor.vendorType],
+      ].filter(Boolean).map(([label, val]: any) => (
+        <Box key={label} sx={{ display: 'flex', gap: 1, mb: 0.5 }}>
+          <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', minWidth: 60 }}>{label}:</Typography>
+          <Typography sx={{ fontSize: '0.7rem', color: '#1e293b', wordBreak: 'break-word' }}>{val}</Typography>
+        </Box>
+      ))}
+    </Box>
+  );
+};
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
   const theme = useTheme();
@@ -460,15 +493,25 @@ const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
   // ── Processed Receipts (resolves vendorCode to vendorName) ─────────────────
   const processedReceipts = useMemo(() => {
     return receipts.map((r) => {
-      const matchedVendor = vendors.find(v =>
-        v.vendorCode.trim().toUpperCase() === (r.vendorName || '').trim().toUpperCase() ||
-        v.vendorName.trim().toUpperCase() === (r.vendorName || '').trim().toUpperCase() ||
-        v.id === (r as any).vendorId
-      );
+      const rCode = (r as any).vendorCode || '';
+      const rName = r.vendorName || '';
+      const matchedVendor = vendors.find(v => {
+        const vCode = v.vendorCode || '';
+        const vName = v.vendorName || '';
+        
+        return (
+          (vCode && (vCode.trim().toUpperCase() === rCode.trim().toUpperCase() || vCode.trim().toUpperCase() === rName.trim().toUpperCase())) ||
+          (vName && (vName.trim().toUpperCase() === rCode.trim().toUpperCase() || vName.trim().toUpperCase() === rName.trim().toUpperCase())) ||
+          v.id === (r as any).vendorId
+        );
+      });
+
       return {
         ...r,
         vendorName: matchedVendor ? matchedVendor.vendorName : (r.vendorName || '—'),
-        vendorCode: matchedVendor ? matchedVendor.vendorCode : undefined,
+        vendorCode: matchedVendor ? matchedVendor.vendorCode : (rCode || undefined),
+        vendorDistrict: matchedVendor?.companyAddress?.district || undefined,
+        vendor: matchedVendor,
       };
     });
   }, [receipts, vendors]);
@@ -854,13 +897,41 @@ const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
                             <td style={{ padding: '10px 14px', fontWeight: 700, color: '#2563eb', borderBottom: '1px solid #f1f5f9', borderRight: '1px solid #f1f5f9' }}>
                               {r.receiptNumber}
                             </td>
-                            <td style={{ padding: '10px 14px', fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #f1f5f9', borderRight: '1px solid #f1f5f9' }}>
-                              {r.vendorName}
-                              {(r as any).vendorCode && (
-                                <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
-                                  {(r as any).vendorCode}
-                                </span>
-                              )}
+                            <td style={{ padding: '10px 14px', borderBottom: '1px solid #f1f5f9', borderRight: '1px solid #f1f5f9' }}>
+                              <Tooltip
+                                arrow
+                                placement="right"
+                                slotProps={{
+                                  tooltip: {
+                                    sx: {
+                                      bgcolor: '#ffffff',
+                                      color: '#1e293b',
+                                      boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.06)',
+                                      p: 0,
+                                      borderRadius: 1.5,
+                                      border: '1px solid #e2e8f0',
+                                    }
+                                  },
+                                  arrow: { sx: { color: '#ffffff', '&::before': { border: '1px solid #e2e8f0' } } }
+                                }}
+                                title={<VendorHoverPopup vendor={(r as any).vendor} />}
+                              >
+                                <Box sx={{ cursor: 'default' }}>
+                                  <div style={{ fontWeight: 700, color: '#1f2937', fontSize: '0.8rem' }}>{r.vendorName}</div>
+                                  <div style={{ display: 'flex', gap: '6px', fontSize: '0.68rem', color: '#4b5563', marginTop: '4px', fontWeight: 600, flexWrap: 'wrap' }}>
+                                    {(r as any).vendorCode && (
+                                      <span style={{ backgroundColor: '#f3f4f6', padding: '1px 5px', borderRadius: '4px' }}>
+                                        {(r as any).vendorCode}
+                                      </span>
+                                    )}
+                                    {(r as any).vendorDistrict && (
+                                      <span style={{ backgroundColor: '#f0fdf4', color: '#166534', padding: '1px 5px', borderRadius: '4px', border: '1px solid #bbf7d0' }}>
+                                        {(r as any).vendorDistrict}
+                                      </span>
+                                    )}
+                                  </div>
+                                </Box>
+                              </Tooltip>
                             </td>
                             <td style={{ padding: '10px 14px', color: '#475569', whiteSpace: 'nowrap', borderBottom: '1px solid #f1f5f9', borderRight: '1px solid #f1f5f9' }}>
                               {fmtDate(r.dateReceived)}
@@ -923,13 +994,41 @@ const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
                                 <td rowSpan={activeMs.length} style={{ padding: '10px 14px', fontWeight: 700, color: '#2563eb', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', verticalAlign: 'middle' }}>
                                   {r.receiptNumber}
                                 </td>
-                                <td rowSpan={activeMs.length} style={{ padding: '10px 14px', fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', verticalAlign: 'middle' }}>
-                                  {r.vendorName}
-                                  {(r as any).vendorCode && (
-                                    <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
-                                      {(r as any).vendorCode}
-                                    </span>
-                                  )}
+                                <td rowSpan={activeMs.length} style={{ padding: '10px 14px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', verticalAlign: 'middle' }}>
+                                  <Tooltip
+                                    arrow
+                                    placement="right"
+                                    slotProps={{
+                                      tooltip: {
+                                        sx: {
+                                          bgcolor: '#ffffff',
+                                          color: '#1e293b',
+                                          boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.06)',
+                                          p: 0,
+                                          borderRadius: 1.5,
+                                          border: '1px solid #e2e8f0',
+                                        }
+                                      },
+                                      arrow: { sx: { color: '#ffffff', '&::before': { border: '1px solid #e2e8f0' } } }
+                                    }}
+                                    title={<VendorHoverPopup vendor={(r as any).vendor} />}
+                                  >
+                                    <Box sx={{ cursor: 'default' }}>
+                                      <div style={{ fontWeight: 700, color: '#1f2937', fontSize: '0.8rem' }}>{r.vendorName}</div>
+                                      <div style={{ display: 'flex', gap: '6px', fontSize: '0.68rem', color: '#4b5563', marginTop: '4px', fontWeight: 600, flexWrap: 'wrap' }}>
+                                        {(r as any).vendorCode && (
+                                          <span style={{ backgroundColor: '#f3f4f6', padding: '1px 5px', borderRadius: '4px' }}>
+                                            {(r as any).vendorCode}
+                                          </span>
+                                        )}
+                                        {(r as any).vendorDistrict && (
+                                          <span style={{ backgroundColor: '#f0fdf4', color: '#166534', padding: '1px 5px', borderRadius: '4px', border: '1px solid #bbf7d0' }}>
+                                            {(r as any).vendorDistrict}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </Box>
+                                  </Tooltip>
                                 </td>
                                 <td rowSpan={activeMs.length} style={{ padding: '10px 14px', color: '#475569', whiteSpace: 'nowrap', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', verticalAlign: 'middle' }}>
                                   {fmtDate(r.dateReceived)}
@@ -1021,11 +1120,13 @@ const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
                                         <Eye size={14} />
                                       </IconButton>
                                     </Tooltip>
-                                    <Tooltip title="Delete Receipt">
-                                      <IconButton size="small" onClick={() => setDeleteTarget(r)} sx={{ color: '#dc2626', '&:hover': { backgroundColor: '#fff1f2' } }}>
-                                        <Trash2 size={14} />
-                                      </IconButton>
-                                    </Tooltip>
+                                    {!readOnly && (
+                                      <Tooltip title="Delete Receipt">
+                                        <IconButton size="small" onClick={() => setDeleteTarget(r)} sx={{ color: '#dc2626', '&:hover': { backgroundColor: '#fff1f2' } }}>
+                                          <Trash2 size={14} />
+                                        </IconButton>
+                                      </Tooltip>
+                                    )}
                                   </Box>
                                 </td>
                               </>
