@@ -13,13 +13,14 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../../../firebase/firebaseConfig';
-import type { FinishedGoodEntry, FinishedGoodEditFormData, FinishedGoodStatus } from '../types/finishedGoods.types';
+import type { FinishedGoodEntry, FinishedGoodEditFormData, FinishedGoodStatus, DrassEntry, DrassFormData } from '../types/finishedGoods.types';
 import type { ProductionLedgerEntry } from '../../productionLedger/types/productionLedger.types';
 import type { CostLedgerEntry } from '../../costLedger/types/costLedger.types';
 
 const COL = 'finishedGoods';
 const PRODUCTION_COL = 'productionLedger';
 const COST_COL = 'costLedger';
+const DRASS_COL = 'drassLedger';
 
 // ─── Fetch all finished goods ─────────────────────────────────────────────────
 export const fetchFinishedGoods = async (): Promise<FinishedGoodEntry[]> => {
@@ -337,3 +338,82 @@ export const syncFinishedGoodsForHeat = async (
     }
   }
 };
+
+// ─── Fetch all dross entries ──────────────────────────────────────────────────
+export const fetchDrassEntries = async (): Promise<DrassEntry[]> => {
+  const q = query(collection(db, DRASS_COL), orderBy('createdAt', 'desc'));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({
+    id: d.id,
+    ...d.data(),
+  } as DrassEntry));
+};
+
+// ─── Add a dross entry ────────────────────────────────────────────────────────
+export const addDrassEntry = async (form: DrassFormData): Promise<string> => {
+  const now = serverTimestamp() as Timestamp;
+  const startTs = Timestamp.fromDate(new Date(form.startDate));
+  const endTs = Timestamp.fromDate(new Date(form.endDate));
+  const storageDays = Math.ceil((new Date(form.endDate).getTime() - new Date(form.startDate).getTime()) / (1000 * 60 * 60 * 24));
+
+  const payload = {
+    drassCode: form.drassCode.trim().toUpperCase(),
+    heatIds: form.heatIds,
+    heatNumbers: form.heatNumbers,
+    grossWeightKg: Number(form.grossWeightKg) || 0,
+    remainingWeightKg: Number(form.remainingWeightKg) || 0,
+    startDate: startTs,
+    endDate: endTs,
+    storageDays: isNaN(storageDays) ? 0 : storageDays,
+    status: form.status,
+    approved: form.approved ?? (form.status === 'Available' || form.status === 'Dispatched'),
+    remarks: form.remarks?.trim() ?? '',
+    createdBy: form.createdBy?.trim() || 'Akshay',
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const ref = await addDoc(collection(db, DRASS_COL), payload);
+  await updateDoc(doc(db, DRASS_COL, ref.id), {
+    drassId: ref.id,
+  });
+  return ref.id;
+};
+
+// ─── Update a dross entry ─────────────────────────────────────────────────────
+export const updateDrassEntry = async (id: string, form: DrassFormData): Promise<void> => {
+  const startTs = Timestamp.fromDate(new Date(form.startDate));
+  const endTs = Timestamp.fromDate(new Date(form.endDate));
+  const storageDays = Math.ceil((new Date(form.endDate).getTime() - new Date(form.startDate).getTime()) / (1000 * 60 * 60 * 24));
+
+  await updateDoc(doc(db, DRASS_COL, id), {
+    drassCode: form.drassCode.trim().toUpperCase(),
+    heatIds: form.heatIds,
+    heatNumbers: form.heatNumbers,
+    grossWeightKg: Number(form.grossWeightKg) || 0,
+    remainingWeightKg: Number(form.remainingWeightKg) || 0,
+    startDate: startTs,
+    endDate: endTs,
+    storageDays: isNaN(storageDays) ? 0 : storageDays,
+    status: form.status,
+    approved: form.approved ?? (form.status === 'Available' || form.status === 'Dispatched'),
+    remarks: form.remarks?.trim() ?? '',
+    createdBy: form.createdBy?.trim() || 'Akshay',
+    updatedAt: serverTimestamp(),
+  });
+};
+
+// ─── Delete a dross entry ─────────────────────────────────────────────────────
+export const deleteDrassEntry = async (id: string): Promise<void> => {
+  await deleteDoc(doc(db, DRASS_COL, id));
+};
+
+// ─── Approve a dross entry ─────────────────────────────────────────────────────
+export const approveDrassEntry = async (id: string): Promise<void> => {
+  await updateDoc(doc(db, DRASS_COL, id), {
+    status: 'Available',
+    approved: true,
+    updatedAt: serverTimestamp(),
+  });
+};
+

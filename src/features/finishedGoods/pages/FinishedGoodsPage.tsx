@@ -9,7 +9,7 @@ import {
   Package, Edit, Search, ChevronLeft, ChevronRight,
   ArrowUpDown, X, Layers, Truck, IndianRupee,
   CheckCircle2, Archive, ChevronDown,
-  BarChart3, TableIcon, Maximize2, Minimize2,
+  BarChart3, TableIcon, Maximize2, Minimize2, Trash2,
 } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
 
@@ -17,12 +17,20 @@ import {
   fetchFinishedGoods,
   updateFinishedGood,
   approveFinishedGood,
+  fetchDrassEntries,
+  addDrassEntry,
+  updateDrassEntry,
+  deleteDrassEntry,
+  approveDrassEntry,
 } from '../services/finishedGoods.service';
 import type {
   FinishedGoodEntry,
   FinishedGoodStatus,
   FinishedGoodEditFormData,
   FinishedGoodsGroup,
+  DrassEntry,
+  DrassFormData,
+  DrassStatus,
 } from '../types/finishedGoods.types';
 import { fetchProductionLedger } from '../../productionLedger/services/productionLedger.service';
 import type { ProductionLedgerEntry } from '../../productionLedger/types/productionLedger.types';
@@ -1070,14 +1078,21 @@ const FinishedGoodsPage = ({ readOnly = false }: FinishedGoodsPageProps) => {
   const [productionEntries, setProductionEntries] = useState<ProductionLedgerEntry[]>([]);
   const [costEntries, setCostEntries] = useState<CostLedgerEntry[]>([]);
   const [qcEntries, setQcEntries] = useState<QualityControlEntry[]>([]);
+  const [drassEntries, setDrassEntries] = useState<DrassEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvingHeatNo, setApprovingHeatNo] = useState<string | null>(null);
 
   const [editTarget, setEditTarget] = useState<FinishedGoodEntry | null>(null);
 
-  // View mode: 'group' (card overview), 'table' (flat), or 'approval' (pending queue)
+  const [drassDialogOpen, setDrassDialogOpen] = useState(false);
+  const [editDrassTarget, setEditDrassTarget] = useState<DrassEntry | null>(null);
+  const [deleteDrassTarget, setDeleteDrassTarget] = useState<DrassEntry | null>(null);
+  const [deletingDrass, setDeletingDrass] = useState(false);
+  const [approvingDrassId, setApprovingDrassId] = useState<string | null>(null);
+
+  // View mode: 'group' (card overview), 'table' (flat), or 'approval' (pending queue) or 'drass' (dross management)
   // In readOnly mode, lock to 'group' view only
-  const [viewMode, setViewMode] = useState<'group' | 'table' | 'approval'>(readOnly ? 'group' : 'group');
+  const [viewMode, setViewMode] = useState<'group' | 'table' | 'approval' | 'drass'>(readOnly ? 'group' : 'group');
 
   // Which alloy group is expanded in drilldown (null = overview cards)
   const [selectedAlloy, setSelectedAlloy] = useState<string | null>(null);
@@ -1103,16 +1118,18 @@ const FinishedGoodsPage = ({ readOnly = false }: FinishedGoodsPageProps) => {
   const load = async () => {
     setLoading(true);
     try {
-      const [data, prodData, costData, qcData] = await Promise.all([
+      const [data, prodData, costData, qcData, drassData] = await Promise.all([
         fetchFinishedGoods(),
         fetchProductionLedger(),
         fetchCostLedger(),
         fetchQualityControlEntries(),
+        fetchDrassEntries(),
       ]);
       setEntries(data);
       setProductionEntries(prodData);
       setCostEntries(costData);
       setQcEntries(qcData);
+      setDrassEntries(drassData);
     } catch (err) {
       console.error('Failed to load finished goods', err);
     } finally {
@@ -1335,6 +1352,51 @@ const FinishedGoodsPage = ({ readOnly = false }: FinishedGoodsPageProps) => {
     await load();
   };
 
+  // ── Dross Handlers ─────────────────────────────────────────────────────────
+  const handleSaveDrass = async (form: DrassFormData) => {
+    try {
+      if (editDrassTarget) {
+        await updateDrassEntry(editDrassTarget.id, form);
+      } else {
+        await addDrassEntry(form);
+      }
+      setDrassDialogOpen(false);
+      setEditDrassTarget(null);
+      await load();
+    } catch (err: any) {
+      console.error("Failed to save dross entry:", err);
+      alert(err.message || "Failed to save dross entry.");
+    }
+  };
+
+  const handleDeleteDrass = async () => {
+    if (!deleteDrassTarget) return;
+    setDeletingDrass(true);
+    try {
+      await deleteDrassEntry(deleteDrassTarget.id);
+      setDeleteDrassTarget(null);
+      await load();
+    } catch (err) {
+      console.error("Failed to delete dross entry:", err);
+      alert("Failed to delete. Please try again.");
+    } finally {
+      setDeletingDrass(false);
+    }
+  };
+
+  const handleApproveDrass = async (id: string) => {
+    setApprovingDrassId(id);
+    try {
+      await approveDrassEntry(id);
+      await load();
+    } catch (err) {
+      console.error("Failed to approve dross entry:", err);
+      alert("Failed to approve. Please try again.");
+    } finally {
+      setApprovingDrassId(null);
+    }
+  };
+
   // ── Helpers ───────────────────────────────────────────────────────────────
   const SortTh = ({ label, colKey, className = '' }: { label: string; colKey: string; className?: string }) => (
     <th
@@ -1462,6 +1524,14 @@ const FinishedGoodsPage = ({ readOnly = false }: FinishedGoodsPageProps) => {
                       {unapprovedHeats.length}
                     </span>
                   )}
+                </button>
+              )}
+              {!readOnly && (
+                <button
+                  onClick={() => setViewMode('drass')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${viewMode === 'drass' ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                >
+                  <Layers size={12} /> Dross Management
                 </button>
               )}
             </div>
@@ -1807,6 +1877,182 @@ const FinishedGoodsPage = ({ readOnly = false }: FinishedGoodsPageProps) => {
         </>
       )}
 
+      {/* ── DROSS MANAGEMENT VIEW ── */}
+      {viewMode === 'drass' && (
+        <Card sx={{ borderRadius: 3, border: '1px solid #f1f5f9' }}>
+          <CardContent sx={{ p: 0 }}>
+            {/* Table Action Bar */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50/50">
+              <div>
+                <Typography className="font-bold text-base text-slate-800">Dross Records</Typography>
+                <Typography className="text-xs text-slate-500 font-normal">
+                  Manage storage days, weights, and approvals for dross ledger
+                </Typography>
+              </div>
+              <Button
+                variant="contained"
+                onClick={() => { setEditDrassTarget(null); setDrassDialogOpen(true); }}
+                className="bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-bold px-4 py-2"
+                startIcon={<Package size={14} />}
+              >
+                Create Dross Entry
+              </Button>
+            </div>
+
+            {/* Dross Table */}
+            <div className="overflow-x-auto" style={{ maxHeight: '600px' }}>
+              <table className="min-w-full text-left border-collapse fg-grid-table">
+                <thead className={`${stickyHead} sticky top-0 z-20 shadow-sm`}>
+                  <tr className="text-xs text-slate-500 font-semibold">
+                    <th className="px-4 py-3 border-b border-slate-200 w-12 text-center bg-slate-100">#</th>
+                    <th className="px-4 py-3 border-b border-slate-200 w-32">Dross Code</th>
+                    <th className="px-4 py-3 border-b border-slate-200 w-44">Start & End Date</th>
+                    <th className="px-4 py-3 border-b border-slate-200 w-24 text-right">No of Days</th>
+                    <th className="px-4 py-3 border-b border-slate-200">Heat Numbers</th>
+                    <th className="px-4 py-3 border-b border-slate-200 w-32 text-right">Gross Wt (kg)</th>
+                    <th className="px-4 py-3 border-b border-slate-200 w-32 text-right">Dispatched Wt (kg)</th>
+                    <th className="px-4 py-3 border-b border-slate-200 w-32 text-right">Remaining Wt (kg)</th>
+                    <th className="px-4 py-3 border-b border-slate-200 w-36 text-center">Status</th>
+                    <th className="px-4 py-3 border-b border-slate-200 w-36 text-center bg-slate-100">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-slate-100 text-xs">
+                  {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <tr key={i}>
+                        {Array.from({ length: 10 }).map((__, j) => (
+                          <td key={j} className="px-4 py-3"><Skeleton height={14} /></td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : drassEntries.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="px-4 py-12 text-center text-slate-400 font-medium">
+                        No dross records found. Click "Create Dross Entry" to add one.
+                      </td>
+                    </tr>
+                  ) : (
+                    drassEntries.map((row, idx) => {
+                      const isEven = idx % 2 === 0;
+                      const rowBg = isEven ? 'bg-white' : 'bg-slate-50';
+                      const dispatchedWeight = Math.max(0, (row.grossWeightKg ?? 0) - (row.remainingWeightKg ?? 0));
+                      return (
+                        <tr key={row.id} className={`hover:bg-blue-50/20 transition-colors group ${rowBg}`}>
+                          <td className="px-4 py-3 text-center text-slate-400 font-mono font-bold">
+                            {idx + 1}
+                          </td>
+                          <td className="px-4 py-3 font-bold text-slate-700">
+                            {row.drassCode}
+                          </td>
+                          <td className="px-4 py-3 text-slate-600 font-medium">
+                            {fmtDate(row.startDate)} – {fmtDate(row.endDate)}
+                          </td>
+                          <td className="px-4 py-3 text-right font-semibold font-mono">
+                            {row.storageDays ?? 0}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="grid grid-cols-2 gap-1 w-max">
+                              {row.heatNumbers?.map((heatNo, i) => (
+                                <Tooltip
+                                  key={i}
+                                  title={<HeatHoverDetails heatNo={heatNo} productionEntries={productionEntries} costEntries={costEntries} />}
+                                  placement="top"
+                                  slotProps={{
+                                    tooltip: {
+                                      sx: {
+                                        bgcolor: '#ffffff',
+                                        color: '#0f172a',
+                                        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                                        border: '1px solid #e2e8f0',
+                                        borderRadius: 2,
+                                        p: 0,
+                                        maxWidth: 400,
+                                      }
+                                    }
+                                  }}
+                                >
+                                  <Chip
+                                    label={heatNo}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ cursor: 'pointer', height: 20, fontSize: '0.65rem', borderColor: '#1565C0', color: '#1565C0', fontWeight: 700 }}
+                                  />
+                                </Tooltip>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right font-semibold font-mono">
+                            {row.grossWeightKg?.toLocaleString()} kg
+                          </td>
+                          <td className="px-4 py-3 text-right font-semibold font-mono text-slate-600">
+                            {dispatchedWeight.toLocaleString()} kg
+                          </td>
+                          <td className="px-4 py-3 text-right font-bold font-mono text-blue-700">
+                            {row.remainingWeightKg?.toLocaleString()} kg
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <Chip
+                              label={row.status}
+                              size="small"
+                              variant="outlined"
+                              sx={{
+                                height: 20,
+                                fontSize: '0.65rem',
+                                fontWeight: 700,
+                                borderColor: row.status === 'Available' ? '#2e7d32' : row.status === 'Dispatched' ? '#64748b' : '#1565C0',
+                                color: row.status === 'Available' ? '#2e7d32' : row.status === 'Dispatched' ? '#64748b' : '#1565C0',
+                                bgcolor: row.status === 'Available' ? '#e8f5e9' : row.status === 'Dispatched' ? '#f1f5f9' : '#eff6ff',
+                              }}
+                            />
+                          </td>
+                          <td className="px-4 py-3 text-center sticky right-0 z-10 bg-inherit">
+                            <div className="flex items-center justify-center gap-1">
+                              <Tooltip title={row.approved ? 'Already Approved' : 'Approve Entry'}>
+                                <span>
+                                  <Button
+                                    size="small"
+                                    variant="contained"
+                                    color="success"
+                                    onClick={() => handleApproveDrass(row.id)}
+                                    disabled={row.approved || row.status === 'Dispatched' || approvingDrassId === row.id}
+                                    sx={{ fontSize: '0.65rem', py: 0.25, px: 1, textTransform: 'none', borderRadius: 1.5, fontWeight: 700 }}
+                                  >
+                                    {row.approved ? 'Approved' : approvingDrassId === row.id ? 'Approving…' : 'Approve'}
+                                  </Button>
+                                </span>
+                              </Tooltip>
+                              <Tooltip title="Edit">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => { setEditDrassTarget(row); setDrassDialogOpen(true); }}
+                                  sx={{ color: '#1565C0', p: 0.5, '&:hover': { background: '#eff6ff' } }}
+                                >
+                                  <Edit size={13} />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => setDeleteDrassTarget(row)}
+                                  sx={{ p: 0.5, '&:hover': { background: '#ffebee' } }}
+                                >
+                                  <Trash2 size={13} />
+                                </IconButton>
+                              </Tooltip>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* ── GROUP VIEW ── */}
       {viewMode === 'group' && (
         <div>
@@ -2075,7 +2321,279 @@ const FinishedGoodsPage = ({ readOnly = false }: FinishedGoodsPageProps) => {
         onClose={() => setEditTarget(null)}
         onSave={handleSaveEdit}
       />
+
+      {/* ── Dross Entry Dialog ── */}
+      <DrassDialog
+        open={drassDialogOpen}
+        entry={editDrassTarget}
+        onClose={() => { setDrassDialogOpen(false); setEditDrassTarget(null); }}
+        onSave={handleSaveDrass}
+        finishedGoods={entries}
+      />
+
+      {/* ── Dross Delete Confirmation Dialog ── */}
+      <Dialog
+        open={!!deleteDrassTarget}
+        onClose={() => setDeleteDrassTarget(null)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>Delete Dross Entry</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete dross code{' '}
+            <strong>{deleteDrassTarget?.drassCode}</strong>? This cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button onClick={() => setDeleteDrassTarget(null)} variant="outlined" disabled={deletingDrass}>
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteDrass} variant="contained" color="error" disabled={deletingDrass}>
+            {deletingDrass ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
+  );
+};
+
+// ─── DrassDialog Component (Dross Management Form) ───────────────────────────
+interface DrassDialogProps {
+  open: boolean;
+  entry: DrassEntry | null;
+  onClose: () => void;
+  onSave: (form: DrassFormData) => Promise<void>;
+  finishedGoods: FinishedGoodEntry[];
+}
+
+const DrassDialog = ({ open, entry, onClose, onSave, finishedGoods }: DrassDialogProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const [form, setForm] = useState<DrassFormData>({
+    drassCode: '',
+    heatIds: [],
+    heatNumbers: [],
+    grossWeightKg: 0,
+    remainingWeightKg: 0,
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+    status: 'Pending Approval',
+    remarks: '',
+    createdBy: 'Akshay',
+  });
+
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (open) {
+      if (entry) {
+        setForm({
+          drassCode: entry.drassCode ?? '',
+          heatIds: entry.heatIds ?? [],
+          heatNumbers: entry.heatNumbers ?? [],
+          grossWeightKg: entry.grossWeightKg ?? 0,
+          remainingWeightKg: entry.remainingWeightKg ?? 0,
+          startDate: entry.startDate ? entry.startDate.toDate().toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          endDate: entry.endDate ? entry.endDate.toDate().toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          status: entry.status ?? 'Pending Approval',
+          remarks: entry.remarks ?? '',
+          createdBy: entry.createdBy ?? 'Akshay',
+        });
+      } else {
+        setForm({
+          drassCode: '',
+          heatIds: [],
+          heatNumbers: [],
+          grossWeightKg: 0,
+          remainingWeightKg: 0,
+          startDate: new Date().toISOString().split('T')[0],
+          endDate: new Date().toISOString().split('T')[0],
+          status: 'Pending Approval',
+          remarks: '',
+          createdBy: 'Akshay',
+        });
+      }
+      setError('');
+    }
+  }, [entry, open]);
+
+  const handleSave = async () => {
+    if (!form.drassCode.trim()) { setError('Dross Code is required.'); return; }
+    if (form.heatIds.length === 0) { setError('Select at least one heat.'); return; }
+    if (form.grossWeightKg < 0) { setError('Gross weight cannot be negative.'); return; }
+    if (form.remainingWeightKg < 0) { setError('Remaining weight cannot be negative.'); return; }
+    if (form.remainingWeightKg > form.grossWeightKg) { setError('Remaining weight cannot exceed gross weight.'); return; }
+    if (new Date(form.startDate) > new Date(form.endDate)) { setError('Start Date cannot be after End Date.'); return; }
+
+    setSaving(true);
+    try {
+      await onSave(form);
+      onClose();
+    } catch (e: any) {
+      setError(e.message ?? 'Failed to save.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      fullScreen={isMobile}
+      slotProps={{ paper: { className: isMobile ? 'text-slate-800 m-0 w-full h-full' : 'rounded-2xl text-slate-800' } }}
+    >
+      <DialogTitle className="flex items-center justify-between border-b border-slate-100 py-4 px-6 bg-slate-50/50">
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-blue-700 text-white rounded-lg">
+            <Package size={16} />
+          </div>
+          <div>
+            <Typography className="font-bold text-base leading-tight">
+              {entry ? 'Edit Dross Entry' : 'Create Dross Entry'}
+            </Typography>
+            <Typography className="text-xs text-slate-500 font-normal">
+              Specify heats and dross properties
+            </Typography>
+          </div>
+        </div>
+        <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+          <X size={18} />
+        </button>
+      </DialogTitle>
+
+      <DialogContent className="py-5 px-6 space-y-4">
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg font-medium">{error}</div>
+        )}
+
+        <TextField
+          label="Dross Code *"
+          fullWidth
+          size="small"
+          placeholder="e.g. DRS-0002"
+          value={form.drassCode}
+          onChange={(e) => setForm(p => ({ ...p, drassCode: e.target.value }))}
+        />
+
+        <FormControl fullWidth size="small">
+          <InputLabel>Heats *</InputLabel>
+          <Select
+            multiple
+            label="Heats *"
+            value={form.heatIds}
+            onChange={(e) => {
+              const selectedIds = e.target.value as string[];
+              const selectedNums = selectedIds.map(id => {
+                const item = finishedGoods.find(fg => fg.id === id);
+                return item ? item.heatNo : '';
+              }).filter(Boolean);
+              setForm(p => ({ ...p, heatIds: selectedIds, heatNumbers: selectedNums }));
+            }}
+            renderValue={(selected) => (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selected.map((id) => {
+                  const item = finishedGoods.find(fg => fg.id === id);
+                  return <Chip key={id} label={item ? item.heatNo : id} size="small" />;
+                })}
+              </Box>
+            )}
+          >
+            {finishedGoods.map((fg) => (
+              <MenuItem key={fg.id} value={fg.id}>
+                {fg.heatNo} ({fg.alloyType} · {fg.goodOutputKg} kg)
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <div className="grid grid-cols-2 gap-4">
+          <TextField
+            label="Gross Weight (kg) *"
+            type="number"
+            fullWidth
+            size="small"
+            value={form.grossWeightKg || ''}
+            onChange={(e) => setForm(p => ({ ...p, grossWeightKg: parseFloat(e.target.value) || 0 }))}
+          />
+          <TextField
+            label="Remaining Weight (kg) *"
+            type="number"
+            fullWidth
+            size="small"
+            value={form.remainingWeightKg || ''}
+            onChange={(e) => setForm(p => ({ ...p, remainingWeightKg: parseFloat(e.target.value) || 0 }))}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <TextField
+            label="Start Date *"
+            type="date"
+            fullWidth
+            size="small"
+            value={form.startDate}
+            onChange={(e) => setForm(p => ({ ...p, startDate: e.target.value }))}
+            slotProps={{ inputLabel: { shrink: true } }}
+          />
+          <TextField
+            label="End Date *"
+            type="date"
+            fullWidth
+            size="small"
+            value={form.endDate}
+            onChange={(e) => setForm(p => ({ ...p, endDate: e.target.value }))}
+            slotProps={{ inputLabel: { shrink: true } }}
+          />
+        </div>
+
+        <FormControl fullWidth size="small">
+          <InputLabel>Status</InputLabel>
+          <Select
+            label="Status"
+            value={form.status}
+            onChange={(e) => setForm(p => ({ ...p, status: e.target.value as DrassStatus }))}
+          >
+            <MenuItem value="Pending Approval">Pending Approval</MenuItem>
+            <MenuItem value="Available">Available</MenuItem>
+            <MenuItem value="Dispatched">Dispatched</MenuItem>
+          </Select>
+        </FormControl>
+
+        <TextField
+          label="Created By"
+          fullWidth
+          size="small"
+          value={form.createdBy}
+          onChange={(e) => setForm(p => ({ ...p, createdBy: e.target.value }))}
+        />
+
+        <TextField
+          label="Remarks"
+          fullWidth
+          size="small"
+          multiline
+          rows={2}
+          value={form.remarks}
+          onChange={(e) => setForm(p => ({ ...p, remarks: e.target.value }))}
+        />
+      </DialogContent>
+
+      <DialogActions className="border-t border-slate-100 py-3 px-6 gap-2 bg-slate-50/50">
+        <Button onClick={onClose} variant="outlined" disabled={saving} className="text-slate-600 border-slate-300 rounded-lg px-4">
+          Cancel
+        </Button>
+        <Button onClick={handleSave} variant="contained" disabled={saving} className="bg-blue-700 hover:bg-blue-800 text-white rounded-lg px-6 font-semibold">
+          {saving ? <CircularProgress size={16} className="text-white" /> : entry ? 'Update Entry' : 'Create Entry'}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 

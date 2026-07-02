@@ -8,6 +8,8 @@ import {
   deleteDoc,
   serverTimestamp,
   Timestamp,
+  setDoc,
+  where,
 } from 'firebase/firestore';
 import { db } from '../../../firebase/firebaseConfig';
 import type { InventoryItem, MaterialReceipt } from '../types/warehouse.types';
@@ -108,3 +110,56 @@ export const updateInventoryItem = async (
 export const deleteMaterialReceipt = async (id: string): Promise<void> => {
   await deleteDoc(doc(db, RECEIPTS_COL, id));
 };
+
+// ─── Adjust inventory stock for a given material code ──────────────────────────
+export const adjustInventoryStock = async (
+  materialCode: string,
+  changeKg: number
+): Promise<void> => {
+  if (!materialCode || changeKg === 0) return;
+
+  const q = query(
+    collection(db, INVENTORY_COL),
+    where('materialCode', '==', materialCode.toUpperCase())
+  );
+  const snap = await getDocs(q);
+
+  if (!snap.empty) {
+    const docRef = snap.docs[0].ref;
+    const currentStock = Number(snap.docs[0].data().currentStockKg) || 0;
+    const newStock = Math.max(0, currentStock + changeKg);
+    await updateDoc(docRef, {
+      currentStockKg: newStock,
+      updatedAt: serverTimestamp(),
+    });
+  } else {
+    // If inventory item does not exist, look up material in masterController to create it
+    const mmQuery = query(
+      collection(db, MATERIAL_MASTER_COL),
+      where('materialCode', '==', materialCode.toUpperCase())
+    );
+    const mmSnap = await getDocs(mmQuery);
+
+    if (!mmSnap.empty) {
+      const mmDoc = mmSnap.docs[0];
+      const mmData = mmDoc.data();
+      const mmId = mmDoc.id;
+
+      const newInventoryItem = {
+        materialId: mmData.materialId || mmId,
+        materialCode: mmData.materialCode,
+        materialName: mmData.materialName,
+        currentStockKg: Math.max(0, changeKg),
+        minimumStockKg: Number(mmData.minimumStockKg) || 0,
+        averageCost: 0,
+        efficiencyPercentage: Number(mmData.efficiencyPercentage) || 0,
+        status: 'Healthy',
+        lastReceiptDate: null,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+      await setDoc(doc(db, INVENTORY_COL, mmId), newInventoryItem);
+    }
+  }
+};
+

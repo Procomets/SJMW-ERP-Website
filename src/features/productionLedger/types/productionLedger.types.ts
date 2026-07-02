@@ -41,6 +41,7 @@ export interface ProductionLedgerEntry {
   actualEfficiencyPercentage?: number;
   totalInputKg?: number;
   goodIngotsKg?: number;
+  badIngotsKg?: number;
   notified?: boolean;
 }
 
@@ -51,6 +52,7 @@ export interface ProductionLedgerFormData {
   alloyType: string;
   supervisorName: string;
   goodIngots: number;
+  badIngotsKg: number;
   totalPieces: number;
   noOfPieces: number;
   efficiencyStatus: string;
@@ -83,6 +85,7 @@ export const buildEmptyForm = (
   alloyType: '',
   supervisorName: '',
   goodIngots: 0,
+  badIngotsKg: 0,
   totalPieces: 0,
   noOfPieces: 0,
   efficiencyStatus: '',

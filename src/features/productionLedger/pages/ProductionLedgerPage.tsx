@@ -662,6 +662,16 @@ const ProductionLedgerPage = () => {
                                 </TableCell>
                                 <TableCell
                                     align="right"
+                                    sx={{ ...stickyHead, minWidth: 90, color: '#c62828', cursor: 'pointer', userSelect: 'none', '&:hover': { bgcolor: '#f1f5f9' } }}
+                                    onClick={() => handleSort('badIngotsKg')}
+                                >
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                                        Bad Ingots (Kg)
+                                        <ArrowUpDown size={10} style={{ color: sortKey === 'badIngotsKg' ? '#1565C0' : '#94a3b8', opacity: sortKey === 'badIngotsKg' ? 1 : 0.4 }} />
+                                    </Box>
+                                </TableCell>
+                                <TableCell
+                                    align="right"
                                     sx={{ ...stickyHead, minWidth: 80, cursor: 'pointer', userSelect: 'none', '&:hover': { bgcolor: '#f1f5f9' } }}
                                     onClick={() => handleSort('pieces')}
                                 >
@@ -688,7 +698,7 @@ const ProductionLedgerPage = () => {
                             {isTableLoading ? (
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <TableRow key={i}>
-                                        {Array.from({ length: 7 + productionMaterials.length + 5 }).map((__, j) => (
+                                        {Array.from({ length: 7 + productionMaterials.length + 6 }).map((__, j) => (
                                             <TableCell key={j} sx={bodyCell}>
                                                 <Skeleton variant="text" width={50} height={16} />
                                             </TableCell>
@@ -697,7 +707,7 @@ const ProductionLedgerPage = () => {
                                 ))
                             ) : filtered.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={7 + productionMaterials.length + 5} align="center" sx={{ py: 6 }}>
+                                    <TableCell colSpan={7 + productionMaterials.length + 6} align="center" sx={{ py: 6 }}>
                                         <Typography color="text.secondary" sx={{ fontSize: '0.875rem' }}>
                                             {hasActiveFilters ? 'No entries match your search.' : 'No production entries yet. Click "Add Entry" to begin.'}
                                         </Typography>
@@ -762,6 +772,9 @@ const ProductionLedgerPage = () => {
                                             </TableCell>
                                             <TableCell align="right" sx={{ ...bodyCell, fontWeight: 700, color: '#2e7d32' }}>
                                                 {row.goodIngots.toLocaleString()}
+                                            </TableCell>
+                                            <TableCell align="right" sx={{ ...bodyCell, fontWeight: 700, color: '#c62828' }}>
+                                                {(row.badIngotsKg ?? 0).toLocaleString()}
                                             </TableCell>
                                             <TableCell align="right" sx={{ ...bodyCell, fontWeight: 600 }}>
                                                 {row.noOfPieces !== undefined ? row.noOfPieces.toLocaleString() : (row.totalPieces !== undefined ? row.totalPieces.toLocaleString() : '—')}

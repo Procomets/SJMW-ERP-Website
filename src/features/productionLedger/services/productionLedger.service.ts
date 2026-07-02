@@ -19,6 +19,7 @@ import type {
 import { calcTotalInput, calcEfficiency } from '../types/productionLedger.types';
 import { syncFinishedGoodsForHeat } from '../../finishedGoods/services/finishedGoods.service';
 import { syncCostLedgerFromProduction } from '../../costLedger/services/costLedger.service';
+import { adjustInventoryStock } from '../../warehouse/services/warehouse.service';
 
 const COL = 'productionLedger';
 
@@ -55,6 +56,7 @@ export const fetchProductionLedger = async (): Promise<ProductionLedgerEntry[]> 
       actualEfficiencyPercentage: data.actualEfficiencyPercentage !== undefined ? Number(data.actualEfficiencyPercentage) : efficiencyVal,
       totalInputKg: data.totalInputKg !== undefined ? Number(data.totalInputKg) : (data.totalInput !== undefined ? Number(data.totalInput) : 0),
       goodIngotsKg: data.goodIngotsKg !== undefined ? Number(data.goodIngotsKg) : (data.goodIngots !== undefined ? Number(data.goodIngots) : 0),
+      badIngotsKg: data.badIngotsKg !== undefined ? Number(data.badIngotsKg) : 0,
       notified: data.notified ?? false,
     } as ProductionLedgerEntry;
   });
@@ -108,10 +110,26 @@ export const addProductionEntry = async (
     actualEfficiencyPercentage: efficiencyPercentage,
     totalInputKg: totalInput,
     goodIngotsKg: Number(form.goodIngots),
+    badIngotsKg: Number(form.badIngotsKg) || 0,
     notified: true,
   };
 
   const ref = await addDoc(collection(db, COL), payload);
+
+  // Sync with Warehouse Inventory
+  try {
+    for (const m of materialsToPersist) {
+      if (m.weightKg > 0) {
+        await adjustInventoryStock(m.materialCode, -m.weightKg);
+      }
+    }
+    const badIngotsVal = Number(form.badIngotsKg) || 0;
+    if (badIngotsVal > 0) {
+      await adjustInventoryStock('REJ', badIngotsVal);
+    }
+  } catch (err) {
+    console.error("Failed to sync warehouse stock on production add:", err);
+  }
 
   const createdEntry: ProductionLedgerEntry = {
     id: ref.id,
@@ -153,15 +171,20 @@ export const updateProductionEntry = async (
   const totalInput = calcTotalInput(materialsToPersist);
   const efficiencyPercentage = calcEfficiency(Number(form.goodIngots), totalInput);
 
-  // Fetch old heatNo to support heat name changes
+  // Fetch old heatNo and materials/badIngots for stock adjustment
   let oldHeatNo: string | undefined;
   let oldSerialNo = 0;
+  let oldMaterials: any[] = [];
+  let oldBadIngotsKg = 0;
   try {
     const docRef = doc(db, COL, id);
     const snap = await getDoc(docRef);
     if (snap.exists()) {
-      oldHeatNo = snap.data().heatNo;
-      oldSerialNo = snap.data().serialNo || 0;
+      const oldData = snap.data();
+      oldHeatNo = oldData.heatNo;
+      oldSerialNo = oldData.serialNo || 0;
+      oldMaterials = Array.isArray(oldData.materials) ? oldData.materials : [];
+      oldBadIngotsKg = Number(oldData.badIngotsKg) || 0;
     }
   } catch (err) {
     console.error("Failed to fetch old production entry for sync:", err);
@@ -193,8 +216,43 @@ export const updateProductionEntry = async (
     actualEfficiencyPercentage: efficiencyPercentage,
     totalInputKg: totalInput,
     goodIngotsKg: Number(form.goodIngots),
+    badIngotsKg: Number(form.badIngotsKg) || 0,
     notified: true,
   });
+
+  // Sync with Warehouse Inventory
+  try {
+    // 1. Adjust for all materials in the new form
+    for (const m of materialsToPersist) {
+      const oldMat = oldMaterials.find(
+        (om) => om.materialId === m.materialId || om.materialCode === m.materialCode
+      );
+      const oldWeight = oldMat ? Number(oldMat.weightKg) || 0 : 0;
+      const changeKg = oldWeight - m.weightKg;
+      if (changeKg !== 0) {
+        await adjustInventoryStock(m.materialCode, changeKg);
+      }
+    }
+
+    // 2. Adjust for materials that were in old entry but not in the new form at all
+    for (const om of oldMaterials) {
+      const stillExists = materialsToPersist.some(
+        (nm) => nm.materialId === om.materialId || nm.materialCode === om.materialCode
+      );
+      if (!stillExists && om.weightKg > 0) {
+        await adjustInventoryStock(om.materialCode, Number(om.weightKg) || 0);
+      }
+    }
+
+    // 3. Adjust for badIngotsKg in Rejection Scrap (REJ)
+    const newBadIngotsKg = Number(form.badIngotsKg) || 0;
+    const badIngotsChange = newBadIngotsKg - oldBadIngotsKg;
+    if (badIngotsChange !== 0) {
+      await adjustInventoryStock('REJ', badIngotsChange);
+    }
+  } catch (err) {
+    console.error("Failed to sync warehouse stock on production update:", err);
+  }
 
   const updatedEntry: ProductionLedgerEntry = {
     id,
@@ -223,6 +281,7 @@ export const updateProductionEntry = async (
     actualEfficiencyPercentage: efficiencyPercentage,
     totalInputKg: totalInput,
     goodIngotsKg: Number(form.goodIngots),
+    badIngotsKg: Number(form.badIngotsKg) || 0,
     notified: true,
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
@@ -245,19 +304,38 @@ export const updateProductionEntry = async (
 
 // ─── Delete entry ─────────────────────────────────────────────────────────────
 export const deleteProductionEntry = async (id: string): Promise<void> => {
-  // Fetch old heatNo to delete finished good
+  // Fetch old heatNo, materials, and badIngots for stock adjustment
   let oldHeatNo: string | undefined;
+  let oldMaterials: any[] = [];
+  let oldBadIngotsKg = 0;
   try {
     const docRef = doc(db, COL, id);
     const snap = await getDoc(docRef);
     if (snap.exists()) {
-      oldHeatNo = snap.data().heatNo;
+      const data = snap.data();
+      oldHeatNo = data.heatNo;
+      oldMaterials = Array.isArray(data.materials) ? data.materials : [];
+      oldBadIngotsKg = Number(data.badIngotsKg) || 0;
     }
   } catch (err) {
     console.error("Failed to fetch production entry before delete for sync:", err);
   }
 
   await deleteDoc(doc(db, COL, id));
+
+  // Sync with Warehouse Inventory
+  try {
+    for (const m of oldMaterials) {
+      if (m.weightKg > 0) {
+        await adjustInventoryStock(m.materialCode, m.weightKg);
+      }
+    }
+    if (oldBadIngotsKg > 0) {
+      await adjustInventoryStock('REJ', -oldBadIngotsKg);
+    }
+  } catch (err) {
+    console.error("Failed to sync warehouse stock on production delete:", err);
+  }
 
   // Trigger auto sync to cost ledger first
   if (oldHeatNo) {

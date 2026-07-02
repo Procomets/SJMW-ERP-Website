@@ -73,3 +73,39 @@ export interface FinishedGoodEditFormData {
   dispatchedPieces: number;
   status: FinishedGoodStatus;
 }
+
+// ─── Drass Ledger Entry (Dross Management) ────────────────────────────────────
+export type DrassStatus = 'Pending Approval' | 'Available' | 'Dispatched';
+
+export interface DrassEntry {
+  id: string;
+  drassId: string;
+  drassCode: string;
+  heatIds: string[];
+  heatNumbers: string[];
+  grossWeightKg: number;
+  remainingWeightKg: number;
+  startDate: Timestamp;
+  endDate: Timestamp;
+  storageDays: number;
+  status: DrassStatus;
+  approved: boolean;
+  remarks: string;
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface DrassFormData {
+  drassCode: string;
+  heatIds: string[];
+  heatNumbers: string[];
+  grossWeightKg: number;
+  remainingWeightKg: number;
+  startDate: string; // ISO Date YYYY-MM-DD
+  endDate: string; // ISO Date YYYY-MM-DD
+  status: DrassStatus;
+  approved?: boolean;
+  remarks: string;
+  createdBy: string;
+}

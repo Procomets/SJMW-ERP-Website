@@ -66,6 +66,7 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
         alloyType: editEntry.alloyType,
         supervisorName: editEntry.supervisorName ?? '',
         goodIngots: editEntry.goodIngots,
+        badIngotsKg: editEntry.badIngotsKg ?? 0,
         totalPieces: editEntry.totalPieces ?? 0,
         noOfPieces: editEntry.noOfPieces ?? editEntry.totalPieces ?? 0,
         efficiencyStatus: editEntry.efficiencyStatus ?? '',
@@ -166,6 +167,8 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
             sx={{ background: '#e3f2fd', color: '#1565C0', fontWeight: 700, px: 1 }} />
           <Chip label={`Good Ingots: ${Number(form.goodIngots).toLocaleString()} Kg`} size="small"
             sx={{ background: '#e8f5e9', color: '#2e7d32', fontWeight: 700, px: 1 }} />
+          <Chip label={`Bad Ingots: ${Number(form.badIngotsKg).toLocaleString()} Kg`} size="small"
+            sx={{ background: '#ffebee', color: '#c62828', fontWeight: 700, px: 1 }} />
           <Chip
             label={`Efficiency: ${efficiency}%`} size="small"
             sx={{
@@ -348,7 +351,7 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
         </Divider>
 
         <Grid container spacing={2}>
-          <Grid size={{ xs: 12, sm: 2.4 }}>
+          <Grid size={{ xs: 12, sm: 2 }}>
             <TextField
               label="Good Ingots (Kg) *" type="number" fullWidth size="small"
               value={form.goodIngots === 0 ? '' : form.goodIngots}
@@ -362,7 +365,21 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
               sx={numFieldSx}
             />
           </Grid>
-          <Grid size={{ xs: 12, sm: 2.4 }}>
+          <Grid size={{ xs: 12, sm: 2 }}>
+            <TextField
+              label="Bad Ingots (Kg)" type="number" fullWidth size="small"
+              value={form.badIngotsKg === 0 ? '' : form.badIngotsKg}
+              onChange={(e) => setField('badIngotsKg', parseFloat(e.target.value) || 0)}
+              slotProps={{
+                htmlInput: { min: 0, step: 0.01 },
+                input: {
+                  endAdornment: <InputAdornment position="end"><Typography sx={{ fontSize: '0.65rem', color: 'error.main' }}>Kg</Typography></InputAdornment>
+                },
+              }}
+              sx={numFieldSx}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 2 }}>
             <TextField
               label="No. of Pieces" type="number" fullWidth size="small"
               value={form.noOfPieces === 0 ? '' : form.noOfPieces}
@@ -374,7 +391,7 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
               sx={numFieldSx}
             />
           </Grid>
-          <Grid size={{ xs: 12, sm: 2.4 }}>
+          <Grid size={{ xs: 12, sm: 2 }}>
             <FormControl size="small" fullWidth>
               <InputLabel id="eff-status-dialog-label">Efficiency Status</InputLabel>
               <Select
@@ -391,11 +408,11 @@ const ProductionEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid size={{ xs: 12, sm: 2.4 }}>
+          <Grid size={{ xs: 12, sm: 2 }}>
             <TextField label="Total Input (auto)" fullWidth size="small"
               value={`${totalInput.toLocaleString()} Kg`} disabled sx={numFieldSx} />
           </Grid>
-          <Grid size={{ xs: 12, sm: 2.4 }}>
+          <Grid size={{ xs: 12, sm: 2 }}>
             <TextField label="Efficiency % (auto)" fullWidth size="small"
               value={`${efficiency}%`} disabled sx={numFieldSx} />
           </Grid>
