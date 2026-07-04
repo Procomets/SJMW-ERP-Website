@@ -13,22 +13,27 @@ import {
   type CostLedgerEntry,
 } from '../types/costLedger.types';
 import { fetchProductionHeats } from '../services/costLedger.service';
+import { fetchQualityControlEntries } from '../../qualityControl/services/qualityControl.service';
 import type { ProductionLedgerEntry } from '../../productionLedger/types/productionLedger.types';
 import { useMaterials } from '../../../context/MaterialContext';
 import { Timestamp } from 'firebase/firestore';
 import { subscribeActiveAlloys } from '../../alloyMaster/services/alloyMaster.service';
 import type { AlloyMaster } from '../../alloyMaster/types/alloyMaster.types';
+import { useAuth } from '../../../context/AuthContext';
 
 interface Props {
   open: boolean;
   onClose: () => void;
   onSave: (form: CostLedgerFormData) => Promise<void>;
   editEntry?: CostLedgerEntry | null;
+  productionManager?: boolean;
+  existingCostLedgerEntries?: CostLedgerEntry[];
 }
 
-const CostEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
+const CostEntryDialog = ({ open, onClose, onSave, editEntry, productionManager, existingCostLedgerEntries = [] }: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { profile } = useAuth();
   const { getByModule, loading: materialsLoading } = useMaterials();
   const activeMaterials = useMemo(() => getByModule('costLedger'), [getByModule]);
 
@@ -56,7 +61,16 @@ const CostEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
         setHeatsLoading(true);
         try {
           const fetched = await fetchProductionHeats();
-          setHeats(fetched);
+          const existingHeatNos = new Set(existingCostLedgerEntries.map(e => e.heatNo));
+          if (productionManager) {
+            // Only allow heats that have approved QC and are not already in Cost Ledger
+            const qcs = await fetchQualityControlEntries();
+            const approvedHeatNos = new Set(qcs.filter(q => q.verified).map(q => q.heatNo));
+            setHeats(fetched.filter(h => approvedHeatNos.has(h.heatNo) && !existingHeatNos.has(h.heatNo)));
+          } else {
+            // Admin side: only filter out heats that are already in Cost Ledger
+            setHeats(fetched.filter(h => !existingHeatNos.has(h.heatNo)));
+          }
         } catch (err) {
           console.error("Failed to load heats", err);
         } finally {
@@ -65,7 +79,7 @@ const CostEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
       };
       loadHeats();
     }
-  }, [open]);
+  }, [open, productionManager, existingCostLedgerEntries]);
 
   // Load edit entry or reset form
   useEffect(() => {
@@ -97,8 +111,8 @@ const CostEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
         heatNo: editEntry.heatNo,
         date: dateStr,
         alloyType: editEntry.alloyType,
-        employeeName: editEntry.employeeName || '',
-        role: editEntry.role || '',
+        employeeName: editEntry.employeeName || profile?.name || '',
+        role: editEntry.role || profile?.role || '',
         notified: editEntry.notified || false,
         goodIngotsKg: editEntry.goodIngotsKg || 0,
         laborCostPerKg: editEntry.laborCostPerKg ?? 0,
@@ -106,10 +120,14 @@ const CostEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
         materials: mergedMaterials,
       });
     } else {
-      setForm(buildEmptyCostForm(activeMaterials));
+      setForm({
+        ...buildEmptyCostForm(activeMaterials),
+        employeeName: profile?.name || '',
+        role: profile?.role || '',
+      });
     }
     setError('');
-  }, [editEntry, open, activeMaterials]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [editEntry, open, activeMaterials, profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Form value setters
   const set = (key: keyof Omit<CostLedgerFormData, 'materials'>, val: any) =>
@@ -410,36 +428,38 @@ const CostEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <TextField
-                    label="Selling Margin (%) *"
-                    size="small"
-                    type="number"
-                    value={form.marginPercentage || ''}
-                    onChange={(e) => setNum('marginPercentage', e.target.value)}
-                    fullWidth
-                    slotProps={{
-                      input: {
-                        endAdornment: <span className="text-xs text-slate-400 font-semibold">%</span>
-                      }
-                    }}
-                  />
-                  <TextField
-                    label="Selling Price per Kg (Auto)"
-                    size="small"
-                    type="number"
-                    value={liveTotals.sellingPricePerKg ? liveTotals.sellingPricePerKg.toFixed(4) : ''}
-                    disabled
-                    fullWidth
-                    className="bg-slate-100"
-                    slotProps={{
-                      input: {
-                        startAdornment: <span className="text-xs text-slate-400 mr-1 font-semibold">₹</span>,
-                        endAdornment: <span className="text-xs text-slate-400 font-semibold">/Kg</span>
-                      }
-                    }}
-                  />
-                </div>
+                {!productionManager && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <TextField
+                      label="Selling Margin (%) *"
+                      size="small"
+                      type="number"
+                      value={form.marginPercentage || ''}
+                      onChange={(e) => setNum('marginPercentage', e.target.value)}
+                      fullWidth
+                      slotProps={{
+                        input: {
+                          endAdornment: <span className="text-xs text-slate-400 font-semibold">%</span>
+                        }
+                      }}
+                    />
+                    <TextField
+                      label="Selling Price per Kg (Auto)"
+                      size="small"
+                      type="number"
+                      value={liveTotals.sellingPricePerKg ? liveTotals.sellingPricePerKg.toFixed(4) : ''}
+                      disabled
+                      fullWidth
+                      className="bg-slate-100"
+                      slotProps={{
+                        input: {
+                          startAdornment: <span className="text-xs text-slate-400 mr-1 font-semibold">₹</span>,
+                          endAdornment: <span className="text-xs text-slate-400 font-semibold">/Kg</span>
+                        }
+                      }}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Real-time calculated Profit Metrics */}
@@ -477,12 +497,14 @@ const CostEntryDialog = ({ open, onClose, onSave, editEntry }: Props) => {
                     <div className="font-bold text-sm text-emerald-300">₹{liveTotals.totalProductionCostPerKg.toLocaleString()}/Kg</div>
                   </div>
                 </div>
-                <div className="border-t border-slate-800 pt-2 flex items-center justify-between text-xs mt-2">
-                  <span className="text-slate-400">Selling Margin % (Selling Price):</span>
-                  <span className="font-extrabold text-sm text-emerald-400">
-                    {form.marginPercentage}% (₹{liveTotals.sellingPricePerKg.toFixed(4)}/Kg)
-                  </span>
-                </div>
+                {!productionManager && (
+                  <div className="border-t border-slate-800 pt-2 flex items-center justify-between text-xs mt-2">
+                    <span className="text-slate-400">Selling Margin % (Selling Price):</span>
+                    <span className="font-extrabold text-sm text-emerald-400">
+                      {form.marginPercentage}% (₹{liveTotals.sellingPricePerKg.toFixed(4)}/Kg)
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

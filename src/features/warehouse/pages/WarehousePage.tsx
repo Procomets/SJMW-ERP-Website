@@ -448,7 +448,7 @@ const VendorHoverPopup = ({ vendor }: { vendor: VendorMaster | undefined }) => {
 };
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
-const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
+const WarehousePage = ({ readOnly = false, productionManager = false }: { readOnly?: boolean, productionManager?: boolean }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -580,7 +580,7 @@ const WarehousePage = ({ readOnly = false }: { readOnly?: boolean }) => {
   })), [inventory]);
 
   return (
-    <Box className="space-y-6 text-slate-800 antialiased">
+    <Box className={`space-y-6 text-slate-800 antialiased ${productionManager ? 'pm-mode' : ''}`}>
       <style>{`
         .wh-grid-table th,
         .wh-grid-table td {

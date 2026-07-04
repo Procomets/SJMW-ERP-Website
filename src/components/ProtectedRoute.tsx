@@ -14,6 +14,10 @@ export const ProtectedRoute = () => {
     return <Navigate to="/accounts/finished-goods" replace />;
   }
 
+  if (role.includes('production')) {
+    return <Navigate to="/production/quality-control" replace />;
+  }
+
   return <Outlet />;
 };
 
@@ -31,6 +35,25 @@ export const AccountsProtectedRoute = () => {
 
   if (!role.includes('accounts')) {
     return <Navigate to="/accounts-login" replace />;
+  }
+
+  return <Outlet />;
+};
+
+/** Guards routes that require the Production Manager role. */
+export const ProductionProtectedRoute = () => {
+  const { user, profile, loading } = useAuth();
+  if (loading) return null;
+
+  if (!user) return <Navigate to="/production-login" replace />;
+
+  const role = (profile?.role || '').toLowerCase();
+  if (role.includes('admin')) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (!role.includes('production')) {
+    return <Navigate to="/production-login" replace />;
   }
 
   return <Outlet />;

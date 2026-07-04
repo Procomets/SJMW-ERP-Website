@@ -45,7 +45,11 @@ const fmtQty = (val: number | undefined) => {
   return val.toLocaleString('en-IN');
 };
 
-const CostLedgerPage = () => {
+interface Props {
+  productionManager?: boolean;
+}
+
+const CostLedgerPage = ({ productionManager = false }: Props) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -314,10 +318,12 @@ const CostLedgerPage = () => {
       item['Labor Cost/Kg (₹)'] = row.laborCostPerKg || 0;
       item['Total Production Cost (₹)'] = row.totalProductionCost || 0;
       item['Production Cost/Kg (₹)'] = row.totalProductionCostPerKg || 0;
-      item['Selling Margin %'] = row.marginPercentage || 0;
-      item['Selling Price/Kg (₹)'] = row.sellingPricePerKg || 0;
-      if (isAdmin) {
-        item['Sold Price/Kg (₹)'] = row.soldPricePerKg !== undefined ? row.soldPricePerKg : '';
+      if (!productionManager) {
+        item['Selling Margin %'] = row.marginPercentage || 0;
+        item['Selling Price/Kg (₹)'] = row.sellingPricePerKg || 0;
+        if (isAdmin) {
+          item['Sold Price/Kg (₹)'] = row.soldPricePerKg !== undefined ? row.soldPricePerKg : '';
+        }
       }
 
       return item;
@@ -358,10 +364,12 @@ const CostLedgerPage = () => {
       item['Labor Cost Per Kg'] = row.laborCostPerKg || 0;
       item['Total Production Cost'] = row.totalProductionCost || 0;
       item['Production Cost Per Kg'] = row.totalProductionCostPerKg || 0;
-      item['Selling Margin %'] = row.marginPercentage || 0;
-      item['Selling Price Per Kg'] = row.sellingPricePerKg || 0;
-      if (isAdmin) {
-        item['Sold Price Per Kg'] = row.soldPricePerKg !== undefined ? row.soldPricePerKg : '';
+      if (!productionManager) {
+        item['Selling Margin %'] = row.marginPercentage || 0;
+        item['Selling Price Per Kg'] = row.sellingPricePerKg || 0;
+        if (isAdmin) {
+          item['Sold Price Per Kg'] = row.soldPricePerKg !== undefined ? row.soldPricePerKg : '';
+        }
       }
 
       return item;
@@ -430,7 +438,7 @@ const CostLedgerPage = () => {
           { label: 'Total Material Cost', value: fmtMoney(kpis.totalCost), desc: 'Aggregated scrap metal cost', color: 'text-amber-600', border: 'border-amber-100', bg: 'bg-amber-50/35' },
           { label: 'Avg Mat Cost / Kg', value: `${fmtMoney(kpis.avgMatCostPerKg)}/Kg`, desc: 'Average metal cost per Ingot Kg', color: 'text-orange-600', border: 'border-orange-100', bg: 'bg-orange-50/35' },
           { label: 'Avg Prod Cost / Kg', value: `${fmtMoney(kpis.avgProdCostPerKg)}/Kg`, desc: 'Average operational cost per Kg', color: 'text-blue-600', border: 'border-blue-100', bg: 'bg-blue-50/35' },
-          { label: 'Avg Sell Price / Kg', value: `${fmtMoney(kpis.avgSellPricePerKg)}/Kg`, desc: 'Average selling price per Kg', color: 'text-emerald-600', border: 'border-emerald-100', bg: 'bg-emerald-50/35' },
+          ...(!productionManager ? [{ label: 'Avg Sell Price / Kg', value: `${fmtMoney(kpis.avgSellPricePerKg)}/Kg`, desc: 'Average selling price per Kg', color: 'text-emerald-600', border: 'border-emerald-100', bg: 'bg-emerald-50/35' }] : []),
         ].map((kpi, idx) => (
           <Card key={idx} className={`border ${kpi.border} ${kpi.bg} shadow-sm rounded-xl`}>
             <CardContent className="p-5">
@@ -645,7 +653,7 @@ const CostLedgerPage = () => {
                 <th colSpan={3} className="px-4 py-1.5 text-center border-b border-r border-slate-200 bg-emerald-50 text-emerald-950 font-extrabold">
                   Production Section
                 </th>
-                <th colSpan={isAdmin ? 8 : 7} className="px-4 py-1.5 text-center border-b border-r border-slate-200 bg-amber-50 text-amber-950 font-extrabold">
+                <th colSpan={productionManager ? 5 : (isAdmin ? 8 : 7)} className="px-4 py-1.5 text-center border-b border-r border-slate-200 bg-amber-50 text-amber-950 font-extrabold">
                   Cost Analysis Section
                 </th>
                 <th className="px-4 py-2 text-center border-b border-slate-200 bg-slate-100 z-30 w-24"></th>
@@ -700,10 +708,14 @@ const CostLedgerPage = () => {
                 <th className="px-4 py-2 border-b border-slate-200 bg-amber-50/30 text-right w-24">Mat Cost/Kg</th>
                 <th className="px-4 py-2 border-b border-slate-200 bg-amber-50/30 text-right w-24">Labor Cost/Kg</th>
                 <th className="px-4 py-2 border-b border-slate-200 bg-amber-50/30 text-right w-28">Total Prod Cost</th>
-                <th className="px-4 py-2 border-b border-slate-200 bg-amber-50/30 text-right w-28">Production Cost/Kg</th>
-                <th className="px-4 py-2 border-b border-slate-200 bg-amber-50/30 text-right w-20">Margin %</th>
-                <th className={`px-4 py-2 border-b border-slate-200 bg-amber-50/30 text-right w-28 ${isAdmin ? '' : 'border-r'}`}>Sell Price/Kg</th>
-                {isAdmin && (
+                <th className={`px-4 py-2 border-b border-slate-200 bg-amber-50/30 text-right w-28 ${productionManager ? 'border-r' : ''}`}>Production Cost/Kg</th>
+                {!productionManager && (
+                  <>
+                    <th className="px-4 py-2 border-b border-slate-200 bg-amber-50/30 text-right w-20">Margin %</th>
+                    <th className={`px-4 py-2 border-b border-slate-200 bg-amber-50/30 text-right w-28 ${isAdmin ? '' : 'border-r'}`}>Sell Price/Kg</th>
+                  </>
+                )}
+                {!productionManager && isAdmin && (
                   <th className="px-4 py-2 border-b border-r border-slate-200 bg-purple-50/50 text-right w-32 text-purple-800">
                     <span className="flex items-center justify-end gap-1">
                       Sold Price/Kg
@@ -806,14 +818,19 @@ const CostLedgerPage = () => {
                       <td className="px-4 py-2 bg-amber-50/5 font-mono text-right font-semibold text-slate-700">{fmtMoney(row.materialCostPerKg)}</td>
                       <td className="px-4 py-2 bg-amber-50/5 font-mono text-right font-semibold text-slate-700">{fmtMoney(row.laborCostPerKg)}</td>
                       <td className="px-4 py-2 bg-amber-50/5 font-mono text-right font-bold text-slate-700">{fmtMoney(row.totalProductionCost)}</td>
-                      <td className="px-4 py-2 bg-amber-50/5 font-mono text-right font-bold text-amber-850">{fmtMoney(row.totalProductionCostPerKg)}</td>
-                      <td className="px-4 py-2 bg-amber-50/5 font-mono text-right font-semibold text-slate-600">{row.marginPercentage}%</td>
-                      <td className={`px-4 py-2 bg-amber-50/5 font-mono text-right font-black text-emerald-800 ${isAdmin ? '' : 'border-r border-slate-200'}`}>
-                        {fmtMoney(row.sellingPricePerKg)}
-                      </td>
+                      <td className={`px-4 py-2 bg-amber-50/5 font-mono text-right font-bold text-amber-850 ${productionManager ? 'border-r' : ''}`}>{fmtMoney(row.totalProductionCostPerKg)}</td>
+
+                      {!productionManager && (
+                        <>
+                          <td className="px-4 py-2 bg-amber-50/5 font-mono text-right font-semibold text-slate-600">{row.marginPercentage}%</td>
+                          <td className={`px-4 py-2 bg-amber-50/5 font-mono text-right font-black text-emerald-800 ${isAdmin ? '' : 'border-r border-slate-200'}`}>
+                            {fmtMoney(row.sellingPricePerKg)}
+                          </td>
+                        </>
+                      )}
 
                       {/* Admin-only: Sold Price per Kg inline edit */}
-                      {isAdmin && (
+                      {!productionManager && isAdmin && (
                         <td className="px-3 py-1.5 bg-purple-50/20 border-r border-slate-200 text-right w-32">
                           {editSoldPrice?.id === row.id ? (
                             <div className="flex items-center justify-end gap-1">
@@ -953,9 +970,11 @@ const CostLedgerPage = () => {
       {/* ── Dialog Form ── */}
       <CostEntryDialog
         open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
+        onClose={() => { setDialogOpen(false); setEditEntry(null); }}
         onSave={handleSave}
         editEntry={editEntry}
+        productionManager={productionManager}
+        existingCostLedgerEntries={entries}
       />
 
       {/* ── Delete Confirmation Dialog ── */}

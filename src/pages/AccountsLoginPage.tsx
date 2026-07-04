@@ -257,18 +257,7 @@ export const AccountsLoginPage = () => {
             </Box>
           </form>
 
-          {/* Admin portal link */}
-          <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
-            <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-              Are you an administrator?{' '}
-              <a
-                href="/login"
-                style={{ color: '#6366f1', fontWeight: 600, textDecoration: 'none' }}
-              >
-                Go to Admin Portal →
-              </a>
-            </Typography>
-          </Box>
+        
         </Box>
       </Box>
     </Box>

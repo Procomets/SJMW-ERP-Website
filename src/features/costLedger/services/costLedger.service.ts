@@ -148,6 +148,23 @@ export const addCostEntry = async (
 
   const ref = await addDoc(collection(db, COL), payload);
 
+  // Mark cost_ledger notification as read
+  try {
+    const notifQ = query(
+      collection(db, 'notifications'), 
+      where('heatNo', '==', form.heatNo.trim()),
+      where('type', '==', 'cost_ledger')
+    );
+    const notifSnap = await getDocs(notifQ);
+    for (const notifDoc of notifSnap.docs) {
+      await updateDoc(doc(db, 'notifications', notifDoc.id), {
+        isRead: true
+      });
+    }
+  } catch (err) {
+    console.error("Failed to update cost_ledger notification on add:", err);
+  }
+
   // Trigger auto sync
   try {
     await syncFinishedGoodsForHeat(form.heatNo.trim());

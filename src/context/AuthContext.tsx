@@ -13,6 +13,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginAsAccountsManager: (email: string, password: string) => Promise<void>;
+  loginAsProductionManager: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string, role: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -76,9 +77,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const userData = userDoc.data();
     const role = (userData.role || '').toLowerCase();
-    if (role !== 'admin' && !role.includes('accounts')) {
+    if (role !== 'admin' && !role.includes('accounts') && !role.includes('production')) {
       await signOut(auth);
-      throw new Error('Access Denied: Only administrators and accounts managers are permitted to access this portal.');
+      throw new Error('Access Denied: Only administrators, accounts managers, and production managers are permitted to access this portal.');
     }
   };
 
@@ -98,6 +99,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!role.includes('accounts')) {
       await signOut(auth);
       throw new Error('Access Denied: This portal is restricted to Accounts Managers only.');
+    }
+  };
+
+  const loginAsProductionManager = async (email: string, password: string) => {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
+
+    const { getDoc } = await import('firebase/firestore');
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    if (!userDoc.exists()) {
+      await signOut(auth);
+      throw new Error('User profile not found in database.');
+    }
+
+    const userData = userDoc.data();
+    const role = (userData.role || '').toLowerCase();
+    if (!role.includes('production')) {
+      await signOut(auth);
+      throw new Error('Access Denied: This portal is restricted to Production Managers only.');
     }
   };
 
@@ -132,7 +152,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, login, loginAsAccountsManager, register, logout }}>
+    <AuthContext.Provider value={{ user, profile, loading, login, loginAsAccountsManager, loginAsProductionManager, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
