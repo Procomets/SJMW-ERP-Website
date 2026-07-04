@@ -21,7 +21,7 @@ const fmtDate = (ts: any) => {
 const InfoRow = ({ label, value }: { label: string; value: any }) => (
   <Box sx={{ display: "flex", py: 0.75, borderBottom: "1px solid #f1f5f9" }}>
     <Typography sx={{ width: 180, fontSize: "0.78rem", color: "#64748b", fontWeight: 600, flexShrink: 0 }}>{label}</Typography>
-    <Typography sx={{ fontSize: "0.78rem", color: "#1e293b", fontWeight: 500 }}>{value ?? "" || "—"}</Typography>
+    <Typography sx={{ fontSize: "0.78rem", color: "#1e293b", fontWeight: 500 }}>{(value ?? "") || "—"}</Typography>
   </Box>
 );
 

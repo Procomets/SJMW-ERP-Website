@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box, Button, TextField, Typography, InputAdornment, IconButton, CircularProgress, Alert,
@@ -61,7 +61,6 @@ const ProductionManagerLoginPage = () => {
             {text: "Approve or return heats to supervisor" },
           ].map((item) => (
             <Box key={item.text} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-              <Typography sx={{ fontSize: "1.2rem" }}>{item.icon}</Typography>
               <Typography sx={{ color: "rgba(255,255,255,0.85)", fontSize: "0.875rem" }}>{item.text}</Typography>
             </Box>
           ))}

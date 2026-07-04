@@ -140,7 +140,7 @@ const PMDashboardPage = () => {
           <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", mb: 2, color: "#1e293b" }}>Heat Status Distribution</Typography>
           <ResponsiveContainer width="100%" height={230}>
             <PieChart>
-              <Pie data={statusDist} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+              <Pie data={statusDist} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }: any) => `${name} ${((percent || 0) * 100).toFixed(0)}%`} labelLine={false}>
                 {statusDist.map(entry => <Cell key={entry.name} fill={STATUS_COLORS[entry.name] || "#94a3b8"} />)}
               </Pie>
               <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
@@ -158,7 +158,7 @@ const PMDashboardPage = () => {
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="heat" tick={{ fontSize: 10 }} />
               <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
-              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} formatter={(v: number) => v.toFixed(1) + "%"} />
+              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 11 }} formatter={(v: any) => `${v}%`} />
               <Line type="monotone" dataKey="eff" stroke={BLUE} strokeWidth={2.5} dot={{ r: 3 }} name="Efficiency %" />
             </LineChart>
           </ResponsiveContainer>
@@ -167,7 +167,7 @@ const PMDashboardPage = () => {
           <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", mb: 2, color: "#1e293b" }}>Alloy Production Distribution</Typography>
           <ResponsiveContainer width="100%" height={210}>
             <PieChart>
-              <Pie data={alloyDist} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => percent > 0.05 ? `${name} ${(percent * 100).toFixed(0)}%` : ""}>
+              <Pie data={alloyDist} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }: any) => (percent || 0) > 0.05 ? `${name} ${((percent || 0) * 100).toFixed(0)}%` : ""}>
                 {alloyDist.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
               </Pie>
               <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />

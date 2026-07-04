@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import {
-  Box, Card, CardContent, Typography, Chip, Button, Grid, CircularProgress, LinearProgress,
+  Box, Card, CardContent, Typography, Chip, Button, CircularProgress, LinearProgress,
 } from "@mui/material";
 import { Clock3, Zap, ThumbsUp, ThumbsDown, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -63,13 +63,13 @@ const PMPendingReviewPage = () => {
           <Typography sx={{ color: "#64748b", fontSize: "0.85rem" }}>No heats are currently pending review.</Typography>
         </Card>
       ) : (
-        <Grid container spacing={2.5}>
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "repeat(3, 1fr)" }, gap: 2.5 }}>
           {pending.map((heat) => {
             const eff = heat.efficiencyPercentage || 0;
             return (
-              <Grid item xs={12} sm={6} md={4} key={heat.id}>
-                <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, transition: "all 0.2s", "&:hover": { boxShadow: "0 8px 24px rgba(0,0,0,0.1)", transform: "translateY(-2px)" } }}>
-                  <CardContent sx={{ p: 2.5 }}>
+              <Box key={heat.id}>
+                <Card elevation={0} sx={{ height: "100%", border: "1px solid #e2e8f0", borderRadius: 3, transition: "all 0.2s", "&:hover": { boxShadow: "0 8px 24px rgba(0,0,0,0.1)", transform: "translateY(-2px)" } }}>
+                  <CardContent sx={{ p: 2.5, display: "flex", flexDirection: "column", height: "100%" }}>
                     {/* Header */}
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
                       <Box>
@@ -103,7 +103,7 @@ const PMPendingReviewPage = () => {
                     </Box>
 
                     {/* Efficiency */}
-                    <Box sx={{ mb: 2 }}>
+                    <Box sx={{ mb: 2, mt: "auto" }}>
                       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
                         <Typography sx={{ fontSize: "0.72rem", color: "#64748b", display: "flex", alignItems: "center", gap: 0.5 }}><Zap size={11} />Efficiency</Typography>
                         <Typography sx={{ fontSize: "0.78rem", fontWeight: 700, color: eff >= 90 ? "#16a34a" : eff >= 75 ? "#f59e0b" : "#dc2626" }}>{eff.toFixed(1)}%</Typography>
@@ -125,10 +125,10 @@ const PMPendingReviewPage = () => {
                     </Box>
                   </CardContent>
                 </Card>
-              </Grid>
+              </Box>
             );
           })}
-        </Grid>
+        </Box>
       )}
     </Box>
   );

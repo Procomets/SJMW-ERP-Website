@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import {
-  Box, Card, Typography, Grid, CircularProgress, Select, MenuItem, FormControl, InputLabel,
+  Box, Card, Typography, CircularProgress, Select, MenuItem, FormControl, InputLabel,
 } from "@mui/material";
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
@@ -118,21 +118,19 @@ const PMAnalyticsPage = () => {
       </Box>
 
       {/* Summary KPI Row */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+      <Box sx={{ mb: 3, display: "grid", gridTemplateColumns: { xs: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }, gap: 2 }}>
         {[
           { label: "Total Heats", value: entries.length },
           { label: "Avg Efficiency", value: avgEff + "%" },
           { label: "Total Good (kg)", value: entries.reduce((s, e) => s + (e.goodIngotsKg || e.goodIngots || 0), 0).toFixed(0) },
           { label: "Total Bad (kg)", value: entries.reduce((s, e) => s + (e.badIngotsKg || 0), 0).toFixed(0) },
         ].map((k) => (
-          <Grid item xs={6} md={3} key={k.label}>
-            <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 2, textAlign: "center" }}>
-              <Typography sx={{ fontSize: "1.5rem", fontWeight: 800, color: BLUE }}>{k.value}</Typography>
-              <Typography sx={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase" }}>{k.label}</Typography>
-            </Card>
-          </Grid>
+          <Card key={k.label} elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 2, textAlign: "center" }}>
+            <Typography sx={{ fontSize: "1.5rem", fontWeight: 800, color: BLUE }}>{k.value}</Typography>
+            <Typography sx={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase" }}>{k.label}</Typography>
+          </Card>
         ))}
-      </Grid>
+      </Box>
 
       {/* Production Trend */}
       <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 2.5, mb: 2.5 }}>
@@ -150,9 +148,9 @@ const PMAnalyticsPage = () => {
         </ResponsiveContainer>
       </Card>
 
-      <Grid container spacing={2.5} sx={{ mb: 2.5 }}>
+      <Box sx={{ mb: 2.5, display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2.5 }}>
         {/* Efficiency Trend */}
-        <Grid item xs={12} md={6}>
+        <Box>
           <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 2.5 }}>
             <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", mb: 2 }}>Average Efficiency Trend</Typography>
             <ResponsiveContainer width="100%" height={210}>
@@ -160,15 +158,15 @@ const PMAnalyticsPage = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="period" tick={{ fontSize: 11 }} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
-                <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} formatter={(v: number) => v + "%"} />
+                <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} formatter={(v: any) => `${v}%`} />
                 <Line type="monotone" dataKey="avgEff" stroke={BLUE} strokeWidth={2.5} dot={{ r: 3 }} name="Avg Efficiency" />
               </LineChart>
             </ResponsiveContainer>
           </Card>
-        </Grid>
+        </Box>
 
         {/* Heat Count Trend */}
-        <Grid item xs={12} md={6}>
+        <Box>
           <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 2.5 }}>
             <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", mb: 2 }}>Heat Count per Period</Typography>
             <ResponsiveContainer width="100%" height={210}>
@@ -181,27 +179,27 @@ const PMAnalyticsPage = () => {
               </BarChart>
             </ResponsiveContainer>
           </Card>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
-      <Grid container spacing={2.5} sx={{ mb: 2.5 }}>
+      <Box sx={{ mb: 2.5, display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2.5 }}>
         {/* Production by Alloy */}
-        <Grid item xs={12} md={6}>
+        <Box>
           <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 2.5 }}>
             <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", mb: 2 }}>Production by Alloy (Good kg)</Typography>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
-                <Pie data={alloyProd} dataKey="goodKg" nameKey="name" cx="50%" cy="50%" outerRadius={85} label={({ name, percent }) => percent > 0.05 ? `${name} ${(percent * 100).toFixed(0)}%` : ""}>
+                <Pie data={alloyProd} dataKey="goodKg" nameKey="name" cx="50%" cy="50%" outerRadius={85} label={({ name, percent }: any) => (percent || 0) > 0.05 ? `${name} ${((percent || 0) * 100).toFixed(0)}%` : ""}>
                   {alloyProd.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                 </Pie>
                 <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
               </PieChart>
             </ResponsiveContainer>
           </Card>
-        </Grid>
+        </Box>
 
         {/* Material Consumption */}
-        <Grid item xs={12} md={6}>
+        <Box>
           <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 2.5 }}>
             <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", mb: 2 }}>Material Consumption (kg)</Typography>
             <ResponsiveContainer width="100%" height={220}>
@@ -214,12 +212,12 @@ const PMAnalyticsPage = () => {
               </BarChart>
             </ResponsiveContainer>
           </Card>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
-      <Grid container spacing={2.5}>
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2.5 }}>
         {/* Top Supervisor */}
-        <Grid item xs={12} md={6}>
+        <Box>
           <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 2.5 }}>
             <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", mb: 2 }}>Top Performing Supervisors</Typography>
             <ResponsiveContainer width="100%" height={210}>
@@ -227,15 +225,15 @@ const PMAnalyticsPage = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
                 <YAxis dataKey="name" type="category" width={90} tick={{ fontSize: 10 }} />
-                <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} formatter={(v: number) => v + "%"} />
+                <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} formatter={(v: any) => `${v}%`} />
                 <Bar dataKey="avgEff" fill="#16a34a" radius={[0, 4, 4, 0]} name="Avg Efficiency" />
               </BarChart>
             </ResponsiveContainer>
           </Card>
-        </Grid>
+        </Box>
 
         {/* Top Shift */}
-        <Grid item xs={12} md={6}>
+        <Box>
           <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 2.5 }}>
             <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", mb: 2 }}>Top Performing Shifts</Typography>
             <ResponsiveContainer width="100%" height={210}>
@@ -243,13 +241,13 @@ const PMAnalyticsPage = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="shift" tick={{ fontSize: 10 }} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
-                <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} formatter={(v: number) => v + "%"} />
+                <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} formatter={(v: any) => `${v}%`} />
                 <Bar dataKey="avgEff" fill="#f57c00" radius={[4, 4, 0, 0]} name="Avg Efficiency" />
               </BarChart>
             </ResponsiveContainer>
           </Card>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
     </Box>
   );
 };
