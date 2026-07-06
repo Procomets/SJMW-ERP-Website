@@ -12,6 +12,7 @@ import EditQCDialog from '../../qualityControl/components/EditQCDialog';
 import { fetchFinishedGoods } from '../../finishedGoods/services/finishedGoods.service';
 import { useAuth } from '../../../context/AuthContext';
 import { Timestamp } from 'firebase/firestore';
+import { subscribeToLockStatus } from '../../../services/settings.service';
 
 const PMQualityControlPage = () => {
   const { profile } = useAuth();
@@ -33,6 +34,7 @@ const PMQualityControlPage = () => {
   const [approvedHeats, setApprovedHeats] = useState<Set<string>>(new Set());
   const [remarks, setRemarks] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [isLocked, setIsLocked] = useState(true);
 
   const loadData = async () => {
     setLoading(true);
@@ -56,6 +58,10 @@ const PMQualityControlPage = () => {
 
   useEffect(() => {
     loadData();
+    const unsubscribe = subscribeToLockStatus((status) => {
+      setIsLocked(status);
+    });
+    return () => unsubscribe();
   }, []);
 
   const handleView = (qc: QualityControlEntry) => {
@@ -299,7 +305,7 @@ const PMQualityControlPage = () => {
                         <Eye size={18} />
                       </IconButton>
                     </Tooltip>
-                    {!approvedHeats.has(row.heatNo) && (
+                    {!(isLocked && approvedHeats.has(row.heatNo)) && (
                       <>
                         <Tooltip title="Edit QC Entry">
                           <IconButton onClick={() => handleEdit(row)} size="small" className="text-amber-600">

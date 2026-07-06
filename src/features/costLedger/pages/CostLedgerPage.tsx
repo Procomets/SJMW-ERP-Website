@@ -20,6 +20,7 @@ import {
   deleteCostEntry,
   updateSoldPricePerKg,
 } from '../services/costLedger.service';
+import { subscribeToLockStatus } from '../../../services/settings.service';
 import {
   type CostLedgerEntry,
   type CostLedgerFormData
@@ -67,6 +68,7 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
   const [editEntry, setEditEntry] = useState<CostLedgerEntry | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CostLedgerEntry | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [isLocked, setIsLocked] = useState(true);
 
   // Admin-only inline sold price edit state
   const [editSoldPrice, setEditSoldPrice] = useState<{ id: string; value: string } | null>(null);
@@ -110,6 +112,10 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
 
   useEffect(() => {
     loadData();
+    const unsubscribe = subscribeToLockStatus((status) => {
+      setIsLocked(status);
+    });
+    return () => unsubscribe();
   }, []);
 
   // Compute unique values for dropdown filters
@@ -233,7 +239,7 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
 
   // Save changes
   const handleSave = async (formData: CostLedgerFormData) => {
-    if (approvedHeats.has(formData.heatNo.trim())) {
+    if (isLocked && approvedHeats.has(formData.heatNo.trim())) {
       alert(`Heat ${formData.heatNo} is already approved to Finished Goods and cannot be modified.`);
       return;
     }
@@ -251,7 +257,7 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
   // Delete cost entry
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    if (approvedHeats.has(deleteTarget.heatNo)) {
+    if (isLocked && approvedHeats.has(deleteTarget.heatNo)) {
       alert(`Heat ${deleteTarget.heatNo} is already approved to Finished Goods and cannot be deleted.`);
       return;
     }
@@ -884,7 +890,7 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
 
                       {/* Actions */}
                       <td className="px-4 py-2 text-center sticky right-0 bg-slate-50 border-l border-slate-200 flex items-center justify-center gap-1.5 shadow-[left_2px_0_4px_rgba(0,0,0,0.03)] h-[41px] min-h-[41px] w-24">
-                        {approvedHeats.has(row.heatNo) ? (
+                        {isLocked && approvedHeats.has(row.heatNo) ? (
                           <span className="bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded text-[10px]">
                             Locked
                           </span>

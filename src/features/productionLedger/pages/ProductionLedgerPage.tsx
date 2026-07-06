@@ -24,6 +24,7 @@ import type {
 import { useMaterials } from '../../../context/MaterialContext';
 import ProductionEntryDialog from '../components/ProductionEntryDialog';
 import { fetchFinishedGoods } from '../../finishedGoods/services/finishedGoods.service';
+import { subscribeToLockStatus } from '../../../services/settings.service';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 const fmtDate = (ts: Timestamp | undefined) => {
@@ -79,6 +80,7 @@ const ProductionLedgerPage = () => {
     const [editEntry, setEditEntry] = useState<ProductionLedgerEntry | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<ProductionLedgerEntry | null>(null);
     const [deleting, setDeleting] = useState(false);
+    const [isLocked, setIsLocked] = useState(true);
 
     // Filter states
     const [filterHeatNo, setFilterHeatNo] = useState('');
@@ -140,7 +142,13 @@ const ProductionLedgerPage = () => {
         }
     };
 
-    useEffect(() => { load(); }, []);
+    useEffect(() => {
+        load();
+        const unsubscribe = subscribeToLockStatus((status) => {
+            setIsLocked(status);
+        });
+        return () => unsubscribe();
+    }, []);
 
     // ── filtered rows ──
     const filtered = useMemo(() => {
@@ -240,7 +248,7 @@ const ProductionLedgerPage = () => {
 
     // ── save (add / edit) ──
     const handleSave = async (form: ProductionLedgerFormData) => {
-        if (approvedHeats.has(form.heatNo.trim())) {
+        if (isLocked && approvedHeats.has(form.heatNo.trim())) {
             alert(`Heat ${form.heatNo} is already approved to Finished Goods and cannot be modified.`);
             return;
         }
@@ -258,7 +266,7 @@ const ProductionLedgerPage = () => {
     // ── delete ──
     const handleDelete = async () => {
         if (!deleteTarget) return;
-        if (approvedHeats.has(deleteTarget.heatNo)) {
+        if (isLocked && approvedHeats.has(deleteTarget.heatNo)) {
             alert(`Heat ${deleteTarget.heatNo} is already approved to Finished Goods and cannot be deleted.`);
             return;
         }
@@ -789,7 +797,7 @@ const ProductionLedgerPage = () => {
 
                                             {/* Actions */}
                                             <TableCell align="center" sx={bodyCell}>
-                                                {approvedHeats.has(row.heatNo) ? (
+                                                {isLocked && approvedHeats.has(row.heatNo) ? (
                                                     <Chip
                                                         label="Approved & Locked"
                                                         size="small"
