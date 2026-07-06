@@ -5,9 +5,11 @@ import {
   Paper, Tooltip, IconButton, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Chip, Alert, MenuItem, Select, FormControl, InputLabel, InputAdornment
 } from '@mui/material';
-import { CheckCircle, Eye, AlertCircle, RefreshCw, Search, Filter } from 'lucide-react';
-import { fetchQualityControlEntries, approveQualityControl } from '../../qualityControl/services/qualityControl.service';
+import { CheckCircle, Eye, AlertCircle, RefreshCw, Search, Filter, Edit, Trash2, X } from 'lucide-react';
+import { fetchQualityControlEntries, approveQualityControl, deleteQualityControlEntry } from '../../qualityControl/services/qualityControl.service';
 import type { QualityControlEntry } from '../../qualityControl/types/qualityControl.types';
+import EditQCDialog from '../../qualityControl/components/EditQCDialog';
+import { fetchFinishedGoods } from '../../finishedGoods/services/finishedGoods.service';
 import { useAuth } from '../../../context/AuthContext';
 import { Timestamp } from 'firebase/firestore';
 
@@ -24,7 +26,11 @@ const PMQualityControlPage = () => {
   
   const [selectedQC, setSelectedQC] = useState<QualityControlEntry | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<QualityControlEntry | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [approvedHeats, setApprovedHeats] = useState<Set<string>>(new Set());
   const [remarks, setRemarks] = useState('');
   const [processing, setProcessing] = useState(false);
 
@@ -33,6 +39,13 @@ const PMQualityControlPage = () => {
     try {
       const data = await fetchQualityControlEntries();
       setEntries(data);
+      const fgData = await fetchFinishedGoods();
+      const approved = new Set(
+        fgData
+          .filter((fg) => fg.manuallyApproved === true)
+          .map((fg) => fg.heatNo)
+      );
+      setApprovedHeats(approved);
     } catch (err) {
       console.error(err);
       setError('Failed to load quality control records.');
@@ -48,6 +61,11 @@ const PMQualityControlPage = () => {
   const handleView = (qc: QualityControlEntry) => {
     setSelectedQC(qc);
     setViewDialogOpen(true);
+  };
+
+  const handleEdit = (qc: QualityControlEntry) => {
+    setSelectedQC(qc);
+    setEditDialogOpen(true);
   };
 
   const handleOpenApprove = (qc: QualityControlEntry) => {
@@ -69,6 +87,21 @@ const PMQualityControlPage = () => {
       alert('Failed to approve Quality Control record.');
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteQualityControlEntry(deleteTarget.id);
+      setDeleteTarget(null);
+      await loadData();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete QC record.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -266,6 +299,20 @@ const PMQualityControlPage = () => {
                         <Eye size={18} />
                       </IconButton>
                     </Tooltip>
+                    {!approvedHeats.has(row.heatNo) && (
+                      <>
+                        <Tooltip title="Edit QC Entry">
+                          <IconButton onClick={() => handleEdit(row)} size="small" className="text-amber-600">
+                            <Edit size={18} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete QC Entry">
+                          <IconButton onClick={() => setDeleteTarget(row)} size="small" className="text-rose-600">
+                            <Trash2 size={18} />
+                          </IconButton>
+                        </Tooltip>
+                      </>
+                    )}
                     {row.supervisorSubmitted && !row.verified && (
                       <Tooltip title="Approve QC">
                         <IconButton onClick={() => handleOpenApprove(row)} size="small" className="text-emerald-600">
@@ -333,6 +380,32 @@ const PMQualityControlPage = () => {
           <Button onClick={() => setApproveDialogOpen(false)} disabled={processing}>Cancel</Button>
           <Button onClick={handleApprove} variant="contained" color="success" disabled={processing} startIcon={processing ? <RefreshCw className="animate-spin" size={16} /> : <CheckCircle size={16} />}>
             Confirm Approval
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <EditQCDialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        qcEntry={selectedQC}
+        onSave={loadData}
+      />
+
+      {/* Delete Confirmation */}
+      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle className="font-bold flex items-center gap-2">
+          <X className="text-rose-600" size={20} /> Delete QC Entry
+        </DialogTitle>
+        <DialogContent>
+          <Typography className="text-slate-600 text-sm">
+            Are you sure you want to delete the Quality Control entry for Heat No <strong>{deleteTarget?.heatNo}</strong>?
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions className="px-6 pb-4">
+          <Button onClick={() => setDeleteTarget(null)} disabled={deleting}>Cancel</Button>
+          <Button onClick={handleDelete} variant="contained" color="error" disabled={deleting}>
+            {deleting ? 'Deleting...' : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>

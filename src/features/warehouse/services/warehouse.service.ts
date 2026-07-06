@@ -1,11 +1,13 @@
 import {
   collection,
   getDocs,
+  getDoc,
   query,
   orderBy,
   doc,
   updateDoc,
   deleteDoc,
+  addDoc,
   serverTimestamp,
   Timestamp,
   setDoc,
@@ -95,12 +97,92 @@ export const fetchMaterialReceipts = async (): Promise<MaterialReceipt[]> => {
   });
 };
 
+// ─── Add a material receipt ───────────────────────────────────────────────────
+export const addMaterialReceipt = async (
+  receipt: Omit<MaterialReceipt, 'id' | 'receiptNumber' | 'createdAt' | 'updatedAt' | 'dateReceived'>
+): Promise<void> => {
+  const now = Timestamp.now();
+  const receiptNumber = `REC-${Math.floor(100000 + Math.random() * 900000)}`;
+
+  // Adjust stock for all new materials in the receipt
+  if (receipt.materials) {
+    for (const m of receipt.materials) {
+      if (m.materialCode && m.netIntakeWeightKg) {
+        await adjustInventoryStock(m.materialCode, m.netIntakeWeightKg);
+      }
+    }
+  }
+
+  await addDoc(collection(db, RECEIPTS_COL), {
+    ...receipt,
+    receiptNumber,
+    dateReceived: now,
+    createdAt: now,
+    updatedAt: now,
+  });
+};
+
 // ─── Update inventory item (admin override) ───────────────────────────────────
 export const updateInventoryItem = async (
   id: string,
   updates: Partial<Pick<InventoryItem, 'minimumStockKg' | 'currentStockKg' | 'averageCost'>>
 ): Promise<void> => {
   await updateDoc(doc(db, INVENTORY_COL, id), {
+    ...updates,
+    updatedAt: serverTimestamp(),
+  });
+};
+
+// ─── Update a material receipt ────────────────────────────────────────────────
+export const updateMaterialReceipt = async (
+  id: string,
+  updates: Partial<MaterialReceipt>
+): Promise<void> => {
+  const receiptRef = doc(db, RECEIPTS_COL, id);
+  const oldSnap = await getDoc(receiptRef);
+  
+  if (!oldSnap.exists()) {
+    throw new Error('Receipt not found');
+  }
+
+  const oldData = oldSnap.data() as MaterialReceipt;
+  
+  // Calculate inventory adjustments if materials changed
+  if (updates.materials) {
+    const oldMaterials = oldData.materials || [];
+    const newMaterials = updates.materials;
+
+    // Create a map of old net intakes by materialCode
+    const oldIntakes: Record<string, number> = {};
+    for (const m of oldMaterials) {
+      if (!m.materialCode) continue;
+      oldIntakes[m.materialCode] = (oldIntakes[m.materialCode] || 0) + (m.netIntakeWeightKg || 0);
+    }
+
+    // Create a map of new net intakes by materialCode
+    const newIntakes: Record<string, number> = {};
+    for (const m of newMaterials) {
+      if (!m.materialCode) continue;
+      newIntakes[m.materialCode] = (newIntakes[m.materialCode] || 0) + (m.netIntakeWeightKg || 0);
+    }
+
+    // Combine all unique material codes
+    const allCodes = Array.from(new Set([...Object.keys(oldIntakes), ...Object.keys(newIntakes)]));
+
+    // Adjust inventory for the differences
+    for (const code of allCodes) {
+      const oldQty = oldIntakes[code] || 0;
+      const newQty = newIntakes[code] || 0;
+      const diff = newQty - oldQty;
+      
+      if (diff !== 0) {
+        await adjustInventoryStock(code, diff);
+      }
+    }
+  }
+
+  // Update the receipt document
+  await updateDoc(receiptRef, {
     ...updates,
     updatedAt: serverTimestamp(),
   });

@@ -6,6 +6,7 @@ import {
   doc,
   getDoc,
   updateDoc,
+  deleteDoc,
   serverTimestamp,
   where,
   addDoc
@@ -23,6 +24,15 @@ export const fetchQualityControlEntries = async (): Promise<QualityControlEntry[
     id: d.id,
     ...d.data(),
   } as QualityControlEntry));
+};
+
+// ─── Update QC Entry ──────────────────────────────────────────────────────────
+export const updateQualityControl = async (id: string, updates: Partial<QualityControlEntry>) => {
+  const qcRef = doc(db, QC_COL, id);
+  await updateDoc(qcRef, {
+    ...updates,
+    updatedAt: serverTimestamp(),
+  });
 };
 
 // ─── Approve QC Entry ─────────────────────────────────────────────────────────
@@ -97,4 +107,9 @@ export const approveQualityControl = async (id: string, verifiedBy: string, rema
       console.error("Failed to process notifications on QC approval:", err);
     }
   }
+};
+
+// ─── Delete QC Entry ──────────────────────────────────────────────────────────
+export const deleteQualityControlEntry = async (id: string) => {
+  await deleteDoc(doc(db, QC_COL, id));
 };

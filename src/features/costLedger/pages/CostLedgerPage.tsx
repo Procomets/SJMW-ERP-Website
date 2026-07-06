@@ -895,11 +895,13 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
                                 <Edit size={14} />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="Delete Cost Entry">
-                              <IconButton size="small" onClick={() => setDeleteTarget(row)} className="text-red-500 hover:bg-red-50 p-1">
-                                <Trash2 size={14} />
-                              </IconButton>
-                            </Tooltip>
+                            {!productionManager && (
+                              <Tooltip title="Delete Cost Entry">
+                                <IconButton size="small" onClick={() => setDeleteTarget(row)} className="text-red-500 hover:bg-red-50 p-1">
+                                  <Trash2 size={14} />
+                                </IconButton>
+                              </Tooltip>
+                            )}
                           </>
                         )}
                       </td>

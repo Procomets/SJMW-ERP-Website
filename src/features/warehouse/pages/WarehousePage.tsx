@@ -8,9 +8,10 @@ import {
 import {
   Warehouse, Package, AlertTriangle, TrendingDown, RefreshCw,
   Search, Trash2, X, CheckCircle2, ArrowUpDown, ChevronLeft,
-  ChevronRight, Eye, IndianRupee, Maximize2, Minimize2,
+  ChevronRight, Eye, Edit, Plus, IndianRupee, Maximize2, Minimize2,
 } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
+import EditReceiptDialog from '../components/EditReceiptDialog';
 import {
   fetchInventory,
   fetchMaterialReceipts,
@@ -460,6 +461,8 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
   const [stockSearch, setStockSearch] = useState('');
   const [receiptSearch, setReceiptSearch] = useState('');
   const [viewReceipt, setViewReceipt] = useState<MaterialReceipt | null>(null);
+  const [editReceipt, setEditReceipt] = useState<MaterialReceipt | null>(null);
+  const [addReceiptOpen, setAddReceiptOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<MaterialReceipt | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'receipts'>('overview');
@@ -695,19 +698,38 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
       {activeTab === 'receipts' && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {/* Search */}
-          <Box sx={{ position: 'relative', maxWidth: { xs: '100%', sm: 360 }, width: '100%' }}>
-            <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-            <input
-              type="text"
-              value={receiptSearch}
-              onChange={e => { setReceiptSearch(e.target.value); setCurrentPage(1); }}
-              placeholder="Search by receipt no, vendor, material..."
-              style={{
-                width: '100%', paddingLeft: 36, paddingRight: 12, paddingTop: 9, paddingBottom: 9,
-                border: '1px solid #e2e8f0', borderRadius: 8, fontSize: '0.82rem', outline: 'none',
-                color: '#1e293b', background: '#fff',
-              }}
-            />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap', width: '100%' }}>
+            <Box sx={{ position: 'relative', maxWidth: { xs: '100%', sm: 360 }, width: '100%' }}>
+              <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+              <input
+                type="text"
+                value={receiptSearch}
+                onChange={e => { setReceiptSearch(e.target.value); setCurrentPage(1); }}
+                placeholder="Search by receipt no, vendor, material..."
+                style={{
+                  width: '100%', paddingLeft: 36, paddingRight: 12, paddingTop: 9, paddingBottom: 9,
+                  border: '1px solid #e2e8f0', borderRadius: 8, fontSize: '0.82rem', outline: 'none',
+                  color: '#1e293b', background: '#fff',
+                }}
+              />
+            </Box>
+            {productionManager && (
+              <Button
+                variant="contained"
+                startIcon={<Plus size={16} />}
+                onClick={() => setAddReceiptOpen(true)}
+                sx={{
+                  backgroundColor: '#2563eb',
+                  '&:hover': { backgroundColor: '#1d4ed8' },
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                }}
+              >
+                Add Material Receipt
+              </Button>
+            )}
           </Box>
 
           {tableMaximized && (
@@ -1121,6 +1143,13 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
                                       </IconButton>
                                     </Tooltip>
                                     {!readOnly && (
+                                      <Tooltip title="Edit Receipt">
+                                        <IconButton size="small" onClick={() => setEditReceipt(r)} sx={{ color: '#d97706', '&:hover': { backgroundColor: '#fef3c7' } }}>
+                                          <Edit size={14} />
+                                        </IconButton>
+                                      </Tooltip>
+                                    )}
+                                    {!readOnly && !productionManager && (
                                       <Tooltip title="Delete Receipt">
                                         <IconButton size="small" onClick={() => setDeleteTarget(r)} sx={{ color: '#dc2626', '&:hover': { backgroundColor: '#fff1f2' } }}>
                                           <Trash2 size={14} />
@@ -1176,6 +1205,9 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
 
       {/* ── Receipt Detail Dialog ── */}
       <ReceiptDetailDialog receipt={viewReceipt} onClose={() => setViewReceipt(null)} />
+
+      {/* ── Edit/Add Receipt Dialog ── */}
+      <EditReceiptDialog open={!!editReceipt || addReceiptOpen} onClose={() => { setEditReceipt(null); setAddReceiptOpen(false); }} receipt={editReceipt} onSave={loadData} />
 
       {/* ── Delete Confirmation ── */}
       <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth fullScreen={isMobile}
