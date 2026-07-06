@@ -32,7 +32,7 @@ const ProductionManagerSidebar = ({ drawerWidth, mobileOpen, handleDrawerToggle,
 
   const handleLogout = async () => {
     await logout();
-    navigate("/production-login", { replace: true });
+    navigate("/login", { replace: true });
   };
 
   const drawer = (

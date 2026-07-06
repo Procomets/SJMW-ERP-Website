@@ -48,7 +48,7 @@ const AccountsSidebar = ({ drawerWidth, mobileOpen, handleDrawerToggle, isMobile
 
   const handleLogout = async () => {
     await logout();
-    navigate('/accounts-login', { replace: true });
+    navigate('/login', { replace: true });
   };
 
   const drawer = (

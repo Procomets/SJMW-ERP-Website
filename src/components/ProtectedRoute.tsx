@@ -26,7 +26,7 @@ export const AccountsProtectedRoute = () => {
   const { user, profile, loading } = useAuth();
   if (loading) return null;
 
-  if (!user) return <Navigate to="/accounts-login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
 
   const role = (profile?.role || '').toLowerCase();
   if (role.includes('admin')) {
@@ -34,7 +34,7 @@ export const AccountsProtectedRoute = () => {
   }
 
   if (!role.includes('accounts')) {
-    return <Navigate to="/accounts-login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;
@@ -45,7 +45,7 @@ export const ProductionProtectedRoute = () => {
   const { user, profile, loading } = useAuth();
   if (loading) return null;
 
-  if (!user) return <Navigate to="/production-login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
 
   const role = (profile?.role || '').toLowerCase();
   if (role.includes('admin')) {
@@ -53,7 +53,7 @@ export const ProductionProtectedRoute = () => {
   }
 
   if (!role.includes('production')) {
-    return <Navigate to="/production-login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;

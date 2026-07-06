@@ -3,8 +3,6 @@ import MainLayout from '../layouts/MainLayout';
 import AccountsLayout from '../layouts/AccountsLayout';
 import { ProtectedRoute, AccountsProtectedRoute, ProductionProtectedRoute } from '../components/ProtectedRoute';
 import { LoginPage } from '../pages/LoginPage';
-import AccountsLoginPage from '../pages/AccountsLoginPage';
-import ProductionManagerLoginPage from '../pages/ProductionManagerLoginPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ProductionLedgerPage from '../features/productionLedger/pages/ProductionLedgerPage';
@@ -31,14 +29,7 @@ export const router = createBrowserRouter([
     path: '/login',
     element: <LoginPage />,
   },
-  {
-    path: '/accounts-login',
-    element: <AccountsLoginPage />,
-  },
-  {
-    path: '/production-login',
-    element: <ProductionManagerLoginPage />,
-  },
+
   {
     // All admin app routes are protected
     element: <ProtectedRoute />,
