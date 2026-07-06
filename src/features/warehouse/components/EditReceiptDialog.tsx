@@ -9,6 +9,8 @@ import type { MaterialReceipt, ReceiptMaterial } from '../types/warehouse.types'
 import { updateMaterialReceipt, addMaterialReceipt } from '../services/warehouse.service';
 import { useMaterials } from '../../../context/MaterialContext';
 import { useAuth } from '../../../context/AuthContext';
+import { fetchVendors } from '../../vendorMaster/services/vendorMaster.service';
+import type { VendorMaster } from '../../vendorMaster/types/vendorMaster.types';
 
 interface EditReceiptDialogProps {
   open: boolean;
@@ -24,11 +26,25 @@ const EditReceiptDialog = ({ open, onClose, receipt, onSave }: EditReceiptDialog
   const [receiptMaterials, setReceiptMaterials] = useState<ReceiptMaterial[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [vendors, setVendors] = useState<VendorMaster[]>([]);
 
   const isAddMode = !receipt;
 
   useEffect(() => {
+    const loadVendors = async () => {
+      try {
+        const vList = await fetchVendors();
+        // filter where category is Supplier or Both and active
+        const filtered = vList.filter(
+          v => (v.vendorCategory === 'Supplier' || v.vendorCategory === 'Both') && v.status === 'Active'
+        );
+        setVendors(filtered);
+      } catch (err) {
+        console.error("Failed to load vendors:", err);
+      }
+    };
     if (open) {
+      loadVendors();
       if (receipt) {
         setVendorName(receipt.vendorName || '');
         setReceiptMaterials(JSON.parse(JSON.stringify(receipt.materials || [])));
@@ -138,12 +154,22 @@ const EditReceiptDialog = ({ open, onClose, receipt, onSave }: EditReceiptDialog
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
+                  select
                   label="Vendor Name"
                   fullWidth
                   size="small"
                   value={vendorName}
                   onChange={(e) => setVendorName(e.target.value)}
-                />
+                  slotProps={{ select: { native: true } }}
+                >
+                  <option value="">Select Vendor</option>
+                  {vendors.map(v => (
+                    <option key={v.id} value={v.vendorName}>{v.vendorName}</option>
+                  ))}
+                  {vendorName && !vendors.some(v => v.vendorName === vendorName) && (
+                    <option value={vendorName}>{vendorName}</option>
+                  )}
+                </TextField>
               </Grid>
             </Grid>
           </Box>

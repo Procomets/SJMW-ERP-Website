@@ -106,7 +106,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'accounts/warehouse',
-            element: <WarehousePage readOnly />,
+            element: <WarehousePage productionManager />,
           },
         ],
       },

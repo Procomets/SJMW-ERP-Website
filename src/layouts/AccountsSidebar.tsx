@@ -33,7 +33,7 @@ const ACCOUNTS_MENU = [
   { text: 'Finished Goods', icon: <PackageCheck size={20} />, path: '/accounts/finished-goods', desc: 'View Only' },
   { text: 'Dispatch Management', icon: <Truck size={20} />, path: '/accounts/dispatch', desc: 'View Only' },
   { text: 'Vendor Master', icon: <Building2 size={20} />, path: '/accounts/vendor-master', desc: 'Edit Access' },
-  { text: 'Warehouse', icon: <Warehouse size={20} />, path: '/accounts/warehouse', desc: 'View Only' },
+  { text: 'Warehouse', icon: <Warehouse size={20} />, path: '/accounts/warehouse', desc: 'Edit Access' },
 ];
 
 const TEAL = '#059669';
