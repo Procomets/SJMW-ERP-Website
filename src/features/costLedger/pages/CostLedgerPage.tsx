@@ -226,6 +226,37 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
     return { totalCost, avgMatCostPerKg, avgProdCostPerKg, avgSellPricePerKg };
   }, [entries]);
 
+  const totals = useMemo(() => {
+    const result = {
+      materials: {} as Record<string, { qty: number; amt: number }>,
+      totalInputKg: 0,
+      goodIngotsKg: 0,
+      totalMaterialCost: 0,
+      totalProductionCost: 0,
+    };
+    filteredData.forEach(row => {
+      costMaterials.forEach(f => {
+        const mat = row.materials?.find(
+          m => m.materialId === f.id || m.materialId === f.materialId || m.materialCode === f.materialCode
+        );
+        if (mat) {
+          const qty = mat.weightKg ?? 0;
+          const amt = mat.amount ?? (mat as any).totalCost ?? 0;
+          if (!result.materials[f.id]) {
+            result.materials[f.id] = { qty: 0, amt: 0 };
+          }
+          result.materials[f.id].qty += qty;
+          result.materials[f.id].amt += amt;
+        }
+      });
+      result.totalInputKg += row.totalInputKg || 0;
+      result.goodIngotsKg += row.goodIngotsKg || 0;
+      result.totalMaterialCost += row.totalMaterialCost || 0;
+      result.totalProductionCost += row.totalProductionCost || 0;
+    });
+    return result;
+  }, [filteredData, costMaterials]);
+
   // Open entry modal
   const openAddEntry = () => {
     setEditEntry(null);
@@ -916,6 +947,45 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
                 })
               )}
             </tbody>
+            {!isTableLoading && filteredData.length > 0 && (
+              <tfoot>
+                <tr className="bg-slate-50 sticky bottom-0 z-20 border-t-2 border-slate-300">
+                  <td colSpan={5} className="px-4 py-2 text-right font-bold text-slate-700 border-r border-slate-200">
+                    Total
+                  </td>
+                  {costMaterials.map((f) => {
+                    const t = totals.materials[f.id] || { qty: 0, amt: 0 };
+                    return (
+                      <Fragment key={f.id}>
+                        <td className="px-3 py-2 text-right font-mono font-bold text-slate-700 bg-slate-100">{t.qty > 0 ? fmtQty(t.qty) : <span className="text-slate-300">—</span>}</td>
+                        <td className="px-3 py-2 text-right font-mono bg-slate-100 border-r border-slate-200"></td>
+                        <td className="px-3 py-2 text-right font-mono font-bold text-blue-800 bg-blue-50/50 border-r border-slate-200">{t.amt > 0 ? fmtMoney(t.amt) : <span className="text-slate-300">—</span>}</td>
+                      </Fragment>
+                    );
+                  })}
+                  <td className="px-4 py-2 font-mono text-right font-bold text-slate-800 bg-emerald-50/30">{fmtQty(totals.totalInputKg)}</td>
+                  <td className="px-4 py-2 font-mono text-right font-bold text-emerald-800 bg-emerald-50/30">{fmtQty(totals.goodIngotsKg)}</td>
+                  <td className="px-4 py-2 font-mono text-right border-r border-slate-200 bg-emerald-50/30"></td>
+
+                  <td className="px-4 py-2 font-mono text-right font-bold text-amber-800 bg-amber-50/30">{fmtMoney(totals.totalMaterialCost)}</td>
+                  <td className="px-4 py-2 font-mono text-right bg-amber-50/30"></td>
+                  <td className="px-4 py-2 font-mono text-right bg-amber-50/30"></td>
+                  <td className="px-4 py-2 font-mono text-right font-bold text-slate-800 bg-amber-50/30">{fmtMoney(totals.totalProductionCost)}</td>
+                  <td className={`px-4 py-2 font-mono text-right bg-amber-50/30 ${productionManager ? 'border-r border-slate-200' : ''}`}></td>
+
+                  {!productionManager && (
+                    <>
+                      <td className="px-4 py-2 font-mono text-right bg-amber-50/30"></td>
+                      <td className={`px-4 py-2 font-mono text-right bg-amber-50/30 ${isAdmin ? '' : 'border-r border-slate-200'}`}></td>
+                    </>
+                  )}
+                  {!productionManager && isAdmin && (
+                    <td className="px-3 py-1.5 bg-purple-50/20 border-r border-slate-200"></td>
+                  )}
+                  <td className="px-4 py-2 bg-slate-50 border-l border-slate-200 sticky right-0"></td>
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
 

@@ -817,6 +817,14 @@ export default function DispatchPage({ readOnly = false, noDelete = false }: { r
 
   const openEdit = (d: DispatchEntry) => { setEditTarget(d); setDialogOpen(true); };
 
+  const totals = useMemo(() => {
+    return filtered.reduce((acc, d) => {
+      acc.totalWeight += d.totalDispatchWeightKg || 0;
+      acc.totalPieces += d.totalDispatchPieces || 0;
+      return acc;
+    }, { totalWeight: 0, totalPieces: 0 });
+  }, [filtered]);
+
 
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -1397,6 +1405,17 @@ export default function DispatchPage({ readOnly = false, noDelete = false }: { r
                   });
                 })}
               </tbody>
+              {!loading && filtered.length > 0 && (
+                <tfoot>
+                  <tr style={{ backgroundColor: '#f8fafc', position: 'sticky', bottom: 0, zIndex: 10 }}>
+                    <td colSpan={5} style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: '#475569', borderTop: '2px solid #cbd5e1', borderRight: '1px solid #e2e8f0' }}>Total</td>
+                    <td colSpan={5} style={{ padding: '10px 14px', borderTop: '2px solid #cbd5e1', borderRight: '1px solid #e2e8f0' }}></td>
+                    <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: '#0f172a', fontFamily: 'monospace', borderTop: '2px solid #cbd5e1', borderRight: '1px solid #e2e8f0' }}>{totals.totalWeight.toFixed(1)} kg</td>
+                    <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: '#0f172a', fontFamily: 'monospace', borderTop: '2px solid #cbd5e1', borderRight: '1px solid #e2e8f0' }}>{totals.totalPieces}</td>
+                    <td colSpan={2} style={{ padding: '10px 14px', borderTop: '2px solid #cbd5e1' }}></td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </Box>
 
