@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
     Box, Typography, Card, CardContent, Button,
-    Table, TableBody, TableCell, TableContainer, TableHead,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableFooter,
     TableRow, Paper, IconButton, Chip, Tooltip,
     CircularProgress, Dialog, DialogTitle, DialogContent,
     DialogActions, Skeleton, TextField, FormControl,
@@ -289,6 +289,33 @@ const ProductionLedgerPage = () => {
         ? (entries.reduce((s, e) => s + e.efficiencyPercentage, 0) / entries.length).toFixed(2)
         : '0.00';
     const totalGood = entries.reduce((s, e) => s + e.goodIngots, 0).toLocaleString();
+
+    const totals = useMemo(() => {
+        const result = {
+            materials: {} as Record<string, number>,
+            totalInput: 0,
+            goodIngots: 0,
+            badIngotsKg: 0,
+            pieces: 0,
+        };
+
+        filtered.forEach(row => {
+            productionMaterials.forEach(f => {
+                const matEntry = row.materials?.find(
+                    (m) => m.materialId === f.materialId || m.materialId === f.id || m.materialCode === f.materialCode
+                );
+                if (matEntry) {
+                    result.materials[f.id] = (result.materials[f.id] || 0) + matEntry.weightKg;
+                }
+            });
+            result.totalInput += row.totalInput || 0;
+            result.goodIngots += row.goodIngots || 0;
+            result.badIngotsKg += row.badIngotsKg || 0;
+            result.pieces += (row.noOfPieces !== undefined ? row.noOfPieces : (row.totalPieces || 0));
+        });
+
+        return result;
+    }, [filtered, productionMaterials]);
 
     return (
         <Box>
@@ -832,6 +859,33 @@ const ProductionLedgerPage = () => {
                                 })
                             )}
                         </TableBody>
+                        {!isTableLoading && filtered.length > 0 && (
+                            <TableFooter>
+                                <TableRow>
+                                    <TableCell colSpan={7} sx={{ ...bodyCell, position: 'sticky', bottom: 0, backgroundColor: isDark ? '#1a2130' : '#f8fafc', fontWeight: 800, textAlign: 'right', borderTop: `2px solid ${isDark ? '#4a5568' : '#cbd5e1'}`, zIndex: 2, borderBottom: 'none' }}>
+                                        Total
+                                    </TableCell>
+                                    {productionMaterials.map((f) => (
+                                        <TableCell key={f.id} align="right" sx={{ ...bodyCell, position: 'sticky', bottom: 0, backgroundColor: isDark ? '#1a2130' : '#f8fafc', fontWeight: 800, borderTop: `2px solid ${isDark ? '#4a5568' : '#cbd5e1'}`, zIndex: 2, borderBottom: 'none' }}>
+                                            {totals.materials[f.id] > 0 ? totals.materials[f.id].toLocaleString() : '—'}
+                                        </TableCell>
+                                    ))}
+                                    <TableCell align="right" sx={{ ...bodyCell, position: 'sticky', bottom: 0, backgroundColor: isDark ? '#1a2130' : '#f8fafc', fontWeight: 800, color: '#1565C0', borderTop: `2px solid ${isDark ? '#4a5568' : '#cbd5e1'}`, zIndex: 2, borderBottom: 'none' }}>
+                                        {totals.totalInput.toLocaleString()}
+                                    </TableCell>
+                                    <TableCell align="right" sx={{ ...bodyCell, position: 'sticky', bottom: 0, backgroundColor: isDark ? '#1a2130' : '#f8fafc', fontWeight: 800, color: '#2e7d32', borderTop: `2px solid ${isDark ? '#4a5568' : '#cbd5e1'}`, zIndex: 2, borderBottom: 'none' }}>
+                                        {totals.goodIngots.toLocaleString()}
+                                    </TableCell>
+                                    <TableCell align="right" sx={{ ...bodyCell, position: 'sticky', bottom: 0, backgroundColor: isDark ? '#1a2130' : '#f8fafc', fontWeight: 800, color: '#c62828', borderTop: `2px solid ${isDark ? '#4a5568' : '#cbd5e1'}`, zIndex: 2, borderBottom: 'none' }}>
+                                        {totals.badIngotsKg.toLocaleString()}
+                                    </TableCell>
+                                    <TableCell align="right" sx={{ ...bodyCell, position: 'sticky', bottom: 0, backgroundColor: isDark ? '#1a2130' : '#f8fafc', fontWeight: 800, borderTop: `2px solid ${isDark ? '#4a5568' : '#cbd5e1'}`, zIndex: 2, borderBottom: 'none' }}>
+                                        {totals.pieces.toLocaleString()}
+                                    </TableCell>
+                                    <TableCell colSpan={2} sx={{ ...bodyCell, position: 'sticky', bottom: 0, backgroundColor: isDark ? '#1a2130' : '#f8fafc', borderTop: `2px solid ${isDark ? '#4a5568' : '#cbd5e1'}`, zIndex: 2, borderBottom: 'none' }}></TableCell>
+                                </TableRow>
+                            </TableFooter>
+                        )}
                     </Table>
                 </TableContainer>
             </Paper>
