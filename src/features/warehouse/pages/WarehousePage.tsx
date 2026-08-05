@@ -8,7 +8,7 @@ import {
 import {
   Warehouse, Package, AlertTriangle, TrendingDown, RefreshCw,
   Search, Trash2, X, CheckCircle2, ArrowUpDown, ChevronLeft,
-  ChevronRight, Eye, Edit, Plus, IndianRupee, Maximize2, Minimize2, TrendingUp, Activity, BarChart2,
+  ChevronRight, Eye, Edit, Plus, IndianRupee, Maximize2, Minimize2,
   FileSpreadsheet
 } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
@@ -592,8 +592,7 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
       const s = stockSearch.toLowerCase();
       data = data.filter(i => 
         i.materialName.toLowerCase().includes(s) ||
-        i.materialCode.toLowerCase().includes(s) ||
-        i.category.toLowerCase().includes(s)
+        i.materialCode.toLowerCase().includes(s)
       );
     }
 
@@ -606,7 +605,6 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
       { header: 'SI No', key: 'serialNo', width: 10 },
       { header: 'Material Code', key: 'code', width: 15 },
       { header: 'Material Name', key: 'name', width: 25 },
-      { header: 'Category', key: 'category', width: 15 },
       { header: 'Current Stock (kg)', key: 'currentStock', width: 18 },
       { header: 'Min Stock (kg)', key: 'minStock', width: 15 },
       { header: 'Status', key: 'status', width: 15 },
@@ -626,12 +624,11 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
     let sumMin = 0;
 
     data.forEach((item, idx) => {
-      const d = item.lastUpdated instanceof Timestamp ? item.lastUpdated.toDate() : (item.lastUpdated ? new Date(item.lastUpdated) : null);
+      const d = item.updatedAt instanceof Timestamp ? item.updatedAt.toDate() : (item.updatedAt ? new Date(item.updatedAt) : null);
       worksheet.addRow({
         serialNo: idx + 1,
         code: item.materialCode,
         name: item.materialName,
-        category: item.category,
         currentStock: item.currentStockKg || 0,
         minStock: item.minimumStockKg || 0,
         status: item.status,

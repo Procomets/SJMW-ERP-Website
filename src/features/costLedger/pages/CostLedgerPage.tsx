@@ -6,12 +6,10 @@ import {
   FormControl, InputLabel, TextField, useTheme, useMediaQuery
 } from '@mui/material';
 import {
-  Search, Plus, Edit, Trash2, RefreshCw, Download, FileSpreadsheet,
+  Search, Plus, Edit, Trash2, RefreshCw, FileSpreadsheet,
   ArrowUpDown, ChevronLeft, ChevronRight, X, Maximize2, Minimize2
 } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
-import * as XLSX from 'xlsx';
-import Papa from 'papaparse';
 import ExcelJS from 'exceljs';
 
 import {
