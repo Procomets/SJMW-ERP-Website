@@ -12,6 +12,7 @@ import {
 import { Timestamp } from 'firebase/firestore';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
+import ExcelJS from 'exceljs';
 
 import {
   fetchCostLedger,
@@ -228,12 +229,24 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
 
   const totals = useMemo(() => {
     const result = {
-      materials: {} as Record<string, { qty: number; amt: number }>,
+      materials: {} as Record<string, { qty: number; amt: number; rateSum: number; rateCount: number }>,
       totalInputKg: 0,
       goodIngotsKg: 0,
       totalMaterialCost: 0,
       totalProductionCost: 0,
+      averageEfficiency: 0,
+      averageMatCostPerKg: 0,
+      averageProductionCostPerKg: 0,
+      averageSellingPricePerKg: 0,
+      averageSoldPricePerKg: 0,
     };
+
+    let effCount = 0;
+    let matCostCount = 0;
+    let prodCostCount = 0;
+    let sellPriceCount = 0;
+    let soldPriceCount = 0;
+
     filteredData.forEach(row => {
       costMaterials.forEach(f => {
         const mat = row.materials?.find(
@@ -242,18 +255,51 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
         if (mat) {
           const qty = mat.weightKg ?? 0;
           const amt = mat.amount ?? (mat as any).totalCost ?? 0;
+          const rate = (mat as any).rate ?? mat.ratePerKg ?? (mat as any).costPerKg ?? 0;
           if (!result.materials[f.id]) {
-            result.materials[f.id] = { qty: 0, amt: 0 };
+            result.materials[f.id] = { qty: 0, amt: 0, rateSum: 0, rateCount: 0 };
           }
           result.materials[f.id].qty += qty;
           result.materials[f.id].amt += amt;
+          if (rate > 0 || qty > 0) {
+            result.materials[f.id].rateSum += rate;
+            result.materials[f.id].rateCount++;
+          }
         }
       });
       result.totalInputKg += row.totalInputKg || 0;
       result.goodIngotsKg += row.goodIngotsKg || 0;
       result.totalMaterialCost += row.totalMaterialCost || 0;
       result.totalProductionCost += row.totalProductionCost || 0;
+
+      if (row.efficiencyPercentage !== undefined) {
+        result.averageEfficiency += row.efficiencyPercentage;
+        effCount++;
+      }
+      if (row.materialCostPerKg !== undefined) {
+        result.averageMatCostPerKg += row.materialCostPerKg;
+        matCostCount++;
+      }
+      if (row.totalProductionCostPerKg !== undefined) {
+        result.averageProductionCostPerKg += row.totalProductionCostPerKg;
+        prodCostCount++;
+      }
+      if (row.sellingPricePerKg !== undefined) {
+        result.averageSellingPricePerKg += row.sellingPricePerKg;
+        sellPriceCount++;
+      }
+      if (row.soldPricePerKg !== undefined) {
+        result.averageSoldPricePerKg += row.soldPricePerKg;
+        soldPriceCount++;
+      }
     });
+
+    if (effCount > 0) result.averageEfficiency /= effCount;
+    if (matCostCount > 0) result.averageMatCostPerKg /= matCostCount;
+    if (prodCostCount > 0) result.averageProductionCostPerKg /= prodCostCount;
+    if (sellPriceCount > 0) result.averageSellingPricePerKg /= sellPriceCount;
+    if (soldPriceCount > 0) result.averageSoldPricePerKg /= soldPriceCount;
+
     return result;
   }, [filteredData, costMaterials]);
 
@@ -324,102 +370,176 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
   };
 
   // Exports
-  const handleExportExcel = () => {
-    const excelData = sortedData.map((row) => {
-      const item: any = {
-        'SI No': row.serialNo,
-        'Heat No': row.heatNo,
-        'Date': row.date instanceof Timestamp ? row.date.toDate().toLocaleDateString('en-IN') : String(row.date),
-        'Alloy Type': row.alloyType,
-        'Employee Name': row.employeeName,
-        'Role': row.role,
-        'Notified': row.notified ? 'Yes' : 'No',
+  const handleExportExcel = async () => {
+    if (filteredData.length === 0) return;
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Cost Ledger');
+
+    // Define columns
+    const columns: any[] = [
+      { header: 'SI No', key: 'serialNo', width: 10 },
+      { header: 'Heat No', key: 'heatNo', width: 15 },
+      { header: 'Date', key: 'date', width: 15 },
+      { header: 'Alloy Type', key: 'alloyType', width: 15 },
+      { header: 'Employee Name', key: 'employeeName', width: 20 },
+      { header: 'Role', key: 'role', width: 15 },
+      { header: 'Notified', key: 'notified', width: 10 }
+    ];
+
+    costMaterials.forEach(f => {
+      columns.push({ header: f.materialCode, key: `${f.materialCode}_qty`, width: 12 });
+      columns.push({ header: `${f.materialCode} Rate (₹)`, key: `${f.materialCode}_rate`, width: 12 });
+      columns.push({ header: `${f.materialCode} Amount (₹)`, key: `${f.materialCode}_amt`, width: 15 });
+    });
+
+    columns.push(
+      { header: 'Total Input (Kg)', key: 'totalInput', width: 15 },
+      { header: 'Good Ingots (Kg)', key: 'goodIngots', width: 15 },
+      { header: 'Yield %', key: 'efficiency', width: 12 },
+      { header: 'Total Material Cost (₹)', key: 'totalMatCost', width: 20 },
+      { header: 'Mat Cost/Kg (₹)', key: 'matCostPerKg', width: 15 },
+      { header: 'Labor Cost/Kg (₹)', key: 'laborCostPerKg', width: 15 },
+      { header: 'Total Prod Cost (₹)', key: 'totalProdCost', width: 20 },
+      { header: 'Prod Cost/Kg (₹)', key: 'prodCostPerKg', width: 15 }
+    );
+
+    if (!productionManager) {
+      columns.push(
+        { header: 'Selling Margin %', key: 'margin', width: 15 },
+        { header: 'Selling Price/Kg (₹)', key: 'sellingPrice', width: 20 }
+      );
+      if (isAdmin) {
+        columns.push({ header: 'Sold Price/Kg (₹)', key: 'soldPrice', width: 20 });
+      }
+    }
+
+    worksheet.columns = columns;
+
+    // Apply header styles
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFADD8E6' } // Light blue
+      };
+      cell.font = { bold: true };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    // Add data rows
+    filteredData.forEach((row, idx) => {
+      const rowData: any = {
+        serialNo: idx + 1,
+        heatNo: row.heatNo,
+        date: row.date instanceof Timestamp ? row.date.toDate().toLocaleDateString('en-IN') : String(row.date),
+        alloyType: row.alloyType,
+        employeeName: row.employeeName || '—',
+        role: row.role || '—',
+        notified: row.notified ? 'Yes' : 'No',
       };
 
-      // Add material columns in sequence: Qty, Rate, Amount
       costMaterials.forEach(f => {
         const mat = row.materials?.find(
           m => m.materialId === f.id || m.materialId === f.materialId || m.materialCode === f.materialCode
         );
-        item[f.materialCode] = mat ? (mat.weightKg ?? 0) : 0;
-        item[`${f.materialCode} Rate`] = mat ? (mat.ratePerKg ?? (mat as any).costPerKg ?? (mat as any).rate ?? 0) : 0;
-        item[`${f.materialCode} Amount`] = mat ? (mat.amount ?? (mat as any).totalCost ?? 0) : 0;
+        rowData[`${f.materialCode}_qty`] = mat ? (mat.weightKg ?? 0) : 0;
+        rowData[`${f.materialCode}_rate`] = mat ? (mat.ratePerKg ?? (mat as any).costPerKg ?? (mat as any).rate ?? 0) : 0;
+        rowData[`${f.materialCode}_amt`] = mat ? (mat.amount ?? (mat as any).totalCost ?? 0) : 0;
       });
 
-      // Production & Analysis
-      item['Total Input (Kg)'] = row.totalInputKg || 0;
-      item['Good Ingots (Kg)'] = row.goodIngotsKg || 0;
-      item['Efficiency %'] = row.efficiencyPercentage || 0;
-      item['Total Material Cost (₹)'] = row.totalMaterialCost || 0;
-      item['Mat Cost/Kg (₹)'] = row.materialCostPerKg || 0;
-      item['Labor Cost/Kg (₹)'] = row.laborCostPerKg || 0;
-      item['Total Production Cost (₹)'] = row.totalProductionCost || 0;
-      item['Production Cost/Kg (₹)'] = row.totalProductionCostPerKg || 0;
+      rowData.totalInput = row.totalInputKg || 0;
+      rowData.goodIngots = row.goodIngotsKg || 0;
+      rowData.efficiency = row.efficiencyPercentage || 0;
+      rowData.totalMatCost = row.totalMaterialCost || 0;
+      rowData.matCostPerKg = row.materialCostPerKg || 0;
+      rowData.laborCostPerKg = row.laborCostPerKg || 0;
+      rowData.totalProdCost = row.totalProductionCost || 0;
+      rowData.prodCostPerKg = row.totalProductionCostPerKg || 0;
+
       if (!productionManager) {
-        item['Selling Margin %'] = row.marginPercentage || 0;
-        item['Selling Price/Kg (₹)'] = row.sellingPricePerKg || 0;
+        rowData.margin = row.marginPercentage || 0;
+        rowData.sellingPrice = row.sellingPricePerKg || 0;
         if (isAdmin) {
-          item['Sold Price/Kg (₹)'] = row.soldPricePerKg !== undefined ? row.soldPricePerKg : '';
+          rowData.soldPrice = row.soldPricePerKg !== undefined ? row.soldPricePerKg : '';
         }
       }
 
-      return item;
+      worksheet.addRow(rowData);
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Cost Ledger');
-    XLSX.writeFile(workbook, `Cost_Ledger_${new Date().toISOString().split('T')[0]}.xlsx`);
-  };
+    // Add Total Row
+    const totalRowData: any = {
+      serialNo: 'Total',
+      totalInput: totals.totalInputKg,
+      goodIngots: totals.goodIngotsKg,
+      efficiency: totals.averageEfficiency,
+      totalMatCost: totals.totalMaterialCost,
+      matCostPerKg: totals.averageMatCostPerKg,
+      laborCostPerKg: '',
+      totalProdCost: totals.totalProductionCost,
+      prodCostPerKg: totals.averageProductionCostPerKg,
+    };
 
-  const handleExportCSV = () => {
-    const csvData = sortedData.map((row) => {
-      const item: any = {
-        'SI No': row.serialNo,
-        'Heat No': row.heatNo,
-        'Date': row.date instanceof Timestamp ? row.date.toDate().toLocaleDateString('en-IN') : String(row.date),
-        'Alloy Type': row.alloyType,
-        'Employee Name': row.employeeName,
-        'Role': row.role,
-        'Notified': row.notified ? 'Yes' : 'No',
+    costMaterials.forEach(f => {
+      const t = totals.materials[f.id] || { qty: 0, amt: 0, rateSum: 0, rateCount: 0 };
+      const avgRate = t.rateCount > 0 ? t.rateSum / t.rateCount : 0;
+      totalRowData[`${f.materialCode}_qty`] = t.qty;
+      totalRowData[`${f.materialCode}_rate`] = avgRate;
+      totalRowData[`${f.materialCode}_amt`] = t.amt;
+    });
+
+    if (!productionManager) {
+      totalRowData.margin = '';
+      totalRowData.sellingPrice = totals.averageSellingPricePerKg;
+      if (isAdmin) {
+        totalRowData.soldPrice = totals.averageSoldPricePerKg;
+      }
+    }
+
+    const totalRow = worksheet.addRow(totalRowData);
+
+    // Style Total Row
+    totalRow.eachCell((cell, colNumber) => {
+      cell.font = { bold: true };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFFFF00' } // Yellow
       };
-
-      costMaterials.forEach(f => {
-        const mat = row.materials?.find(
-          m => m.materialId === f.id || m.materialId === f.materialId || m.materialCode === f.materialCode
-        );
-        item[f.materialCode] = mat ? (mat.weightKg ?? 0) : 0;
-        item[`${f.materialCode} Rate`] = mat ? (mat.ratePerKg ?? (mat as any).costPerKg ?? (mat as any).rate ?? 0) : 0;
-        item[`${f.materialCode} Amount`] = mat ? (mat.amount ?? (mat as any).totalCost ?? 0) : 0;
-      });
-
-      item['Total Input (Kg)'] = row.totalInputKg || 0;
-      item['Good Ingots (Kg)'] = row.goodIngotsKg || 0;
-      item['Efficiency %'] = row.efficiencyPercentage || 0;
-      item['Total Material Cost'] = row.totalMaterialCost || 0;
-      item['Mat Cost Per Kg'] = row.materialCostPerKg || 0;
-      item['Labor Cost Per Kg'] = row.laborCostPerKg || 0;
-      item['Total Production Cost'] = row.totalProductionCost || 0;
-      item['Production Cost Per Kg'] = row.totalProductionCostPerKg || 0;
-      if (!productionManager) {
-        item['Selling Margin %'] = row.marginPercentage || 0;
-        item['Selling Price Per Kg'] = row.sellingPricePerKg || 0;
-        if (isAdmin) {
-          item['Sold Price Per Kg'] = row.soldPricePerKg !== undefined ? row.soldPricePerKg : '';
-        }
+      if (colNumber > 6) {
+        cell.alignment = { horizontal: 'right' };
       }
-
-      return item;
     });
 
-    const csv = Papa.unparse(csvData);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    // Generate filename based on date range
+    let minDate: Date | null = null;
+    let maxDate: Date | null = null;
+    filteredData.forEach(row => {
+      const d = row.date instanceof Timestamp ? row.date.toDate() : (row.date ? new Date(row.date) : null);
+      if (d) {
+        if (!minDate || d < minDate) minDate = d;
+        if (!maxDate || d > maxDate) maxDate = d;
+      }
+    });
+    const formatDateForFile = (d: Date | null) => {
+      if (!d) return '';
+      return `${d.getDate().toString().padStart(2, '0')}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getFullYear()}`;
+    };
+    const dateRangeStr = (minDate && maxDate) 
+      ? ` (${formatDateForFile(minDate)} to ${formatDateForFile(maxDate)})` 
+      : '';
+    const fileName = `Cost Ledger${dateRangeStr}.xlsx`;
+
+    // Download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.setAttribute('download', `Cost_Ledger_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
+    link.download = fileName;
     link.click();
-    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
   };
 
   return (
@@ -442,14 +562,6 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
               </IconButton>
             </Tooltip>
           </div>
-          <Button
-            onClick={handleExportCSV}
-            variant="outlined"
-            startIcon={<Download size={16} />}
-            className="text-slate-700 border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 font-semibold px-4 rounded-lg h-10 text-xs w-full sm:w-auto"
-          >
-            Export CSV
-          </Button>
           <Button
             onClick={handleExportExcel}
             variant="outlined"
@@ -954,33 +1066,34 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
                     Total
                   </td>
                   {costMaterials.map((f) => {
-                    const t = totals.materials[f.id] || { qty: 0, amt: 0 };
+                    const t = totals.materials[f.id] || { qty: 0, amt: 0, rateSum: 0, rateCount: 0 };
+                    const avgRate = t.rateCount > 0 ? t.rateSum / t.rateCount : 0;
                     return (
                       <Fragment key={f.id}>
                         <td className="px-3 py-2 text-right font-mono font-bold text-slate-700 bg-slate-100">{t.qty > 0 ? fmtQty(t.qty) : <span className="text-slate-300">—</span>}</td>
-                        <td className="px-3 py-2 text-right font-mono bg-slate-100 border-r border-slate-200"></td>
+                        <td className="px-3 py-2 text-right font-mono bg-slate-100 border-r border-slate-200 font-bold text-slate-600">{avgRate > 0 ? fmtMoney(avgRate) : <span className="text-slate-300">—</span>}</td>
                         <td className="px-3 py-2 text-right font-mono font-bold text-blue-800 bg-blue-50/50 border-r border-slate-200">{t.amt > 0 ? fmtMoney(t.amt) : <span className="text-slate-300">—</span>}</td>
                       </Fragment>
                     );
                   })}
                   <td className="px-4 py-2 font-mono text-right font-bold text-slate-800 bg-emerald-50/30">{fmtQty(totals.totalInputKg)}</td>
                   <td className="px-4 py-2 font-mono text-right font-bold text-emerald-800 bg-emerald-50/30">{fmtQty(totals.goodIngotsKg)}</td>
-                  <td className="px-4 py-2 font-mono text-right border-r border-slate-200 bg-emerald-50/30"></td>
+                  <td className="px-4 py-2 font-mono text-right border-r border-slate-200 bg-emerald-50/30 font-bold text-emerald-700">{totals.averageEfficiency > 0 ? `${totals.averageEfficiency.toFixed(2)}%` : <span className="text-slate-300">—</span>}</td>
 
                   <td className="px-4 py-2 font-mono text-right font-bold text-amber-800 bg-amber-50/30">{fmtMoney(totals.totalMaterialCost)}</td>
-                  <td className="px-4 py-2 font-mono text-right bg-amber-50/30"></td>
+                  <td className="px-4 py-2 font-mono text-right bg-amber-50/30 font-bold text-slate-700">{totals.averageMatCostPerKg > 0 ? fmtMoney(totals.averageMatCostPerKg) : <span className="text-slate-300">—</span>}</td>
                   <td className="px-4 py-2 font-mono text-right bg-amber-50/30"></td>
                   <td className="px-4 py-2 font-mono text-right font-bold text-slate-800 bg-amber-50/30">{fmtMoney(totals.totalProductionCost)}</td>
-                  <td className={`px-4 py-2 font-mono text-right bg-amber-50/30 ${productionManager ? 'border-r border-slate-200' : ''}`}></td>
+                  <td className={`px-4 py-2 font-mono text-right bg-amber-50/30 font-bold text-amber-850 ${productionManager ? 'border-r border-slate-200' : ''}`}>{totals.averageProductionCostPerKg > 0 ? fmtMoney(totals.averageProductionCostPerKg) : <span className="text-slate-300">—</span>}</td>
 
                   {!productionManager && (
                     <>
                       <td className="px-4 py-2 font-mono text-right bg-amber-50/30"></td>
-                      <td className={`px-4 py-2 font-mono text-right bg-amber-50/30 ${isAdmin ? '' : 'border-r border-slate-200'}`}></td>
+                      <td className={`px-4 py-2 font-mono text-right bg-amber-50/30 font-bold text-emerald-800 ${isAdmin ? '' : 'border-r border-slate-200'}`}>{totals.averageSellingPricePerKg > 0 ? fmtMoney(totals.averageSellingPricePerKg) : <span className="text-slate-300">—</span>}</td>
                     </>
                   )}
                   {!productionManager && isAdmin && (
-                    <td className="px-3 py-1.5 bg-purple-50/20 border-r border-slate-200"></td>
+                    <td className="px-3 py-1.5 bg-purple-50/20 border-r border-slate-200 font-mono text-right font-bold text-purple-800">{totals.averageSoldPricePerKg > 0 ? fmtMoney(totals.averageSoldPricePerKg) : <span className="text-slate-300">—</span>}</td>
                   )}
                   <td className="px-4 py-2 bg-slate-50 border-l border-slate-200 sticky right-0"></td>
                 </tr>

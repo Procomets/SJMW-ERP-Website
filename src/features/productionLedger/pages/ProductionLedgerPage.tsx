@@ -11,6 +11,7 @@ import {
     Search, Plus, Edit, Trash2, RefreshCw, Download, ArrowUpDown, Maximize2, Minimize2,
 } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
+import ExcelJS from 'exceljs';
 import {
     fetchProductionLedger,
     addProductionEntry,
@@ -297,6 +298,7 @@ const ProductionLedgerPage = () => {
             goodIngots: 0,
             badIngotsKg: 0,
             pieces: 0,
+            averageEfficiency: 0,
         };
 
         filtered.forEach(row => {
@@ -312,10 +314,137 @@ const ProductionLedgerPage = () => {
             result.goodIngots += row.goodIngots || 0;
             result.badIngotsKg += row.badIngotsKg || 0;
             result.pieces += (row.noOfPieces !== undefined ? row.noOfPieces : (row.totalPieces || 0));
+            result.averageEfficiency += (row.actualEfficiencyPercentage ?? row.efficiencyPercentage ?? 0);
         });
+
+        result.averageEfficiency = filtered.length > 0 ? result.averageEfficiency / filtered.length : 0;
 
         return result;
     }, [filtered, productionMaterials]);
+
+    const handleExport = async () => {
+        if (filtered.length === 0) return;
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Production Ledger');
+
+        // Define columns
+        const columns = [
+            { header: 'SI No', key: 'serialNo', width: 10 },
+            { header: 'Heat No', key: 'heatNo', width: 15 },
+            { header: 'Date', key: 'date', width: 15 },
+            { header: 'Alloy Type', key: 'alloyType', width: 15 },
+            { header: 'Furnace No', key: 'furnaceNo', width: 12 },
+            { header: 'Operator', key: 'operatorName', width: 20 },
+            { header: 'Shift', key: 'shift', width: 25 },
+            ...productionMaterials.map(f => ({
+                header: f.materialCode,
+                key: f.materialCode,
+                width: 15,
+            })),
+            { header: 'Total Input', key: 'totalInput', width: 15 },
+            { header: 'Good Ingots', key: 'goodIngots', width: 15 },
+            { header: 'Bad Ingots (Kg)', key: 'badIngotsKg', width: 15 },
+            { header: 'Pieces', key: 'pieces', width: 10 },
+            { header: 'Actual Eff. %', key: 'efficiency', width: 15 },
+        ];
+        worksheet.columns = columns;
+
+        // Apply header styles
+        const headerRow = worksheet.getRow(1);
+        headerRow.eachCell((cell) => {
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFADD8E6' } // Light blue
+            };
+            cell.font = { bold: true };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        });
+
+        // Add data rows
+        filtered.forEach((row, idx) => {
+            const rowData: any = {
+                serialNo: idx + 1,
+                heatNo: row.heatNo,
+                date: fmtDate(row.date),
+                alloyType: row.alloyType,
+                furnaceNo: row.furnaceNo || '—',
+                operatorName: row.operatorName || '—',
+                shift: row.shiftStartTime ? `${row.shiftStartTime} ${row.shiftStartPeriod} - ${row.shiftEndTime} ${row.shiftEndPeriod}` : '—',
+                totalInput: row.totalInput || 0,
+                goodIngots: row.goodIngots || 0,
+                badIngotsKg: row.badIngotsKg || 0,
+                pieces: row.noOfPieces !== undefined ? row.noOfPieces : (row.totalPieces || 0),
+                efficiency: row.actualEfficiencyPercentage ?? row.efficiencyPercentage ?? 0,
+            };
+
+            productionMaterials.forEach(f => {
+                const matEntry = row.materials?.find(
+                    (m) => m.materialId === f.materialId || m.materialId === f.id || m.materialCode === f.materialCode
+                );
+                rowData[f.materialCode] = matEntry ? matEntry.weightKg : 0;
+            });
+
+            worksheet.addRow(rowData);
+        });
+
+        // Add Total Row
+        const totalRowData: any = {
+            serialNo: 'Total',
+            totalInput: totals.totalInput,
+            goodIngots: totals.goodIngots,
+            badIngotsKg: totals.badIngotsKg,
+            pieces: totals.pieces,
+            efficiency: totals.averageEfficiency,
+        };
+        productionMaterials.forEach(f => {
+            totalRowData[f.materialCode] = totals.materials[f.id] || 0;
+        });
+
+        const totalRow = worksheet.addRow(totalRowData);
+        
+        // Style Total Row
+        totalRow.eachCell((cell, colNumber) => {
+            cell.font = { bold: true };
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFFFFF00' } // Yellow
+            };
+            if (colNumber > 7) {
+                cell.alignment = { horizontal: 'right' };
+            }
+        });
+
+        // Generate filename based on date range
+        let minDate: Date | null = null;
+        let maxDate: Date | null = null;
+        filtered.forEach(row => {
+            const d = row.date instanceof Timestamp ? row.date.toDate() : (row.date ? new Date(row.date) : null);
+            if (d) {
+                if (!minDate || d < minDate) minDate = d;
+                if (!maxDate || d > maxDate) maxDate = d;
+            }
+        });
+        const formatDateForFile = (d: Date | null) => {
+            if (!d) return '';
+            return `${d.getDate().toString().padStart(2, '0')}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getFullYear()}`;
+        };
+        const dateRangeStr = (minDate && maxDate) 
+            ? ` (${formatDateForFile(minDate)} to ${formatDateForFile(maxDate)})` 
+            : '';
+        const fileName = `Production Ledger${dateRangeStr}.xlsx`;
+
+        // Download
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    };
 
     return (
         <Box>
@@ -335,7 +464,7 @@ const ProductionLedgerPage = () => {
                             </IconButton>
                         </Tooltip>
                     </Box>
-                    <Button variant="outlined" startIcon={<Download size={16} />} sx={{ width: { xs: '100%', sm: 'auto' } }}>Export</Button>
+                    <Button variant="outlined" startIcon={<Download size={16} />} onClick={handleExport} disabled={filtered.length === 0} sx={{ width: { xs: '100%', sm: 'auto' } }}>Export</Button>
                     <Button
                         variant="contained"
                         startIcon={<Plus size={16} />}
@@ -882,7 +1011,10 @@ const ProductionLedgerPage = () => {
                                     <TableCell align="right" sx={{ ...bodyCell, position: 'sticky', bottom: 0, backgroundColor: isDark ? '#1a2130' : '#f8fafc', fontWeight: 800, borderTop: `2px solid ${isDark ? '#4a5568' : '#cbd5e1'}`, zIndex: 2, borderBottom: 'none' }}>
                                         {totals.pieces.toLocaleString()}
                                     </TableCell>
-                                    <TableCell colSpan={2} sx={{ ...bodyCell, position: 'sticky', bottom: 0, backgroundColor: isDark ? '#1a2130' : '#f8fafc', borderTop: `2px solid ${isDark ? '#4a5568' : '#cbd5e1'}`, zIndex: 2, borderBottom: 'none' }}></TableCell>
+                                    <TableCell align="right" sx={{ ...bodyCell, position: 'sticky', bottom: 0, backgroundColor: isDark ? '#1a2130' : '#f8fafc', fontWeight: 800, borderTop: `2px solid ${isDark ? '#4a5568' : '#cbd5e1'}`, zIndex: 2, borderBottom: 'none' }}>
+                                        {totals.averageEfficiency.toFixed(2)}%
+                                    </TableCell>
+                                    <TableCell sx={{ ...bodyCell, position: 'sticky', bottom: 0, backgroundColor: isDark ? '#1a2130' : '#f8fafc', borderTop: `2px solid ${isDark ? '#4a5568' : '#cbd5e1'}`, zIndex: 2, borderBottom: 'none' }}></TableCell>
                                 </TableRow>
                             </TableFooter>
                         )}
