@@ -9,9 +9,10 @@ import {
   Truck, Plus, Edit2, Trash2, RefreshCw, Search,
   ChevronLeft, ChevronRight, ArrowUpDown, Package,
   User, Car, FileText, X, AlertTriangle, Weight,
-  Hash, Building2, Maximize2, Minimize2,
+  Hash, Building2, Maximize2, Minimize2, Download, FileSpreadsheet
 } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
+import ExcelJS from 'exceljs';
 
 import {
   fetchDispatches,
@@ -825,6 +826,111 @@ export default function DispatchPage({ readOnly = false, noDelete = false }: { r
     }, { totalWeight: 0, totalPieces: 0 });
   }, [filtered]);
 
+  const handleExportExcel = async () => {
+    if (filtered.length === 0) return;
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Dispatch Ledger');
+
+    const columns: any[] = [
+      { header: 'SI No', key: 'serialNo', width: 10 },
+      { header: 'Dispatch No.', key: 'dispatchNo', width: 15 },
+      { header: 'Date', key: 'date', width: 15 },
+      { header: 'Customer', key: 'customer', width: 25 },
+      { header: 'Alloy', key: 'alloy', width: 15 },
+      { header: 'Heat No.', key: 'heatNo', width: 15 },
+      { header: 'Available Wt (Kg)', key: 'availWt', width: 15 },
+      { header: 'Dispatched Wt (Kg)', key: 'dispWt', width: 15 },
+      { header: 'Available Pcs', key: 'availPcs', width: 15 },
+      { header: 'Dispatched Pcs', key: 'dispPcs', width: 15 },
+      { header: 'Total Disp Wt (Kg)', key: 'totalDispWt', width: 18 },
+      { header: 'Total Disp Pcs', key: 'totalDispPcs', width: 15 },
+      { header: 'Vehicle / Driver', key: 'vehicleDriver', width: 25 },
+      { header: 'Remarks', key: 'remarks', width: 25 }
+    ];
+
+    worksheet.columns = columns;
+
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFADD8E6' } };
+      cell.font = { bold: true };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    let index = 1;
+    filtered.forEach((d) => {
+      const items = d.dispatchItems ?? [];
+      const baseRow = {
+        serialNo: index++,
+        dispatchNo: d.dispatchNumber,
+        date: fmtDate(d.dispatchDate),
+        customer: d.customerName,
+        alloy: d.alloyType || '—',
+        totalDispWt: d.totalDispatchWeightKg || 0,
+        totalDispPcs: d.totalDispatchPieces || 0,
+        vehicleDriver: `${d.vehicleNumber || '—'} / ${d.driverName || '—'}`,
+        remarks: d.remarks || '—'
+      };
+
+      if (items.length === 0) {
+        worksheet.addRow(baseRow);
+      } else {
+        items.forEach(item => {
+          worksheet.addRow({
+            ...baseRow,
+            heatNo: item.heatNo,
+            availWt: item.availableWeightKg || 0,
+            dispWt: item.dispatchWeightKg || 0,
+            availPcs: item.availablePieces || 0,
+            dispPcs: item.dispatchPieces || 0,
+          });
+        });
+      }
+    });
+
+    const totalRow = worksheet.addRow({
+      serialNo: 'Total',
+      dispWt: totals.totalWeight,
+      dispPcs: totals.totalPieces,
+      totalDispWt: totals.totalWeight,
+      totalDispPcs: totals.totalPieces,
+    });
+    
+    totalRow.eachCell((cell, colNumber) => {
+      cell.font = { bold: true };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+      if (colNumber > 6) {
+        cell.alignment = { horizontal: 'right' };
+      }
+    });
+
+    let minDate: Date | null = null;
+    let maxDate: Date | null = null;
+    filtered.forEach(row => {
+      const d = row.dispatchDate instanceof Timestamp ? row.dispatchDate.toDate() : (row.dispatchDate ? new Date(row.dispatchDate) : null);
+      if (d) {
+        if (!minDate || d < minDate) minDate = d;
+        if (!maxDate || d > maxDate) maxDate = d;
+      }
+    });
+    const formatDateForFile = (d: Date | null) => {
+      if (!d) return '';
+      return `${d.getDate().toString().padStart(2, '0')}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getFullYear()}`;
+    };
+    const dateRangeStr = (minDate && maxDate) 
+      ? ` (${formatDateForFile(minDate)} to ${formatDateForFile(maxDate)})` 
+      : '';
+    const fileName = `Dispatch${dateRangeStr}.xlsx`;
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
 
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -875,6 +981,14 @@ export default function DispatchPage({ readOnly = false, noDelete = false }: { r
               <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             </IconButton>
           </Tooltip>
+          <Button
+            onClick={handleExportExcel}
+            variant="outlined"
+            startIcon={<FileSpreadsheet size={16} />}
+            sx={{ border: '1px solid #e2e8f0', borderRadius: 2, textTransform: 'none', fontWeight: 700, px: 2.5, flexGrow: { xs: 1, sm: 0 }, color: '#047857', borderColor: '#a7f3d0', bgcolor: '#ecfdf5', '&:hover': { bgcolor: '#d1fae5' } }}
+          >
+            Export Excel
+          </Button>
           {!readOnly && (
             <Button
               variant="contained"

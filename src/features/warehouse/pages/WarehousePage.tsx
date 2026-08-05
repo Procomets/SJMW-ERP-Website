@@ -8,9 +8,11 @@ import {
 import {
   Warehouse, Package, AlertTriangle, TrendingDown, RefreshCw,
   Search, Trash2, X, CheckCircle2, ArrowUpDown, ChevronLeft,
-  ChevronRight, Eye, Edit, Plus, IndianRupee, Maximize2, Minimize2,
+  ChevronRight, Eye, Edit, Plus, IndianRupee, Maximize2, Minimize2, TrendingUp, Activity, BarChart2,
+  FileSpreadsheet
 } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
+import ExcelJS from 'exceljs';
 import EditReceiptDialog from '../components/EditReceiptDialog';
 import {
   fetchInventory,
@@ -582,6 +584,201 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
     status: computeStatus(item.currentStockKg, item.minimumStockKg),
   })), [inventory]);
 
+  const handleExportStockExcel = async () => {
+    if (enrichedInventory.length === 0) return;
+
+    let data = enrichedInventory;
+    if (stockSearch) {
+      const s = stockSearch.toLowerCase();
+      data = data.filter(i => 
+        i.materialName.toLowerCase().includes(s) ||
+        i.materialCode.toLowerCase().includes(s) ||
+        i.category.toLowerCase().includes(s)
+      );
+    }
+
+    if (data.length === 0) return;
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Stock Overview');
+
+    const columns: any[] = [
+      { header: 'SI No', key: 'serialNo', width: 10 },
+      { header: 'Material Code', key: 'code', width: 15 },
+      { header: 'Material Name', key: 'name', width: 25 },
+      { header: 'Category', key: 'category', width: 15 },
+      { header: 'Current Stock (kg)', key: 'currentStock', width: 18 },
+      { header: 'Min Stock (kg)', key: 'minStock', width: 15 },
+      { header: 'Status', key: 'status', width: 15 },
+      { header: 'Last Updated', key: 'lastUpdated', width: 15 },
+    ];
+
+    worksheet.columns = columns;
+
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFADD8E6' } };
+      cell.font = { bold: true };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    let sumCurrent = 0;
+    let sumMin = 0;
+
+    data.forEach((item, idx) => {
+      const d = item.lastUpdated instanceof Timestamp ? item.lastUpdated.toDate() : (item.lastUpdated ? new Date(item.lastUpdated) : null);
+      worksheet.addRow({
+        serialNo: idx + 1,
+        code: item.materialCode,
+        name: item.materialName,
+        category: item.category,
+        currentStock: item.currentStockKg || 0,
+        minStock: item.minimumStockKg || 0,
+        status: item.status,
+        lastUpdated: d ? d.toLocaleDateString('en-IN') : '—',
+      });
+      sumCurrent += item.currentStockKg || 0;
+      sumMin += item.minimumStockKg || 0;
+    });
+
+    const totalRow = worksheet.addRow({
+      serialNo: 'Total',
+      currentStock: sumCurrent,
+      minStock: sumMin,
+    });
+    
+    totalRow.eachCell((cell, colNumber) => {
+      cell.font = { bold: true };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+      if (colNumber > 4) {
+        cell.alignment = { horizontal: 'right' };
+      }
+    });
+
+    const fileName = `Warehouse Stock (${new Date().toLocaleDateString('en-GB').replace(/\//g, '-')}).xlsx`;
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const handleExportReceiptsExcel = async () => {
+    if (filteredReceipts.length === 0) return;
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Inward Receipts');
+
+    const columns: any[] = [
+      { header: 'SI No', key: 'serialNo', width: 10 },
+      { header: 'Receipt No.', key: 'receiptNo', width: 15 },
+      { header: 'Vendor', key: 'vendor', width: 25 },
+      { header: 'Date Received', key: 'date', width: 15 },
+      { header: 'Material Code', key: 'matCode', width: 15 },
+      { header: 'QTY (kg)', key: 'qty', width: 15 },
+      { header: 'Rate (₹)', key: 'rate', width: 15 },
+      { header: 'Amount (₹)', key: 'amount', width: 15 },
+      { header: 'Efficiency %', key: 'eff', width: 12 },
+      { header: 'Total Received (kg)', key: 'totRec', width: 18 },
+      { header: 'Total Returned (kg)', key: 'totRet', width: 18 },
+      { header: 'Net Intake (kg)', key: 'netIntake', width: 18 },
+      { header: 'Created By', key: 'createdBy', width: 20 },
+    ];
+
+    worksheet.columns = columns;
+
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFADD8E6' } };
+      cell.font = { bold: true };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    let index = 1;
+    let sumRec = 0;
+    let sumRet = 0;
+    let sumNet = 0;
+
+    filteredReceipts.forEach((r) => {
+      const activeMs = r.materials?.filter(m => (m.netIntakeWeightKg ?? 0) > 0 || (m.costPerKg ?? 0) > 0) || [];
+      const d = r.dateReceived instanceof Timestamp ? r.dateReceived.toDate() : (r.dateReceived ? new Date(r.dateReceived) : null);
+      
+      const baseRow = {
+        serialNo: index++,
+        receiptNo: r.receiptNumber,
+        vendor: r.vendorName || '—',
+        date: d ? d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—',
+        totRec: r.totalReceivedWeightKg || 0,
+        totRet: r.totalReturnedWeightKg || 0,
+        netIntake: r.totalNetIntakeWeightKg || 0,
+        createdBy: r.createdBy || '—',
+      };
+
+      sumRec += baseRow.totRec;
+      sumRet += baseRow.totRet;
+      sumNet += baseRow.netIntake;
+
+      if (activeMs.length === 0) {
+        worksheet.addRow(baseRow);
+      } else {
+        activeMs.forEach(m => {
+          worksheet.addRow({
+            ...baseRow,
+            matCode: m.materialCode,
+            qty: m.netIntakeWeightKg || 0,
+            rate: m.costPerKg || 0,
+            amount: (m.netIntakeWeightKg || 0) * (m.costPerKg || 0),
+            eff: m.efficiencyPercentage || 0,
+          });
+        });
+      }
+    });
+
+    const totalRow = worksheet.addRow({
+      serialNo: 'Total',
+      totRec: sumRec,
+      totRet: sumRet,
+      netIntake: sumNet,
+    });
+    
+    totalRow.eachCell((cell, colNumber) => {
+      cell.font = { bold: true };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+      if (colNumber > 5) {
+        cell.alignment = { horizontal: 'right' };
+      }
+    });
+
+    let minDate: Date | null = null;
+    let maxDate: Date | null = null;
+    filteredReceipts.forEach(r => {
+      const d = r.dateReceived instanceof Timestamp ? r.dateReceived.toDate() : (r.dateReceived ? new Date(r.dateReceived) : null);
+      if (d) {
+        if (!minDate || d < minDate) minDate = d;
+        if (!maxDate || d > maxDate) maxDate = d;
+      }
+    });
+    const formatDateForFile = (d: Date | null) => {
+      if (!d) return '';
+      return `${d.getDate().toString().padStart(2, '0')}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getFullYear()}`;
+    };
+    const dateRangeStr = (minDate && maxDate) 
+      ? ` (${formatDateForFile(minDate)} to ${formatDateForFile(maxDate)})` 
+      : '';
+    const fileName = `Warehouse Receipts${dateRangeStr}.xlsx`;
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
   return (
     <Box className={`space-y-6 text-slate-800 antialiased ${productionManager ? 'pm-mode' : ''}`}>
       <style>{`
@@ -688,6 +885,14 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
                 );
               })}
             </Box>
+            <Button
+              onClick={handleExportStockExcel}
+              variant="outlined"
+              startIcon={<FileSpreadsheet size={16} />}
+              sx={{ border: '1px solid #e2e8f0', borderRadius: 2, textTransform: 'none', fontWeight: 700, px: 2.5, color: '#047857', borderColor: '#a7f3d0', bgcolor: '#ecfdf5', '&:hover': { bgcolor: '#d1fae5' }, ml: { xs: 0, md: 'auto' } }}
+            >
+              Export Excel
+            </Button>
           </Box>
 
           <MaterialStockCards inventory={enrichedInventory} loading={loading} searchTerm={stockSearch} />
@@ -713,7 +918,16 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
                 }}
               />
             </Box>
-            {productionManager && (
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', width: { xs: '100%', sm: 'auto' } }}>
+              <Button
+                onClick={handleExportReceiptsExcel}
+                variant="outlined"
+                startIcon={<FileSpreadsheet size={16} />}
+                sx={{ border: '1px solid #e2e8f0', borderRadius: 2, textTransform: 'none', fontWeight: 700, px: 2.5, color: '#047857', borderColor: '#a7f3d0', bgcolor: '#ecfdf5', '&:hover': { bgcolor: '#d1fae5' } }}
+              >
+                Export Excel
+              </Button>
+              {productionManager && (
               <Button
                 variant="contained"
                 startIcon={<Plus size={16} />}
@@ -730,6 +944,7 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
                 Add Material Receipt
               </Button>
             )}
+            </Box>
           </Box>
 
           {tableMaximized && (
