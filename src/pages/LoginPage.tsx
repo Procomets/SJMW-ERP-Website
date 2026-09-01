@@ -10,7 +10,7 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const LoginPage = () => {
@@ -113,8 +113,24 @@ export const LoginPage = () => {
           alignItems: 'center',
           p: { xs: 4, sm: 6, md: 10 },
           bgcolor: '#ffffff',
+          position: 'relative',
         }}
       >
+        <Button
+          onClick={() => navigate('/')}
+          startIcon={<ArrowLeft size={18} />}
+          sx={{
+            position: 'absolute',
+            top: { xs: 16, md: 32 },
+            left: { xs: 16, md: 32 },
+            color: '#64748b',
+            textTransform: 'none',
+            fontWeight: 600,
+            '&:hover': { color: '#0f172a', bgcolor: 'transparent' }
+          }}
+        >
+          Back to Home
+        </Button>
         <Box sx={{ width: '100%', maxWidth: 400 }}>
           {/* Mobile Logo Header */}
           <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', gap: 1.5, mb: 5 }}>

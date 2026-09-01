@@ -4,7 +4,10 @@ export interface UserEntry {
   id: string; // Document ID (corresponds to Firebase Auth UID)
   name: string;
   email: string;
-  password?: string; // Plaintext password stored in Firestore for sync & admin reference
+  /** SHA-256 hash of password for reference — plaintext is NEVER stored */
+  passwordHash?: string;
+  /** @deprecated Legacy plaintext field — may exist in old records, never used */
+  password?: string;
   role: string;
   status: 'Active' | 'Inactive';
   createdAt?: Timestamp;
@@ -14,6 +17,7 @@ export interface UserEntry {
 export interface UserFormData {
   name: string;
   email: string;
+  /** Plaintext — collected in UI only, hashed before storage, never persisted as-is */
   password?: string;
   role: string;
   status: 'Active' | 'Inactive';

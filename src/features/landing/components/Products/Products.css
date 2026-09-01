@@ -1,0 +1,719 @@
+/* ============================================================
+   Products Blueprint Interactive Styles
+   Premium Industrial Showcase Theme
+   ============================================================ */
+
+.products-blueprint {
+  background-color: #F7F7F5;
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-family: var(--font-primary);
+  padding: 140px 0 var(--space-20);
+  background-image: 
+    radial-gradient(circle at 70% 50%, rgba(255, 255, 255, 0.6) 0%, transparent 60%),
+    linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+}
+
+/* ── Section Header ───────────────────────────────────────────────── */
+.products-section-header {
+  text-align: center;
+  padding: var(--space-16) var(--space-8) 0;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 10;
+}
+
+.products-section-heading {
+  font-size: clamp(2.5rem, 4vw, 4rem);
+  font-weight: 800;
+  color: #111111;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  opacity: 0;
+}
+
+.products-section-subtitle {
+  font-size: clamp(1rem, 1.2vw, 1.2rem);
+  color: #6B7280;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.6;
+  margin-bottom: 0;
+  opacity: 0;
+}
+
+.products-section-header.is-visible .animate-fade-up {
+  animation: productsFadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes productsFadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Container ──────────────────────────────────────────────────── */
+.products-blueprint__container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  height: 900px;
+  padding: 0 var(--space-8);
+  align-items: center;
+  mix-blend-mode: multiply; /* Blends the entire container (including the white image bg) with the section's grid */
+}
+
+/* ── Left Panel (32%) ────────────────────────────────────────────── */
+.products-blueprint__left {
+  flex: 0 0 32%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: var(--space-6);
+  z-index: 30;
+  height: 100%;
+}
+
+/* ── Premium Left Intro ───────────────────────────────────── */
+.premium-left-intro {
+  position: relative;
+  max-width: 95%;
+  z-index: 10;
+  margin-top: 8%;
+}
+
+.premium-left-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #42A5F5;
+  background-color: rgba(66, 165, 245, 0.08);
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: var(--space-4);
+  opacity: 0;
+}
+
+.premium-left-title {
+  font-size: clamp(2rem, 2.8vw, 3rem);
+  line-height: 1.1;
+  color: #111;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-4);
+  opacity: 0;
+}
+
+.premium-left-desc {
+  font-size: var(--font-size-md);
+  color: #666;
+  line-height: 1.6;
+  opacity: 0;
+}
+
+/* ── Annotations (SVG & Labels) ───────────────────────────── */
+.products-blueprint__annotations {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.products-blueprint__svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+}
+
+.blueprint-line {
+  stroke: rgba(0, 0, 0, 0.25);
+  stroke-width: 1px;
+  fill: none;
+  vector-effect: non-scaling-stroke; /* Prevents viewBox scaling from making the line thick */
+  transition: stroke 0.4s ease, stroke-width 0.4s ease, filter 0.4s ease;
+  stroke-dasharray: 500;
+  stroke-dashoffset: 500;
+}
+
+.is-visible .blueprint-line {
+  animation: drawLine 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes drawLine {
+  to { stroke-dashoffset: 0; }
+}
+
+.blueprint-line.is-active {
+  stroke: #42A5F5 !important;
+  stroke-width: 1.5px !important;
+  filter: drop-shadow(0 0 3px rgba(66, 165, 245, 0.4));
+}
+
+/* ── Premium Labels List (Standard Flow) ──────────────────── */
+.premium-labels-list {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 40px; /* Match the gap of the right side */
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 20; /* Ensure labels are clickable and sit above any invisible elements */
+}
+
+.blueprint-label {
+  position: relative;
+  pointer-events: auto;
+  cursor: pointer;
+  padding-left: 20px;
+  opacity: 0;
+}
+
+.is-visible .premium-label {
+  animation: slideInRight 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.blueprint-label::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) scaleY(0);
+  width: 3px;
+  height: 100%;
+  background-color: #42A5F5;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(66, 165, 245, 0.4);
+}
+
+.blueprint-label:hover::before,
+.blueprint-label.is-active::before {
+  transform: translateY(-50%) scaleY(1) !important;
+}
+
+.blueprint-label__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.blueprint-label:hover .blueprint-label__content,
+.blueprint-label.is-active .blueprint-label__content {
+  transform: translateX(10px);
+}
+
+.premium-label__category {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  background-color: #EEEEEE;
+  color: #555;
+  padding: 3px 8px;
+  border-radius: 12px;
+  margin-bottom: 4px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.blueprint-label:hover .premium-label__category,
+.blueprint-label.is-active .premium-label__category {
+  background-color: rgba(66, 165, 245, 0.1) !important;
+  color: #42A5F5 !important;
+}
+
+.blueprint-label__name {
+  font-size: clamp(1.2rem, 1.5vw, 1.5rem);
+  color: #1B1B1B;
+  transition: all 0.3s ease;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 2px;
+}
+
+.blueprint-label__desc {
+  font-size: 0.85rem;
+  color: #666666;
+  transition: opacity 0.3s ease;
+}
+
+.premium-label__app {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+/* ── Premium Left Footer (Stats) ──────────────────────────── */
+.premium-left-footer {
+  position: absolute;
+  bottom: 8%;
+  left: 0;
+  z-index: 10;
+}
+
+.premium-catalogue-link {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: #444;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.premium-catalogue-link:hover {
+  color: #42A5F5;
+  transform: translateX(5px);
+}
+
+
+
+.blueprint-label:hover .blueprint-label__name,
+.blueprint-label.is-active .blueprint-label__name {
+  font-weight: 700 !important;
+  color: #42A5F5 !important;
+}
+
+.blueprint-label:hover .blueprint-label__desc,
+.blueprint-label.is-active .blueprint-label__desc {
+  opacity: 1;
+}
+
+/* ── Right Side (Hero Ingot 68%) ──────────────────────────── */
+.products-blueprint__right {
+  flex: 0 0 68%;
+  position: relative;
+  height: 100%;
+}
+
+/* Right-side annotation labels (LM25 + AC4B) */
+.premium-right-labels {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 22%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 40px;
+  z-index: 30;
+  padding-right: 8px;
+}
+
+/* Right-side label: accent bar on RIGHT, text aligns right */
+.blueprint-label--right {
+  padding-left: 0;
+  padding-right: 20px;
+  text-align: right;
+}
+
+.blueprint-label--right::before {
+  left: auto;
+  right: 0;
+}
+
+.blueprint-label--right .blueprint-label__content {
+  align-items: flex-end;
+}
+
+.blueprint-label--right:hover .blueprint-label__content,
+.blueprint-label--right.is-active .blueprint-label__content {
+  transform: translateX(-10px);
+}
+
+.premium-image-wrapper {
+  /* Pull image to the left so it sits close to the text labels */
+  position: absolute;
+  top: 5%; /* Shifted slightly to the top from 15% */
+  left: -12%; /* Overlap 12% into the left column to reduce line distance */
+  width: 112%;
+  height: 85%;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+  z-index: 5;
+}
+
+.premium-image-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(circle, rgba(66, 165, 245, 0.06) 0%, rgba(255, 255, 255, 0) 70%);
+  border-radius: 50%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.blueprint-image.premium-image {
+  position: relative;
+  /* Fill the full section height exactly - dots are % of this height */
+  height: 100%;
+  width: auto;
+  max-width: none;
+  z-index: 2;
+  filter: grayscale(1) contrast(1.15) brightness(1.1); /* Pushes off-white bg to pure white so it vanishes */
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.is-visible .premium-image {
+  animation: popInImage 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes popInImage {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.premium-image.is-hovered {
+  transform: scale(1.03) rotate(2deg);
+}
+
+/* ── Dots ─────────────────────────────────────────────────── */
+.blueprint-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: #42A5F5;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  z-index: 15;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 0 0 2px rgba(66, 165, 245, 0.1);
+}
+
+.is-visible .premium-dot {
+  animation: popDot 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes popDot {
+  to { transform: translate(-50%, -50%) scale(1); }
+}
+
+.blueprint-dot:hover,
+.blueprint-dot.is-active {
+  transform: translate(-50%, -50%) scale(1.8);
+  box-shadow: 0 0 0 8px rgba(66, 165, 245, 0.2), 0 0 15px rgba(66, 165, 245, 0.5);
+  background-color: #42A5F5;
+}
+
+/* ── Floating Details Panel ───────────────────────────────── */
+.premium-glass-panel {
+  position: absolute;
+  top: 50%;
+  left: 20%;
+  transform: translateY(-50%);
+  width: 320px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 20px;
+  padding: var(--space-6);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(255,255,255,0.5);
+  z-index: 30;
+  pointer-events: auto;
+}
+
+.animate-slide-fade {
+  animation: slideFadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translate(-30px, -50%); }
+  to { opacity: 1; transform: translate(0, -50%); }
+}
+
+.blueprint-panel__close {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.blueprint-panel__close:hover {
+  color: #1B1B1B;
+}
+
+.premium-glass-header {
+  margin-bottom: var(--space-4);
+}
+
+.panel-category {
+  display: inline-block;
+  margin-bottom: var(--space-2);
+}
+
+.blueprint-panel__name {
+  font-size: var(--font-size-xl);
+  color: #1B1B1B;
+  margin-bottom: var(--space-1);
+}
+
+.blueprint-panel__desc {
+  color: #666666;
+  font-size: var(--font-size-sm);
+}
+
+.blueprint-panel__section {
+  margin-bottom: var(--space-4);
+}
+
+.blueprint-panel__section h5 {
+  font-size: 0.7rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-2);
+}
+
+.premium-app-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--font-size-sm);
+  color: #444;
+  list-style: none;
+  padding: 0;
+}
+
+.premium-app-list li::before {
+  content: '•';
+  color: #42A5F5;
+  display: inline-block;
+  width: 1em;
+  margin-left: -1em;
+}
+.premium-app-list li {
+  padding-left: 1em;
+}
+
+.premium-prop-list {
+  font-size: var(--font-size-sm);
+  color: #444;
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.premium-prop-list li {
+  color: #333;
+}
+
+.premium-cta {
+  display: inline-flex;
+  align-items: center;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: #42A5F5;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.premium-cta:hover {
+  color: #CC4800;
+  transform: translateX(5px);
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 1023px) {
+  .products-blueprint {
+    padding: var(--space-16) 0;
+  }
+  
+  .products-blueprint__container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: auto;
+    gap: 16px;
+  }
+  
+  .products-blueprint__left,
+  .products-blueprint__right,
+  .premium-labels-list,
+  .premium-right-labels {
+    display: contents;
+  }
+
+  .premium-image-wrapper {
+    position: relative;
+    order: 1;
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    height: 320px;
+    left: auto;
+    transform: none;
+    margin-bottom: 32px;
+  }
+
+  .premium-image-wrapper img {
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .blueprint-label {
+    order: 2;
+    position: relative;
+    transform: none !important;
+    left: 0 !important;
+    top: auto !important;
+    margin-bottom: 0;
+    padding: 16px;
+    text-align: left;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  }
+  
+  .blueprint-label--right {
+    padding-right: 16px; /* override desktop */
+    text-align: left;
+  }
+
+  .blueprint-label::before,
+  .blueprint-label::after {
+    display: none !important;
+  }
+  
+  .blueprint-label:hover .blueprint-label__content,
+  .blueprint-label.is-active .blueprint-label__content {
+    transform: none;
+  }
+  
+  .blueprint-label__content,
+  .blueprint-label--right .blueprint-label__content {
+    align-items: flex-start;
+    text-align: left;
+  }
+  
+  .blueprint-accordion {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    margin-top: 0;
+    text-align: left;
+    background: #fff;
+    border-radius: 8px;
+  }
+  
+  .blueprint-accordion.is-open {
+    max-height: 500px;
+    opacity: 1;
+    margin-top: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  }
+}
+
+/* ── View Full Catalogue CTA ─────────────────────────────── */
+.products-catalogue-cta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: -80px;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+}
+
+.btn-full-catalogue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background-color: #111111;
+  color: #FFFFFF;
+  font-size: 1.125rem;
+  font-weight: 600;
+  padding: 16px 40px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(21, 59, 102, 0.2);
+}
+
+.btn-full-catalogue:hover {
+  background-color: #42A5F5;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(66, 165, 245, 0.3);
+  color: #FFFFFF;
+}
+
+.btn-full-catalogue .btn-arrow {
+  transition: transform 0.3s ease;
+}
+
+.btn-full-catalogue:hover .btn-arrow {
+  transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+  .products-blueprint {
+    padding-top: 60px;
+    padding-bottom: 60px;
+  }
+  .products-section-header {
+    padding-top: 0;
+  }
+  .premium-image-wrapper {
+    height: 250px;
+    margin-bottom: 24px;
+  }
+  .products-catalogue-cta {
+    margin-top: 24px;
+  }
+  .btn-full-catalogue {
+    padding: 12px 24px;
+    font-size: 1rem;
+  }
+}

@@ -1,0 +1,336 @@
+/* ============================================================
+   Contact Section Styles (Minimalist Footer Layout)
+   Sri Jothi Moulding Works
+   ============================================================ */
+
+.sjmw-contact {
+  position: relative;
+  background-color: #0A0A0A;
+  padding: 100px 0 40px; /* Generous top padding, bottom is handled by footer strip */
+  color: #FFFFFF;
+  font-family: var(--font-primary, 'Inter', sans-serif);
+  overflow: hidden;
+}
+
+/* Subtle Technical Grid Background */
+.sjmw-contact__bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Large Subtle Watermark */
+.sjmw-contact__watermark {
+  position: absolute;
+  bottom: -50px;
+  left: 5%;
+  font-size: clamp(10rem, 25vw, 30rem);
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.02);
+  pointer-events: none;
+  z-index: 1;
+  user-select: none;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+}
+
+.sjmw-contact__container {
+  position: relative;
+  z-index: 2;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+
+
+/* ── 2-Column Grid ────────────────────────────────────────── */
+.sjmw-contact__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  margin-bottom: 80px;
+}
+
+/* Common Column Styles */
+.sjmw-contact__col-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 24px;
+}
+
+/* ── Column 1: Company Info ──────────────────────────────── */
+.sjmw-contact__brand {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.sjmw-contact__logo-text {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #FFFFFF;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.sjmw-contact__company-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.sjmw-contact__company-desc {
+  font-size: 0.95rem;
+  color: #A1A1AA;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+
+
+.sjmw-contact__details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.sjmw-contact__detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.95rem;
+  color: #FFFFFF;
+  line-height: 1.5;
+}
+
+.sjmw-contact__detail-item svg {
+  color: #FFFFFF;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.sjmw-contact__detail-item a {
+  color: #FFFFFF;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.sjmw-contact__detail-item a:hover {
+  color: #A1A1AA;
+}
+
+.sjmw-contact__socials {
+  display: flex;
+  gap: 12px;
+}
+
+.sjmw-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: #111111;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  color: #A1A1AA;
+  transition: all 0.25s ease;
+}
+
+.sjmw-social-btn:hover {
+  background-color: #FFFFFF;
+  border-color: #FFFFFF;
+  color: #111111;
+  transform: translateY(-2px);
+}
+
+/* ── Column 2 & 3: Lists ─────────────────────────────────── */
+.sjmw-contact__link-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sjmw-contact__link-list a {
+  display: inline-block;
+  color: #A1A1AA;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+}
+
+.sjmw-contact__link-list a:hover {
+  color: #153B66;
+  transform: translateX(4px);
+}
+
+.sjmw-contact__explore-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+
+.sjmw-contact__explore-link:hover {
+  color: #A1A1AA;
+}
+
+.sjmw-contact__explore-link span {
+  transition: transform 0.25s ease;
+}
+
+.sjmw-contact__explore-link:hover span {
+  transform: translateX(4px);
+}
+
+/* ── Column 4: Contact Form ──────────────────────────────── */
+.sjmw-contact__form-subtitle {
+  font-size: 0.95rem;
+  color: #A1A1AA;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.sjmw-contact__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sjmw-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.sjmw-input,
+.sjmw-textarea {
+  width: 100%;
+  background-color: #111111;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  color: #FFFFFF;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sjmw-input::placeholder,
+.sjmw-textarea::placeholder {
+  color: #6B7280;
+}
+
+.sjmw-input:focus,
+.sjmw-textarea:focus {
+  outline: none;
+  border-color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+}
+
+.sjmw-textarea {
+  resize: vertical;
+  min-height: 130px;
+}
+
+.sjmw-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  height: 52px;
+  background-color: #FFFFFF;
+  color: #111111;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+  margin-top: 8px;
+}
+
+.sjmw-submit-btn:hover {
+  background-color: #E5E7EB;
+}
+
+.sjmw-submit-arrow {
+  transition: transform 0.25s ease;
+}
+
+.sjmw-submit-btn:hover .sjmw-submit-arrow {
+  transform: translateX(4px);
+}
+
+/* ── Footer Strip ────────────────────────────────────────── */
+.sjmw-contact__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 32px;
+  border-top: 1px solid #333333;
+  font-size: 0.85rem;
+  color: #6B7280;
+}
+
+.sjmw-contact__footer p {
+  margin: 0;
+}
+
+/* ── Entrance Animations ─────────────────────────────────── */
+.animate-fade-up {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.is-visible .animate-fade-up {
+  animation: sjmwContactFadeUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes sjmwContactFadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 992px) {
+  .sjmw-contact__container {
+    padding: 0 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sjmw-contact {
+    padding: 80px 0 32px;
+  }
+
+  .sjmw-contact__grid {
+    grid-template-columns: 1fr;
+    row-gap: 48px;
+  }
+  
+  .sjmw-form-row {
+    grid-template-columns: 1fr;
+  }
+}

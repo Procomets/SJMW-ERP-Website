@@ -1,9 +1,13 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+import LandingLayout from '../features/landingPage/LandingLayout';
 import AccountsLayout from '../layouts/AccountsLayout';
 import { ProtectedRoute, AccountsProtectedRoute, ProductionProtectedRoute } from '../components/ProtectedRoute';
 import { LoginPage } from '../pages/LoginPage';
 import NotFoundPage from '../pages/NotFoundPage';
+import Home from '../features/landingPage/pages/Home';
+import About from '../features/landingPage/pages/About/About';
+import Catalogue from '../features/landingPage/pages/Catalogue/Catalogue';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ProductionLedgerPage from '../features/productionLedger/pages/ProductionLedgerPage';
 import CostLedgerPage from '../features/costLedger/pages/CostLedgerPage';
@@ -18,12 +22,30 @@ import DispatchPage from '../features/dispatch/pages/DispatchPage';
 import ProductionManagerLayout from '../layouts/ProductionManagerLayout';
 import PMQualityControlPage from '../features/productionManager/pages/PMQualityControlPage';
 import PMCostLedgerPage from '../features/productionManager/pages/PMCostLedgerPage';
+import MonthlyExpenseRegisterPage from '../features/expenseRegister/pages/MonthlyExpenseRegisterPage';
+import EmployeeMasterPage from '../features/employeeMaster/pages/EmployeeMasterPage';
+import AttendancePage from '../features/attendance/pages/AttendancePage';
+import SalarySheetPage from '../features/salarySheet/pages/SalarySheetPage';
+import ProductionWagesPage from '../features/productionWages/pages/ProductionWagesPage';
 
 export const router = createBrowserRouter([
   {
-    // Redirect root to login
     path: '/',
-    element: <Navigate to="/login" replace />,
+    element: <LandingLayout />,
+    children: [
+      {
+        path: '/',
+        element: <Home />,
+      },
+      {
+        path: 'about',
+        element: <About />,
+      },
+      {
+        path: 'products/catalogue',
+        element: <Catalogue />,
+      }
+    ]
   },
   {
     path: '/login',
@@ -81,6 +103,26 @@ export const router = createBrowserRouter([
             path: 'dispatch',
             element: <DispatchPage />,
           },
+          {
+            path: 'expense-register',
+            element: <MonthlyExpenseRegisterPage />,
+          },
+          {
+            path: 'employee-master',
+            element: <EmployeeMasterPage />,
+          },
+          {
+            path: 'attendance',
+            element: <AttendancePage />,
+          },
+          {
+            path: 'salary-sheet',
+            element: <SalarySheetPage />,
+          },
+          {
+            path: 'production-wages',
+            element: <ProductionWagesPage />,
+          },
         ],
       },
     ],
@@ -107,6 +149,22 @@ export const router = createBrowserRouter([
           {
             path: 'accounts/warehouse',
             element: <WarehousePage productionManager />,
+          },
+          {
+            path: 'accounts/expense-register',
+            element: <MonthlyExpenseRegisterPage accountsMode />,
+          },
+          {
+            path: 'accounts/attendance',
+            element: <AttendancePage />,
+          },
+          {
+            path: 'accounts/salary-sheet',
+            element: <SalarySheetPage />,
+          },
+          {
+            path: 'accounts/production-wages',
+            element: <ProductionWagesPage />,
           },
         ],
       },

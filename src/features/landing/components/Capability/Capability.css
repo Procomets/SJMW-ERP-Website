@@ -1,0 +1,302 @@
+/* ============================================================
+   What We Do Section Styles (Replacing Capability)
+   Sri Jothi Moulding Works
+   ============================================================ */
+
+.sjmw-whatwedo {
+  background-color: #FAFAF8;
+  padding: 120px 0;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-primary, 'Inter', sans-serif);
+}
+
+.sjmw-whatwedo__container {
+  max-width: 1450px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 80px;
+  align-items: center;
+}
+
+/* ── Content (Left Column) ────────────────────────────────── */
+.sjmw-whatwedo__content {
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.sjmw-whatwedo__content.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.sjmw-whatwedo__badge {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #42A5F5;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 20px;
+}
+
+.sjmw-whatwedo__title {
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  font-weight: 800;
+  color: #111111;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 24px 0;
+}
+
+.sjmw-whatwedo__subtitle {
+  font-size: 1.125rem;
+  color: #555555;
+  line-height: 1.6;
+  margin: 0 0 50px 0;
+  max-width: 90%;
+}
+
+/* ── Features List ────────────────────────────────────────── */
+.sjmw-whatwedo__features {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sjmw-whatwedo__feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 24px;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  transition: all 0.4s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.sjmw-whatwedo__feature::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #42A5F5;
+  opacity: 0;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+@media (hover: hover) {
+  .sjmw-whatwedo__feature:hover {
+    background: #FFFFFF;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04);
+    border-color: transparent;
+  }
+  
+  .sjmw-whatwedo__feature:hover::before {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.sjmw-whatwedo__feature-id {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #BBBBBB;
+  margin-top: 4px;
+  transition: color 0.4s ease;
+}
+
+@media (hover: hover) {
+  .sjmw-whatwedo__feature:hover .sjmw-whatwedo__feature-id {
+    color: #42A5F5;
+  }
+}
+
+.sjmw-whatwedo__feature-text {
+  flex: 1;
+}
+
+.sjmw-whatwedo__feature-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111111;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.01em;
+}
+
+.sjmw-whatwedo__feature-desc {
+  font-size: 0.95rem;
+  color: #666666;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Visual (Right Column) ────────────────────────────────── */
+.sjmw-whatwedo__visual {
+  position: relative;
+  opacity: 0;
+  transform: translateX(30px);
+  transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
+}
+
+.sjmw-whatwedo__visual.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.sjmw-whatwedo__video-wrapper {
+  position: relative;
+  width: 100%;
+  border-radius: 20px;
+  overflow: visible; /* to allow floating labels */
+}
+
+.sjmw-whatwedo__video {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/5;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+  display: block;
+}
+
+/* ── Floating Labels ──────────────────────────────────────── */
+.sjmw-whatwedo__floating-label {
+  position: absolute;
+  background: #42A5F5;
+  backdrop-filter: blur(8px);
+  padding: 16px 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 10px 30px rgba(66, 165, 245, 0.3);
+  z-index: 2;
+  transition: transform 0.4s ease;
+}
+
+@media (hover: hover) {
+  .sjmw-whatwedo__floating-label:hover {
+    transform: translateY(-4px);
+  }
+}
+
+.label-1 {
+  bottom: 40px;
+  left: -30px;
+}
+
+.label-2 {
+  top: 60px;
+  right: -40px;
+}
+
+.label-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #42A5F5;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(66, 165, 245, 0.4);
+}
+
+.label-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.label-bold {
+  font-size: 1.25rem;
+  font-weight: 40;
+  color: #FFFFFF;
+  line-height: 1.1;
+}
+
+.label-light {
+  font-size: 0.8em;
+  font-weight:40;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .sjmw-whatwedo__container {
+    grid-template-columns: 1fr;
+    gap: 60px;
+  }
+  
+  .sjmw-whatwedo__content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .sjmw-whatwedo__visual {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .sjmw-whatwedo__video {
+    aspect-ratio: 16/10;
+  }
+  
+  .label-1 {
+    left: 20px;
+    bottom: 20px;
+  }
+  
+  .label-2 {
+    right: 20px;
+    top: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sjmw-whatwedo {
+    padding: 80px 0;
+  }
+  
+  .sjmw-whatwedo__container {
+    padding: 0 24px;
+    gap: 40px;
+  }
+  
+  .sjmw-whatwedo__title {
+    font-size: 2.2rem;
+  }
+  
+  .sjmw-whatwedo__subtitle {
+    font-size: 1rem;
+    max-width: 100%;
+    margin-bottom: 30px;
+  }
+  
+  .sjmw-whatwedo__feature {
+    padding: 20px;
+  }
+  
+  .sjmw-whatwedo__floating-label {
+    display: none;
+  }
+  
+  .label-bold {
+    font-size: 1.1rem;
+  }
+  
+  .label-light {
+    font-size: 0.7rem;
+  }
+}

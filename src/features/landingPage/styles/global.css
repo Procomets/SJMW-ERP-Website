@@ -1,0 +1,159 @@
+/* ============================================================
+   SJMW Global Styles
+   Sri Jothi Moulding Works
+   ============================================================ */
+
+@import './variables.css';
+
+/* ── Reset & Base ─────────────────────────────────────────── */
+.landing-page *,
+.landing-page *::before,
+.landing-page *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.landing-page {
+  zoom: 0.8;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-base);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* ── Global Animated Background Glow ────────────────────────── */
+.landing-page::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--color-bg); /* Flat minimal background */
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ── Scroll Reveal Global Classes ──────────────────────────── */
+.reveal-section {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-section {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ── Typography ──────────────────────────────────────────── */
+.landing-page h1, .landing-page h2, .landing-page h3, .landing-page h4, .landing-page h5, .landing-page h6 {
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+}
+
+.landing-page p {
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-relaxed);
+}
+
+.landing-page a {
+  text-decoration: none;
+  color: inherit;
+  font-family: var(--font-family);
+}
+
+.landing-page ul, .landing-page ol {
+  list-style: none;
+}
+
+.landing-page img {
+  max-width: 100%;
+  display: block;
+}
+
+.landing-page button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: var(--font-family);
+}
+
+/* ── Layout Utilities ─────────────────────────────────────── */
+.container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--space-8);
+  width: 100%;
+}
+
+/* ── Keyframe Animations ──────────────────────────────────── */
+
+/* Fade-up on load */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slow background zoom */
+@keyframes heroZoom {
+  from { transform: scale(1); }
+  to   { transform: scale(1.08); }
+}
+
+/* Floating card bob */
+@keyframes floatCard {
+  0%   { transform: translateY(0px); }
+  50%  { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+/* Fade-in */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Scrollbar (subtle) ───────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+/* ── Selection ────────────────────────────────────────────── */
+::selection {
+  background: #42A5F5;
+  color: #FFFFFF;
+}

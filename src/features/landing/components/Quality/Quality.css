@@ -1,0 +1,250 @@
+/* ============================================================
+   Our Commitment Section Styles (Replacing Quality)
+   Sri Jothi Moulding Works
+   ============================================================ */
+
+.sjmw-commitment {
+  background-color: #FAFAF8;
+  padding: 120px 0;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-primary, 'Inter', sans-serif);
+}
+
+.sjmw-commitment__container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+/* ── Video Visual (Left Column) ───────────────────────────── */
+.sjmw-commitment__visual {
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.sjmw-commitment__visual.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.sjmw-commitment__video-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/5;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.12);
+}
+
+.sjmw-commitment__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sjmw-commitment__video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to top, rgba(0,0,0,0.4), rgba(0,0,0,0.1));
+  pointer-events: none;
+  z-index: 1;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .sjmw-commitment__video-wrapper:hover .sjmw-commitment__video {
+    transform: scale(1.02);
+  }
+}
+
+/* ── Content (Right Column) ───────────────────────────────── */
+.sjmw-commitment__content {
+  opacity: 0;
+  transform: translateX(30px);
+  transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
+}
+
+.sjmw-commitment__content.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.sjmw-commitment__badge {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #42A5F5;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 20px;
+}
+
+.sjmw-commitment__title {
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  font-weight: 800;
+  color: #111111;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 24px 0;
+}
+
+.sjmw-commitment__desc {
+  font-size: 1.125rem;
+  color: #555555;
+  line-height: 1.6;
+  margin: 0 0 40px 0;
+}
+
+/* ── Information Points ───────────────────────────────────── */
+.sjmw-commitment__points {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin-bottom: 48px;
+}
+
+.sjmw-commitment__point {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.sjmw-commitment__point-id {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #42A5F5;
+  margin-top: 4px;
+  background: rgba(66, 165, 245, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.sjmw-commitment__point-text {
+  flex: 1;
+}
+
+.sjmw-commitment__point-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111111;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.01em;
+}
+
+.sjmw-commitment__point-desc {
+  font-size: 0.95rem;
+  color: #666666;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Stats Row ────────────────────────────────────────────── */
+.sjmw-commitment__stats {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.sjmw-commitment__stat {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.sjmw-commitment__stat .stat-number {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #42A5F5;
+  margin-bottom: 4px;
+}
+
+.sjmw-commitment__stat .stat-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #111111;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.sjmw-commitment__stat .stat-desc {
+  font-size: 0.85rem;
+  color: #666666;
+  line-height: 1.4;
+}
+
+.sjmw-commitment__stat-divider {
+  width: 1px;
+  height: 40px;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .sjmw-commitment__container {
+    grid-template-columns: 1fr;
+    gap: 60px;
+  }
+  
+  .sjmw-commitment__visual {
+    order: 1; /* Video first on tablet/mobile */
+    max-width: 700px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  
+  .sjmw-commitment__content {
+    order: 2;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .sjmw-commitment__video-wrapper {
+    aspect-ratio: 16/9; /* Wider ratio for stacked layout */
+  }
+}
+
+@media (max-width: 768px) {
+  .sjmw-commitment {
+    padding: 80px 0;
+  }
+  
+  .sjmw-commitment__container {
+    padding: 0 24px;
+    gap: 40px;
+  }
+  
+  .sjmw-commitment__title {
+    font-size: 2.2rem;
+  }
+  
+  .sjmw-commitment__desc {
+    font-size: 1rem;
+    margin-bottom: 30px;
+  }
+  
+  .sjmw-commitment__stats {
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .sjmw-commitment__stat-divider {
+    display: none; /* Hide dividers on small screens if stacked */
+  }
+  
+  .sjmw-commitment__video-wrapper {
+    aspect-ratio: 4/3; /* Adjust height for mobile */
+  }
+}

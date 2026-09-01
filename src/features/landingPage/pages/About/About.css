@@ -1,0 +1,491 @@
+/* ── src/pages/About/About.css ─────────────────────────────── */
+
+.about-page {
+  position: relative;
+  width: 100%;
+  background-color: #FAFAF8; /* Clean white background */
+  overflow-x: hidden;
+  padding-bottom: var(--space-24);
+  padding-top: 80px; /* Offset for navbar */
+  font-family: var(--font-family);
+}
+
+.about__content {
+  position: relative;
+  z-index: 2;
+}
+
+.about-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(21,59,102,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(21,59,102,0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Section 1: Hero Banner ──────────────────────────────── */
+.about-hero {
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-16) var(--space-6);
+  background-color: transparent;
+  animation: fadeDown 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  overflow: hidden;
+}
+
+.about-hero__inner {
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.about-hero__label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #153B66; /* Navy */
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: var(--space-4);
+  animation: fadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.2s;
+}
+
+.about-hero__label-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #42A5F5; /* Blue accent */
+  border-radius: 50%;
+}
+
+.about-hero__title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 600;
+  color: #111111;
+  line-height: 1.1;
+  margin-bottom: var(--space-6);
+  letter-spacing: -0.02em;
+  animation: fadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.3s;
+}
+
+.about-hero__title-highlight {
+  color: #1565C0;
+  display: block;
+}
+
+.about-hero__desc {
+  font-size: 1.125rem;
+  color: #6B7280;
+  line-height: 1.7;
+  max-width: 700px;
+  margin: 0 auto;
+  animation: fadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.4s;
+}
+
+/* ── Section 2: Company Overview ─────────────────────────── */
+.about-overview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-16);
+  max-width: 1200px;
+  margin: var(--space-16) auto;
+  padding: 0 var(--space-6);
+  align-items: center;
+}
+
+@media (max-width: 968px) {
+  .about-overview {
+    grid-template-columns: 1fr;
+  }
+}
+
+.about-overview__left {
+  display: flex;
+  flex-direction: column;
+}
+
+.about-overview__title {
+  font-size: var(--font-size-3xl);
+  font-weight: 600;
+  color: #111111;
+  margin-bottom: var(--space-6);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.about-overview__text {
+  font-size: 1.05rem;
+  color: #6B7280;
+  line-height: 1.7;
+  margin-bottom: var(--space-10);
+}
+
+/* Grid of Feature Cards */
+.about-overview__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+}
+
+.about-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  padding: var(--space-6);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.about-card:hover {
+  transform: translateY(-4px);
+  border-color: #42A5F5;
+  box-shadow: 0 10px 25px -5px rgba(66, 165, 245, 0.15), 0 8px 10px -6px rgba(66, 165, 245, 0.1);
+}
+
+.about-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(66, 165, 245, 0.1);
+  color: #153B66;
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--space-4);
+}
+
+.about-card__title {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #111111;
+  margin-bottom: var(--space-2);
+  line-height: 1.3;
+}
+
+.about-card__subtitle {
+  font-size: 0.85rem;
+  color: #6B7280;
+  line-height: 1.4;
+}
+
+.about-overview__right {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E5E7EB;
+}
+
+.about-overview__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Section 3: Manufacturing Journey (Timeline) ─────────── */
+.about-journey {
+  max-width: 1000px;
+  margin: var(--space-24) auto;
+  padding: 0 var(--space-6);
+  text-align: center;
+  position: relative;
+}
+
+.about-journey__header {
+  margin-bottom: var(--space-24);
+}
+
+.about-journey__title {
+  font-size: var(--font-size-4xl);
+  font-weight: 600;
+  color: #111111;
+  margin-bottom: var(--space-4);
+  letter-spacing: -0.02em;
+}
+
+.about-journey__subtitle {
+  font-size: 1.1rem;
+  color: #6B7280;
+}
+
+.about-timeline {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 140px; 
+}
+
+.about-timeline__track {
+  position: absolute;
+  top: 11px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #E5E7EB;
+  transform: translateY(-50%);
+}
+
+.about-timeline__progress {
+  position: absolute;
+  top: 11px;
+  left: 0;
+  width: var(--progress, 0%);
+  height: 2px;
+  background: #153B66; /* Navy */
+  transform: translateY(-50%);
+  transition: width 1.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.about-timeline__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+  cursor: pointer;
+  outline: none;
+  width: 100px;
+}
+
+/* The Dot */
+.about-timeline__dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 3px solid #E5E7EB;
+  margin-bottom: var(--space-4);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.about-timeline__item.active .about-timeline__dot {
+  border-color: #153B66;
+}
+
+.about-timeline__item:hover .about-timeline__dot,
+.about-timeline__item:focus-visible .about-timeline__dot,
+.about-timeline__item.hovered .about-timeline__dot {
+  background: #42A5F5;
+  border-color: #42A5F5;
+  transform: scale(1.3);
+  box-shadow: 0 0 0 6px rgba(66, 165, 245, 0.15);
+}
+
+/* Timeline Content */
+.about-timeline__content {
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.about-timeline__item.hovered .about-timeline__content {
+  transform: translateY(4px);
+}
+
+.about-timeline__year {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #111111;
+  margin-bottom: 4px;
+}
+
+.about-timeline__label {
+  font-size: 0.85rem;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+/* Hover/Focus Floating Card */
+.about-timeline__floating-card {
+  position: absolute;
+  bottom: calc(100% + 40px); /* Above the dot */
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: var(--space-4);
+  width: max-content;
+  max-width: 280px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  text-align: left;
+}
+
+/* The little triangle pointer pointing down to the dot */
+.about-timeline__floating-card::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background: #FFFFFF;
+  border-right: 1px solid #E5E7EB;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.about-timeline__floating-card.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.about-timeline__floating-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #153B66; /* Navy */
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.about-timeline__floating-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.about-timeline__floating-list li {
+  font-size: 0.875rem;
+  color: #4B5563;
+  line-height: 1.4;
+  position: relative;
+  padding-left: 16px;
+}
+
+.about-timeline__floating-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 6px;
+  height: 6px;
+  background-color: #42A5F5;
+  border-radius: 50%;
+}
+
+/* Animations */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .about-journey {
+    display: none;
+  }
+
+  .about-hero__title {
+    font-size: 2.25rem;
+  }
+  
+  .about-overview__grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .about-timeline {
+    flex-direction: column;
+    margin-top: var(--space-8);
+    gap: var(--space-8);
+    align-items: flex-start;
+    padding-left: 40px;
+  }
+  
+  .about-timeline__track {
+    top: 0;
+    left: 20px;
+    width: 2px;
+    height: 100%;
+    transform: none;
+  }
+  
+  .about-timeline__progress {
+    top: 0;
+    left: 20px;
+    width: 2px;
+    height: var(--progress, 0%);
+    transform: none;
+    transition: height 1.8s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  
+  .about-timeline__item {
+    flex-direction: row;
+    width: 100%;
+    align-items: center;
+  }
+  
+  .about-timeline__dot {
+    margin-bottom: 0;
+    margin-right: var(--space-4);
+    z-index: 2;
+  }
+  
+  .about-timeline__content {
+    text-align: left;
+  }
+  
+  .about-timeline__item.hovered .about-timeline__content {
+    transform: translateX(4px);
+  }
+  
+  .about-timeline__floating-card {
+    position: relative;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    transform: none !important;
+    width: 100%;
+    margin-top: 10px;
+    margin-left: 10px;
+    opacity: 1; 
+    display: none; /* Only show when visible class is added */
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+  
+  .about-timeline__floating-card.visible {
+    display: block;
+  }
+  
+  .about-timeline__floating-card::after {
+    display: none;
+  }
+  
+  .about-timeline__floating-title {
+    display: none; /* Hide title on mobile since year is already visible */
+  }
+}

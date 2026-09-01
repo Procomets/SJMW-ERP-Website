@@ -19,7 +19,7 @@ import type {
 import { calcTotalInput, calcEfficiency } from '../types/productionLedger.types';
 import { syncFinishedGoodsForHeat } from '../../finishedGoods/services/finishedGoods.service';
 import { syncCostLedgerFromProduction } from '../../costLedger/services/costLedger.service';
-import { adjustInventoryStock } from '../../warehouse/services/warehouse.service';
+import { adjustInventoryStock, addMaterialReceipt } from '../../warehouse/services/warehouse.service';
 
 const COL = 'productionLedger';
 
@@ -125,7 +125,25 @@ export const addProductionEntry = async (
     }
     const badIngotsVal = Number(form.badIngotsKg) || 0;
     if (badIngotsVal > 0) {
-      await adjustInventoryStock('REJ', badIngotsVal);
+      // Instead of silently adjusting stock, add a proper receipt for Rejection Scrap
+      await addMaterialReceipt({
+        vendorName: 'Internal Production (Rejection)',
+        totalReceivedWeightKg: badIngotsVal,
+        totalReturnedWeightKg: 0,
+        totalNetIntakeWeightKg: badIngotsVal,
+        createdBy: 'System (Production)',
+        materials: [{
+          materialId: 'REJ',
+          materialCode: 'REJ',
+          materialName: 'Rejection Scrap',
+          receivedWeightKg: badIngotsVal,
+          returnedWeightKg: 0,
+          netIntakeWeightKg: badIngotsVal,
+          costPerKg: 0,
+          efficiencyPercentage: 90,
+          remarks: `Heat No: ${form.heatNo}`
+        }]
+      });
     }
   } catch (err) {
     console.error("Failed to sync warehouse stock on production add:", err);

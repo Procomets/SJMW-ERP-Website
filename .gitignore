@@ -22,3 +22,17 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files — NEVER commit .env.local (contains secrets)
+.env
+.env.local
+.env.*.local
+# .env.example is intentionally NOT here — it's a safe template
+
+# Debug and fix scripts (one-off, should not be committed)
+fix.js
+fix.cjs
+fix.py
+fix_pages.js
+fix_pages2.js
+test-firebase.cjs

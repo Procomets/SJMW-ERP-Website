@@ -355,7 +355,7 @@ const UserManagementPage = () => {
     setSelectedUser(user);
     setNewPassword('');
     setCurrentPasswordOverride('');
-    setShowOverrideInput(!user.password);
+    setShowOverrideInput(true); // Always require current password — not stored in DB
     setFormError(null);
     setPasswordDialogOpen(true);
   };
@@ -390,7 +390,7 @@ const UserManagementPage = () => {
       await updateUserPassword(
         selectedUser.id,
         selectedUser.email,
-        selectedUser.password || '',
+        '', // legacy plaintext param — no longer used
         newPassword,
         currentPasswordOverride || undefined
       );
@@ -415,7 +415,7 @@ const UserManagementPage = () => {
   const handleOpenDelete = (user: UserEntry) => {
     setSelectedUser(user);
     setDeletePasswordOverride('');
-    setShowDeleteOverride(!user.password);
+    setShowDeleteOverride(true); // Always require current password — not stored in DB
     setFormError(null);
     setDeleteDialogOpen(true);
   };
@@ -429,7 +429,7 @@ const UserManagementPage = () => {
       await deleteUser(
         selectedUser.id,
         selectedUser.email,
-        selectedUser.password || '',
+        '', // legacy plaintext param — no longer used
         deletePasswordOverride || undefined
       );
       setDeleteDialogOpen(false);
@@ -657,7 +657,7 @@ const UserManagementPage = () => {
                 <SortTh label="Email Address" colKey="email" />
                 <SortTh label="Role" colKey="role" />
                 <SortTh label="Status" colKey="status" />
-                <th className="px-4 py-3 border-b border-slate-200 w-44">Password Credentials</th>
+                <th className="px-4 py-3 border-b border-slate-200 w-44">Credentials</th>
                 <th className="px-4 py-3 border-b border-slate-200 text-center w-32 bg-slate-100">Actions</th>
               </tr>
             </thead>
@@ -700,16 +700,9 @@ const UserManagementPage = () => {
                       </td>
                       <td className={bodyCell}>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono bg-slate-50 px-2 py-0.5 rounded border border-slate-200 text-slate-600 min-w-[100px]">
-                            {showPass ? row.password : '••••••••'}
+                          <span className="font-mono bg-slate-50 px-2 py-0.5 rounded border border-slate-200 text-slate-400 text-[10px] min-w-[100px]">
+                            {row.passwordHash ? '🔒 Secured (hashed)' : '⚠️ Not set'}
                           </span>
-                          <IconButton
-                            size="small"
-                            onClick={() => togglePasswordVisibility(row.id)}
-                            sx={{ color: '#64748b', p: 0.5 }}
-                          >
-                            {showPass ? <EyeOff size={13} /> : <Eye size={13} />}
-                          </IconButton>
                         </div>
                       </td>
                       <td className={`${bodyCell} text-center`}>

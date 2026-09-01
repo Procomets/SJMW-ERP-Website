@@ -128,12 +128,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await updateProfile(u, { displayName: name });
 
       // Save user profile details to Firestore users collection
+      // NOTE: Password is NOT stored — Firebase Auth handles credentials securely
       await setDoc(doc(db, 'users', u.uid), {
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        password: password, // Store plaintext password for admin reference & sync
-        role: role, // Selected role
-        status: 'Active', // Default status as requested
+        role: role,
+        status: 'Active',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });

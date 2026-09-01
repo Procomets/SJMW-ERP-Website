@@ -21,6 +21,7 @@ import {
   deleteDispatch,
 } from '../services/dispatch.service';
 import type { DispatchEntry, DispatchFormData } from '../types/dispatch.types';
+import ExportExcelButton from '../../../components/common/ExportExcelButton';
 
 import { fetchFinishedGoods } from '../../finishedGoods/services/finishedGoods.service';
 import type { FinishedGoodEntry } from '../../finishedGoods/types/finishedGoods.types';
@@ -835,7 +836,7 @@ export default function DispatchPage({ readOnly = false, noDelete = false }: { r
     const columns: any[] = [
       { header: 'SI No', key: 'serialNo', width: 10 },
       { header: 'Dispatch No.', key: 'dispatchNo', width: 15 },
-      { header: 'Date', key: 'date', width: 15 },
+      { header: 'Date', key: 'date', width: 15, style: { numFmt: 'dd mmm yyyy' } },
       { header: 'Customer', key: 'customer', width: 25 },
       { header: 'Alloy', key: 'alloy', width: 15 },
       { header: 'Heat No.', key: 'heatNo', width: 15 },
@@ -864,7 +865,7 @@ export default function DispatchPage({ readOnly = false, noDelete = false }: { r
       const baseRow = {
         serialNo: index++,
         dispatchNo: d.dispatchNumber,
-        date: fmtDate(d.dispatchDate),
+        date: d.dispatchDate instanceof Timestamp ? d.dispatchDate.toDate() : (d.dispatchDate ? new Date(d.dispatchDate) : null),
         customer: d.customerName,
         alloy: d.alloyType || '—',
         totalDispWt: d.totalDispatchWeightKg || 0,
@@ -981,14 +982,12 @@ export default function DispatchPage({ readOnly = false, noDelete = false }: { r
               <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             </IconButton>
           </Tooltip>
-          <Button
+          <ExportExcelButton
             onClick={handleExportExcel}
-            variant="outlined"
-            startIcon={<FileSpreadsheet size={16} />}
-            sx={{ border: '1px solid #e2e8f0', borderRadius: 2, textTransform: 'none', fontWeight: 700, px: 2.5, flexGrow: { xs: 1, sm: 0 }, color: '#047857', borderColor: '#a7f3d0', bgcolor: '#ecfdf5', '&:hover': { bgcolor: '#d1fae5' } }}
+            sx={{ flexGrow: { xs: 1, sm: 0 } }}
           >
             Export Excel
-          </Button>
+          </ExportExcelButton>
           {!readOnly && (
             <Button
               variant="contained"

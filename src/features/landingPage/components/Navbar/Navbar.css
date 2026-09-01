@@ -1,0 +1,204 @@
+/* ============================================================
+   Navbar Component Styles
+   Sri Jothi Moulding Works
+   ============================================================ */
+
+/* ── Navbar Wrapper ───────────────────────────────────────── */
+.navbar {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  height: auto;
+  width: max-content;
+  display: flex;
+  align-items: center;
+  padding: 0;
+
+  background: #FFFFFF;
+  border-radius: 50px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: all var(--transition-slow);
+}
+
+/* Hidden state when scrolling down */
+.navbar.hidden {
+  transform: translate(-50%, calc(-100% - 24px));
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Scrolled state — slightly stronger shadow */
+.navbar.scrolled {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* ── Inner Layout ─────────────────────────────────────────── */
+.navbar__inner {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px 8px 20px;
+  gap: 32px;
+}
+
+/* ── Brand / Logo ─────────────────────────────────────────── */
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.navbar__logo-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  transition: transform var(--transition-base);
+}
+
+.navbar__brand:hover .navbar__logo-img {
+  transform: scale(1.05);
+}
+
+.navbar__brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.navbar__brand-name {
+  font-family: var(--font-family);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111111;
+  letter-spacing: 0.02em;
+}
+
+.navbar__brand-tagline {
+  font-weight: var(--font-weight-regular);
+  color: var(--nav-text-sub);
+  text-transform: uppercase;
+  transition: color var(--transition-slow);
+}
+
+/* ── Navigation Links ─────────────────────────────────────── */
+.navbar__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  list-style: none;
+  background: var(--nav-pill-bg);
+  border-radius: var(--radius-full);
+  padding: 4px 8px;
+  transition: background var(--transition-slow);
+}
+
+.navbar__nav-link {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--nav-link-color);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  position: relative;
+  transition: color var(--transition-base), transform var(--transition-base), background var(--transition-base);
+  white-space: nowrap;
+}
+
+/* Hover state changes background instead of underline */
+.navbar__nav-link:hover,
+.navbar__nav-link.active {
+  color: var(--nav-link-hover);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* ── Divider ─────────────────────────────────────────────── */
+.navbar__divider {
+  width: 1px;
+  height: 48px;
+  background-color: #E5E7EB;
+}
+
+/* ── CTA Container ───────────────────────────────────────── */
+.navbar__cta {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.navbar .btn-nav-about {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111111;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.navbar .btn-nav-about:hover {
+  color: #42A5F5;
+}
+
+.navbar .btn-nav-erp {
+  background-color: #000000;
+  color: #FFFFFF;
+  padding: 12px 28px;
+  border-radius: 50px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform var(--transition-fast), background-color var(--transition-fast);
+}
+
+.navbar .btn-nav-erp:hover {
+  background-color: #333333;
+  transform: translateY(-1px);
+}
+
+/* ── Responsive Breakpoints ───────────────────────────────── */
+@media (max-width: 768px) {
+  .navbar {
+    top: 16px;
+    zoom: 0.85; /* Scale down the entire pill slightly */
+  }
+
+  .navbar__inner {
+    padding: 6px 12px 6px 16px;
+    gap: 16px;
+  }
+
+  .navbar__brand-name {
+    font-size: 1rem;
+  }
+
+  .navbar__brand-tagline {
+    font-size: 0.75rem;
+  }
+
+  .navbar__divider {
+    height: 36px;
+  }
+
+  .navbar__cta {
+    gap: 16px;
+  }
+
+  .btn-nav-about {
+    font-size: 0.95rem;
+  }
+
+  .btn-nav-erp {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    zoom: 0.75; /* Scale down further for very small screens */
+  }
+  
+  .navbar__inner {
+    gap: 12px;
+  }
+}

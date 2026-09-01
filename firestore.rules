@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ─────────────────────────────────────────────────────
+
+    // Returns true if the request comes from an authenticated user
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Fetches the calling user's Firestore profile document
+    function callerProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Returns true if the caller is an admin
+    function isAdmin() {
+      return isAuthenticated() && callerProfile().role.lower() == 'admin';
+    }
+
+    // Returns true if the caller has an accounts role
+    function isAccounts() {
+      return isAuthenticated() && callerProfile().role.lower().matches('.*accounts.*');
+    }
+
+    // Returns true if the caller has a production manager role
+    function isProductionManager() {
+      return isAuthenticated() && callerProfile().role.lower().matches('.*production.*');
+    }
+
+    // ── users collection ─────────────────────────────────────────────────────
+    // Only admin can read/write user records. A user can read their own record.
+    match /users/{uid} {
+      allow read: if isAuthenticated() && (isAdmin() || request.auth.uid == uid);
+      allow write: if isAdmin();
+    }
+
+    // ── settings collection ──────────────────────────────────────────────────
+    // All authenticated users need to read lock status (for the lock feature).
+    // Only admin can write.
+    match /settings/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ── Production & Cost data ───────────────────────────────────────────────
+    match /productionLedger/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isProductionManager();
+    }
+
+    match /costLedger/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /dispatch/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isAccounts();
+    }
+
+    match /warehouse/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isProductionManager() || isAccounts();
+    }
+
+    match /qualityControl/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isProductionManager();
+    }
+
+    match /finishedGoods/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ── HR / Payroll ─────────────────────────────────────────────────────────
+    match /employees/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /attendance/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isAccounts();
+    }
+
+    match /salarySheets/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isAccounts();
+    }
+
+    match /productionWages/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isAccounts();
+    }
+
+    // ── Masters / Reference data ─────────────────────────────────────────────
+    match /materials/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /alloys/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /vendors/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isAccounts();
+    }
+
+    match /expenseRegister/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isAccounts();
+    }
+
+    // ── Catch-all: deny everything else ─────────────────────────────────────
+    // Any collection not explicitly listed above is denied to all users.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

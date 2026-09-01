@@ -28,6 +28,7 @@ import CostEntryDialog from '../components/CostEntryDialog';
 import { useMaterials } from '../../../context/MaterialContext';
 import { fetchFinishedGoods } from '../../finishedGoods/services/finishedGoods.service';
 import { useAuth } from '../../../context/AuthContext';
+import ExportExcelButton from '../../../components/common/ExportExcelButton';
 
 // Formatting helpers
 const fmtDate = (ts: Timestamp | undefined) => {
@@ -378,7 +379,7 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
     const columns: any[] = [
       { header: 'SI No', key: 'serialNo', width: 10 },
       { header: 'Heat No', key: 'heatNo', width: 15 },
-      { header: 'Date', key: 'date', width: 15 },
+      { header: 'Date', key: 'date', width: 15, style: { numFmt: 'dd mmm yyyy' } },
       { header: 'Alloy Type', key: 'alloyType', width: 15 },
       { header: 'Employee Name', key: 'employeeName', width: 20 },
       { header: 'Role', key: 'role', width: 15 },
@@ -431,7 +432,7 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
       const rowData: any = {
         serialNo: idx + 1,
         heatNo: row.heatNo,
-        date: row.date instanceof Timestamp ? row.date.toDate().toLocaleDateString('en-IN') : String(row.date),
+        date: row.date instanceof Timestamp ? row.date.toDate() : (row.date ? new Date(row.date) : null),
         alloyType: row.alloyType,
         employeeName: row.employeeName || '—',
         role: row.role || '—',
@@ -560,14 +561,12 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
               </IconButton>
             </Tooltip>
           </div>
-          <Button
+          <ExportExcelButton
             onClick={handleExportExcel}
-            variant="outlined"
-            startIcon={<FileSpreadsheet size={16} />}
-            className="text-emerald-700 border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50 hover:border-emerald-200 font-semibold px-4 rounded-lg h-10 text-xs w-full sm:w-auto"
+            className="w-full sm:w-auto"
           >
             Export Excel
-          </Button>
+          </ExportExcelButton>
           <Button
             onClick={openAddEntry}
             variant="contained"

@@ -1,0 +1,324 @@
+/* ============================================================
+   Catalogue Page Styles
+   Sri Jothi Moulding Works
+   ============================================================ */
+
+.sjmw-catalogue-page {
+  position: relative;
+  background-color: #FAFAF8;
+  min-height: 100vh;
+  padding: 40px 0 100px;
+  font-family: var(--font-primary, 'Inter', sans-serif);
+  color: #111111;
+}
+
+.sjmw-catalogue__container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* ── Navigation & Header ─────────────────────────────────── */
+.sjmw-catalogue__nav {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+  z-index: 10;
+}
+
+.sjmw-catalogue__back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6B7280;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.sjmw-catalogue__back-link:hover {
+  color: #42A5F5;
+}
+
+.sjmw-catalogue__back-link span {
+  transition: transform 0.2s ease;
+}
+
+.sjmw-catalogue__back-link:hover span {
+  transform: translateX(-4px);
+}
+
+.sjmw-catalogue__header {
+  margin-top: 40px;
+  margin-bottom: 60px;
+  max-width: 700px;
+}
+
+.sjmw-catalogue__title {
+  font-size: clamp(2rem, 3vw, 2.5rem);
+  font-weight: 800;
+  color: #111111;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px 0;
+}
+
+.sjmw-catalogue__subtitle {
+  font-size: 1.125rem;
+  color: #6B7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Controls (Search & Filters) ─────────────────────────── */
+.sjmw-catalogue__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 60px;
+}
+
+.sjmw-catalogue__search-wrapper {
+  position: relative;
+  max-width: 500px;
+}
+
+.sjmw-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9CA3AF;
+  pointer-events: none;
+}
+
+.sjmw-catalogue__search {
+  width: 100%;
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 16px 16px 16px 48px;
+  font-size: 1rem;
+  color: #111111;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.sjmw-catalogue__search::placeholder {
+  color: #9CA3AF;
+}
+
+.sjmw-catalogue__search:focus {
+  outline: none;
+  border-color: #42A5F5;
+  box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
+}
+
+.sjmw-catalogue__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sjmw-filter-pill {
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  color: #6B7280;
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sjmw-filter-pill:hover {
+  border-color: #42A5F5;
+  color: #42A5F5;
+}
+
+.sjmw-filter-pill.is-active {
+  background-color: #153B66;
+  border-color: #153B66;
+  color: #FFFFFF;
+}
+
+/* ── Grid Results ────────────────────────────────────────── */
+.sjmw-catalogue__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.sjmw-alloy-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.sjmw-alloy-card:hover {
+  transform: translateY(-3px);
+  border-color: #42A5F5;
+  box-shadow: 0 12px 30px rgba(66, 165, 245, 0.1);
+}
+
+.sjmw-alloy-card__header {
+  margin-bottom: 24px;
+}
+
+.sjmw-alloy-card__badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #42A5F5;
+  background-color: rgba(66, 165, 245, 0.1);
+  padding: 4px 10px;
+  border-radius: 100px;
+  margin-bottom: 12px;
+}
+
+.sjmw-alloy-card__name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111111;
+  margin: 0;
+}
+
+.sjmw-alloy-card__body {
+  flex-grow: 1;
+  margin-bottom: 32px;
+}
+
+.sjmw-alloy-card__desc {
+  font-size: 1rem;
+  color: #111111;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.sjmw-alloy-card__section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sjmw-section-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9CA3AF;
+  font-weight: 700;
+}
+
+.sjmw-section-text {
+  font-size: 0.95rem;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.sjmw-alloy-card__footer {
+  border-top: 1px solid #E5E7EB;
+  padding-top: 24px;
+  margin-top: auto;
+}
+
+.sjmw-alloy-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #153B66;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.sjmw-alloy-card__cta span {
+  transition: transform 0.2s ease;
+}
+
+.sjmw-alloy-card:hover .sjmw-alloy-card__cta {
+  color: #42A5F5;
+}
+
+.sjmw-alloy-card:hover .sjmw-alloy-card__cta span {
+  transform: translateX(4px);
+}
+
+.sjmw-catalogue__empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 20px;
+  background-color: #FFFFFF;
+  border: 1px dashed #E5E7EB;
+  border-radius: 12px;
+  color: #6B7280;
+  font-size: 1.1rem;
+}
+
+.sjmw-reset-btn {
+  margin-top: 16px;
+  background-color: #153B66;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.sjmw-reset-btn:hover {
+  background-color: #42A5F5;
+}
+
+/* ── Entrance Animations ─────────────────────────────────── */
+.animate-fade-up {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: sjmwCatalogFadeUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes sjmwCatalogFadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive Adjustments ──────────────────────────────── */
+@media (max-width: 1200px) {
+  .sjmw-catalogue__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .sjmw-catalogue-page {
+    padding: 24px 0 60px;
+  }
+
+  .sjmw-catalogue__container {
+    padding: 0 24px;
+  }
+
+  .sjmw-catalogue__grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .sjmw-catalogue__title {
+    font-size: 1.75rem;
+  }
+}

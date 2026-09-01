@@ -26,6 +26,7 @@ import { useMaterials } from '../../../context/MaterialContext';
 import ProductionEntryDialog from '../components/ProductionEntryDialog';
 import { fetchFinishedGoods } from '../../finishedGoods/services/finishedGoods.service';
 import { subscribeToLockStatus } from '../../../services/settings.service';
+import ExportExcelButton from '../../../components/common/ExportExcelButton';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 const fmtDate = (ts: Timestamp | undefined) => {
@@ -285,7 +286,27 @@ const ProductionLedgerPage = () => {
     const openEdit = (e: ProductionLedgerEntry) => { setEditEntry(e); setDialogOpen(true); };
 
     // ── summary cards ──
-    const totalEntries = entries.length;
+    const totalEntries = useMemo(() => {
+        if (entries.length === 0) return 0;
+        let latestDate = 0;
+        entries.forEach(e => {
+            const d = e.date instanceof Timestamp ? e.date.toMillis() : (e.date ? new Date(e.date).getTime() : 0);
+            if (d > latestDate) latestDate = d;
+        });
+
+        let maxNum = 0;
+        entries.forEach(e => {
+            const d = e.date instanceof Timestamp ? e.date.toMillis() : (e.date ? new Date(e.date).getTime() : 0);
+            if (d === latestDate) {
+                const match = e.heatNo.match(/(\d+)\s*$/);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    if (num > maxNum) maxNum = num;
+                }
+            }
+        });
+        return maxNum > 0 ? maxNum : entries.length;
+    }, [entries]);
     const avgEff = entries.length
         ? (entries.reduce((s, e) => s + e.efficiencyPercentage, 0) / entries.length).toFixed(2)
         : '0.00';
@@ -332,7 +353,7 @@ const ProductionLedgerPage = () => {
         const columns = [
             { header: 'SI No', key: 'serialNo', width: 10 },
             { header: 'Heat No', key: 'heatNo', width: 15 },
-            { header: 'Date', key: 'date', width: 15 },
+            { header: 'Date', key: 'date', width: 15, style: { numFmt: 'dd mmm yyyy' } },
             { header: 'Alloy Type', key: 'alloyType', width: 15 },
             { header: 'Furnace No', key: 'furnaceNo', width: 12 },
             { header: 'Operator', key: 'operatorName', width: 20 },
@@ -367,7 +388,7 @@ const ProductionLedgerPage = () => {
             const rowData: any = {
                 serialNo: idx + 1,
                 heatNo: row.heatNo,
-                date: fmtDate(row.date),
+                date: row.date ? (row.date instanceof Timestamp ? row.date.toDate() : new Date(row.date)) : null,
                 alloyType: row.alloyType,
                 furnaceNo: row.furnaceNo || '—',
                 operatorName: row.operatorName || '—',
@@ -464,7 +485,11 @@ const ProductionLedgerPage = () => {
                             </IconButton>
                         </Tooltip>
                     </Box>
-                    <Button variant="outlined" startIcon={<Download size={16} />} onClick={handleExport} disabled={filtered.length === 0} sx={{ width: { xs: '100%', sm: 'auto' } }}>Export</Button>
+                    <ExportExcelButton
+                        onClick={handleExport}
+                        disabled={filtered.length === 0}
+                        sx={{ width: { xs: '100%', sm: 'auto' } }}
+                    />
                     <Button
                         variant="contained"
                         startIcon={<Plus size={16} />}

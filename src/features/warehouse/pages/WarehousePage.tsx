@@ -14,6 +14,7 @@ import {
 import { Timestamp } from 'firebase/firestore';
 import ExcelJS from 'exceljs';
 import EditReceiptDialog from '../components/EditReceiptDialog';
+import ExportExcelButton from '../../../components/common/ExportExcelButton';
 import {
   fetchInventory,
   fetchMaterialReceipts,
@@ -608,7 +609,7 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
       { header: 'Current Stock (kg)', key: 'currentStock', width: 18 },
       { header: 'Min Stock (kg)', key: 'minStock', width: 15 },
       { header: 'Status', key: 'status', width: 15 },
-      { header: 'Last Updated', key: 'lastUpdated', width: 15 },
+      { header: 'Last Updated', key: 'lastUpdated', width: 15, style: { numFmt: 'dd mmm yyyy' } },
     ];
 
     worksheet.columns = columns;
@@ -632,7 +633,7 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
         currentStock: item.currentStockKg || 0,
         minStock: item.minimumStockKg || 0,
         status: item.status,
-        lastUpdated: d ? d.toLocaleDateString('en-IN') : '—',
+        lastUpdated: d || null,
       });
       sumCurrent += item.currentStockKg || 0;
       sumMin += item.minimumStockKg || 0;
@@ -673,7 +674,7 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
       { header: 'SI No', key: 'serialNo', width: 10 },
       { header: 'Receipt No.', key: 'receiptNo', width: 15 },
       { header: 'Vendor', key: 'vendor', width: 25 },
-      { header: 'Date Received', key: 'date', width: 15 },
+      { header: 'Date Received', key: 'date', width: 15, style: { numFmt: 'dd mmm yyyy' } },
       { header: 'Material Code', key: 'matCode', width: 15 },
       { header: 'QTY (kg)', key: 'qty', width: 15 },
       { header: 'Rate (₹)', key: 'rate', width: 15 },
@@ -707,7 +708,7 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
         serialNo: index++,
         receiptNo: r.receiptNumber,
         vendor: r.vendorName || '—',
-        date: d ? d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—',
+        date: d || null,
         totRec: r.totalReceivedWeightKg || 0,
         totRet: r.totalReturnedWeightKg || 0,
         netIntake: r.totalNetIntakeWeightKg || 0,
@@ -882,14 +883,12 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
                 );
               })}
             </Box>
-            <Button
+            <ExportExcelButton
               onClick={handleExportStockExcel}
-              variant="outlined"
-              startIcon={<FileSpreadsheet size={16} />}
-              sx={{ border: '1px solid #e2e8f0', borderRadius: 2, textTransform: 'none', fontWeight: 700, px: 2.5, color: '#047857', borderColor: '#a7f3d0', bgcolor: '#ecfdf5', '&:hover': { bgcolor: '#d1fae5' }, ml: { xs: 0, md: 'auto' } }}
+              sx={{ ml: { xs: 0, md: 'auto' } }}
             >
               Export Excel
-            </Button>
+            </ExportExcelButton>
           </Box>
 
           <MaterialStockCards inventory={enrichedInventory} loading={loading} searchTerm={stockSearch} />
@@ -916,14 +915,11 @@ const WarehousePage = ({ readOnly = false, productionManager = false }: { readOn
               />
             </Box>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', width: { xs: '100%', sm: 'auto' } }}>
-              <Button
+              <ExportExcelButton
                 onClick={handleExportReceiptsExcel}
-                variant="outlined"
-                startIcon={<FileSpreadsheet size={16} />}
-                sx={{ border: '1px solid #e2e8f0', borderRadius: 2, textTransform: 'none', fontWeight: 700, px: 2.5, color: '#047857', borderColor: '#a7f3d0', bgcolor: '#ecfdf5', '&:hover': { bgcolor: '#d1fae5' } }}
               >
                 Export Excel
-              </Button>
+              </ExportExcelButton>
               {productionManager && (
               <Button
                 variant="contained"

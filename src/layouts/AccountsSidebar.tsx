@@ -19,6 +19,10 @@ import {
   Warehouse,
   LogOut,
   BarChart3,
+  NotebookText,
+  CalendarDays,
+  Receipt,
+  Banknote,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -34,6 +38,10 @@ const ACCOUNTS_MENU = [
   { text: 'Dispatch Management', icon: <Truck size={20} />, path: '/accounts/dispatch', desc: 'View Only' },
   { text: 'Vendor Master', icon: <Building2 size={20} />, path: '/accounts/vendor-master', desc: 'Edit Access' },
   { text: 'Warehouse', icon: <Warehouse size={20} />, path: '/accounts/warehouse', desc: 'Edit Access' },
+  { text: 'Expense Register', icon: <NotebookText size={20} />, path: '/accounts/expense-register', desc: 'Entry & Edit' },
+  { text: 'Attendance', icon: <CalendarDays size={20} />, path: '/accounts/attendance', desc: 'Daily Entry' },
+  { text: 'Salary Sheet', icon: <Receipt size={20} />, path: '/accounts/salary-sheet', desc: 'Payroll Entry' },
+  { text: 'Production Wages', icon: <Banknote size={20} />, path: '/accounts/production-wages', desc: 'View Only' },
 ];
 
 const TEAL = '#059669';

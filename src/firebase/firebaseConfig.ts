@@ -3,15 +3,15 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-// Your web app's Firebase configuration
+// Firebase configuration — values are loaded from .env.local (never committed to git)
 const firebaseConfig = {
-  apiKey: "AIzaSyAuR9U5V-2lGGNACuvZYDMdVR9A3Ne09BU",
-  authDomain: "moms-b63df.firebaseapp.com",
-  projectId: "moms-b63df",
-  storageBucket: "moms-b63df.firebasestorage.app",
-  messagingSenderId: "651089619335",
-  appId: "1:651089619335:web:757641aa55409751cfcb22",
-  measurementId: "G-K9W8E0PRV1"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
@@ -22,4 +22,6 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
+export { firebaseConfig };
 export default app;
+
