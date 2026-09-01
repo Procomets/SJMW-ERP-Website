@@ -9,7 +9,7 @@ import {
   Truck, Plus, Edit2, Trash2, RefreshCw, Search,
   ChevronLeft, ChevronRight, ArrowUpDown, Package,
   User, Car, FileText, X, AlertTriangle, Weight,
-  Hash, Building2, Maximize2, Minimize2, FileSpreadsheet
+  Hash, Building2, Maximize2, Minimize2
 } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
 import ExcelJS from 'exceljs';

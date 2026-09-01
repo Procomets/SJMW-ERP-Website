@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   Table,
   TableBody,
@@ -44,9 +44,11 @@ const EditableCell = ({ value, onChange }: { value: number; onChange: (v: number
     type="number"
     value={value === 0 ? '' : value}
     onChange={(e) => onChange(Number(e.target.value) || 0)}
-    InputProps={{
-      disableUnderline: true,
-      inputProps: {
+    slotProps={{
+      input: {
+        disableUnderline: true,
+      },
+      htmlInput: {
         style: { textAlign: 'center', padding: 0, fontSize: '0.85rem', fontWeight: 600 }
       }
     }}

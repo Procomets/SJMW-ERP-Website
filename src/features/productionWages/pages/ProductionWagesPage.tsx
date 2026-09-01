@@ -185,7 +185,7 @@ const ProductionWagesPage: React.FC = () => {
               size="small"
               value={rate}
               onChange={(e) => setRate(Number(e.target.value) || 0)}
-              inputProps={{ step: 0.1 }}
+              slotProps={{ htmlInput: { step: 0.1 } }}
             />
           </Box>
           <Box sx={{ flex: '1 1 150px' }}>

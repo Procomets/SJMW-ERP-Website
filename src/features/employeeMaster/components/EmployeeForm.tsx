@@ -11,8 +11,7 @@ import {
   Typography,
   Divider,
   Box,
-  CircularProgress,
-  IconButton
+  CircularProgress
 } from '@mui/material';
 import { PhotoCamera, AddAPhoto } from '@mui/icons-material';
 import type { Employee, EmployeeType, EmploymentStatus, Gender } from '../types/employee';
@@ -208,11 +207,11 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       </DialogTitle>
       <DialogContent dividers>
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} gutterBottom>
             Employment Info
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+            <Grid   size={{ xs: 12, sm: 6 }}>
               <TextField
                 select
                 fullWidth
@@ -226,7 +225,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 <MenuItem value="Labour">Labour</MenuItem>
               </TextField>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid   size={{ xs: 12, sm: 6 }}>
               <TextField
                 select
                 fullWidth
@@ -246,11 +245,11 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
         <Divider sx={{ my: 2 }} />
 
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} gutterBottom>
             Personal Information
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+            <Grid   size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Full Name"
@@ -262,7 +261,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 required
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid   size={{ xs: 12, sm: 6 }}>
               <TextField
                 select
                 fullWidth
@@ -277,7 +276,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 <MenuItem value="Other">Other</MenuItem>
               </TextField>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid   size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Mobile Number"
@@ -289,7 +288,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 required
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid   size={{ xs: 12, sm: 6 }}>
               <TextField required
                 fullWidth
                 label="Alternate Mobile"
@@ -298,7 +297,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 onChange={handleChange}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid   size={{ xs: 12, sm: 6 }}>
               <TextField required
                 fullWidth
                 label="Email"
@@ -316,11 +315,11 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
         <Divider sx={{ my: 2 }} />
 
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} gutterBottom>
             Address & Identification
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid  size={{ xs: 12 }}>
               <TextField required
                 fullWidth
                 label="Address"
@@ -331,7 +330,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 rows={2}
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid   size={{ xs: 12, sm: 4 }}>
               <TextField required
                 fullWidth
                 label="State"
@@ -340,7 +339,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 onChange={handleChange}
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid   size={{ xs: 12, sm: 4 }}>
               <TextField required
                 fullWidth
                 label="Pincode"
@@ -349,7 +348,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 onChange={handleChange}
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid   size={{ xs: 12, sm: 4 }}>
               <TextField required
                 fullWidth
                 label="Blood Group"
@@ -358,7 +357,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 onChange={handleChange}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid   size={{ xs: 12, sm: 6 }}>
               <TextField required
                 fullWidth
                 label="Aadhaar Number"
@@ -368,7 +367,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
               />
             </Grid>
             {isMonthlySalary && (
-              <Grid item xs={12} sm={6}>
+              <Grid   size={{ xs: 12, sm: 6 }}>
                 <TextField required
                   fullWidth
                   label="PAN Number"
@@ -384,11 +383,11 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
         <Divider sx={{ my: 2 }} />
 
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} gutterBottom>
             Documents & Photos
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+            <Grid   size={{ xs: 12, sm: 6 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Button variant="outlined" component="label" startIcon={<PhotoCamera />}>
@@ -412,7 +411,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 )}
               </Box>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid   size={{ xs: 12, sm: 6 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Button variant="outlined" component="label" startIcon={<AddAPhoto />}>
@@ -442,11 +441,11 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
         <Divider sx={{ my: 2 }} />
 
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} gutterBottom>
             Emergency Contact
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+            <Grid   size={{ xs: 12, sm: 6 }}>
               <TextField required
                 fullWidth
                 label="Contact Name"
@@ -455,7 +454,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 onChange={handleChange}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid   size={{ xs: 12, sm: 6 }}>
               <TextField required
                 fullWidth
                 label="Contact Number"
@@ -471,11 +470,11 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           <>
             <Divider sx={{ my: 2 }} />
             <Box>
-              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} gutterBottom>
                 Work Details
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid   size={{ xs: 12, sm: 6 }}>
                   <TextField required
                     fullWidth
                     label="Department"
@@ -484,7 +483,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                     onChange={handleChange}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid   size={{ xs: 12, sm: 6 }}>
                   <TextField required
                     fullWidth
                     label="Designation"
@@ -493,7 +492,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                     onChange={handleChange}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid   size={{ xs: 12, sm: 6 }}>
                   <TextField required
                     fullWidth
                     label="Reporting Manager"
@@ -502,7 +501,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                     onChange={handleChange}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid   size={{ xs: 12, sm: 6 }}>
                   <TextField required
                     fullWidth
                     label="Shift"
@@ -511,7 +510,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                     onChange={handleChange}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid   size={{ xs: 12, sm: 6 }}>
                   <TextField required
                     fullWidth
                     label="Monthly Income"
@@ -521,13 +520,13 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                     onChange={handleChange}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid   size={{ xs: 12, sm: 6 }}>
                   <TextField required
                     fullWidth
                     label="Date of Joining"
                     name="dateOfJoining" error={!!errors.dateOfJoining} helperText={errors.dateOfJoining}
                     type="date"
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{ inputLabel: { shrink: true } }}
                     value={formData.dateOfJoining}
                     onChange={handleChange}
                   />
@@ -537,11 +536,11 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
             
             <Divider sx={{ my: 2 }} />
             <Box>
-              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} gutterBottom>
                 Bank Details
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
+                <Grid   size={{ xs: 12, sm: 4 }}>
                   <TextField required
                     fullWidth
                     label="Account Number"
@@ -550,7 +549,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                     onChange={handleChange}
                   />
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid   size={{ xs: 12, sm: 4 }}>
                   <TextField required
                     fullWidth
                     label="IFSC Code"
@@ -559,7 +558,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                     onChange={handleChange}
                   />
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid   size={{ xs: 12, sm: 4 }}>
                   <TextField required
                     fullWidth
                     label="Branch"
@@ -577,11 +576,11 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           <>
             <Divider sx={{ my: 2 }} />
             <Box>
-              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} gutterBottom>
                 Compensation
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid   size={{ xs: 12, sm: 6 }}>
                   <TextField required
                     fullWidth
                     label="Daily Wages"

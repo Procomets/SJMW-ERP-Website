@@ -52,17 +52,17 @@ const MonthRow = ({ stat, records, selectedYear }: { stat: any, records: Attenda
         <TableCell align="center">{stat.totalDays}</TableCell>
         <TableCell align="center">{stat.workingDays}</TableCell>
         <TableCell align="center">
-          <Typography variant="body2" fontWeight="bold" color="success.main">
+          <Typography variant="body2" sx={{ fontWeight: "bold" }} color="success.main">
             {stat.presentDays}
           </Typography>
         </TableCell>
         <TableCell align="center">
-          <Typography variant="body2" fontWeight="bold" sx={{ color: '#1565c0' }}>
+          <Typography variant="body2" sx={{ fontWeight: "bold" }} sx={{ color: '#1565c0' }}>
             {stat.pnDays}
           </Typography>
         </TableCell>
         <TableCell align="center">
-          <Typography variant="body2" fontWeight="bold" color="error.main">
+          <Typography variant="body2" sx={{ fontWeight: "bold" }} color="error.main">
             {stat.absentDays}
           </Typography>
         </TableCell>
@@ -100,7 +100,7 @@ const MonthRow = ({ stat, records, selectedYear }: { stat: any, records: Attenda
                   }
 
                   return (
-                    <Grid item key={day}>
+                    <Grid key={day}>
                       <Box
                         sx={{
                           width: 32,
@@ -113,7 +113,7 @@ const MonthRow = ({ stat, records, selectedYear }: { stat: any, records: Attenda
                           borderRadius: 1,
                         }}
                       >
-                        <Typography variant="caption" fontWeight="bold" sx={{ color: textColor }}>
+                        <Typography variant="caption" sx={{ fontWeight: "bold" }} sx={{ color: textColor }}>
                           {text}
                         </Typography>
                       </Box>
@@ -229,7 +229,7 @@ const EmployeeMonitor: React.FC<EmployeeMonitorProps> = ({ employees }) => {
   return (
     <Box sx={{ p: 2 }}>
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid    size={{ xs: 12, sm: 6, md: 4 }}>
           <TextField
             select
             fullWidth
@@ -248,7 +248,7 @@ const EmployeeMonitor: React.FC<EmployeeMonitorProps> = ({ employees }) => {
             ))}
           </TextField>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid    size={{ xs: 12, sm: 6, md: 3 }}>
           <TextField
             select
             fullWidth
@@ -267,7 +267,7 @@ const EmployeeMonitor: React.FC<EmployeeMonitorProps> = ({ employees }) => {
       {selectedEmployee && (
         <Paper sx={{ p: 3, mb: 3, backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" gutterBottom color="primary.main" fontWeight="bold" sx={{ m: 0 }}>
+            <Typography variant="h6" gutterBottom color="primary.main" sx={{ fontWeight: "bold" }} sx={{ m: 0 }}>
               Employee Profile
             </Typography>
             <Box sx={{ display: 'flex', gap: 2 }}>
@@ -294,39 +294,39 @@ const EmployeeMonitor: React.FC<EmployeeMonitorProps> = ({ employees }) => {
           
           <Grid container spacing={3}>
             {/* Basic Info */}
-            <Grid item xs={12}>
+            <Grid  size={{ xs: 12 }}>
               <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 1 }}>Basic Information</Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={4} md={3}>
+                <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                   <Typography variant="caption" color="textSecondary">Name</Typography>
-                  <Typography variant="body1" fontWeight="500">{selectedEmployee.fullName}</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: "500" }}>{selectedEmployee.fullName}</Typography>
                 </Grid>
-                <Grid item xs={12} sm={4} md={3}>
+                <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                   <Typography variant="caption" color="textSecondary">Employee Code</Typography>
-                  <Typography variant="body1" fontWeight="500">{selectedEmployee.employeeCode}</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: "500" }}>{selectedEmployee.employeeCode}</Typography>
                 </Grid>
-                <Grid item xs={12} sm={4} md={3}>
+                <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                   <Typography variant="caption" color="textSecondary">Employee Type</Typography>
-                  <Typography variant="body1" fontWeight="500">{selectedEmployee.employeeType}</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: "500" }}>{selectedEmployee.employeeType}</Typography>
                 </Grid>
-                <Grid item xs={12} sm={4} md={3}>
+                <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                   <Typography variant="caption" color="textSecondary">Status</Typography>
-                  <Typography variant="body1" fontWeight="500">{selectedEmployee.employmentStatus}</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: "500" }}>{selectedEmployee.employmentStatus}</Typography>
                 </Grid>
                 {selectedEmployee.gender && (
-                  <Grid item xs={12} sm={4} md={3}>
+                  <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                     <Typography variant="caption" color="textSecondary">Gender</Typography>
                     <Typography variant="body2">{selectedEmployee.gender}</Typography>
                   </Grid>
                 )}
                 {selectedEmployee.dateOfBirth && (
-                  <Grid item xs={12} sm={4} md={3}>
+                  <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                     <Typography variant="caption" color="textSecondary">Date of Birth</Typography>
                     <Typography variant="body2">{format(selectedEmployee.dateOfBirth.toDate(), 'dd MMM yyyy')}</Typography>
                   </Grid>
                 )}
                 {selectedEmployee.bloodGroup && (
-                  <Grid item xs={12} sm={4} md={3}>
+                  <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                     <Typography variant="caption" color="textSecondary">Blood Group</Typography>
                     <Typography variant="body2">{selectedEmployee.bloodGroup}</Typography>
                   </Grid>
@@ -337,44 +337,44 @@ const EmployeeMonitor: React.FC<EmployeeMonitorProps> = ({ employees }) => {
             {/* Contact & Address Info */}
             {(selectedEmployee.mobileNumber || selectedEmployee.alternateMobile || selectedEmployee.email || selectedEmployee.address || selectedEmployee.state || selectedEmployee.pincode) && (
               <>
-                <Grid item xs={12}>
+                <Grid  size={{ xs: 12 }}>
                   <Divider sx={{ my: 1 }} />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid  size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 1 }}>Contact & Location</Typography>
                   <Grid container spacing={2}>
                     {selectedEmployee.mobileNumber && (
-                      <Grid item xs={12} sm={4} md={3}>
+                      <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                         <Typography variant="caption" color="textSecondary">Mobile</Typography>
                         <Typography variant="body2">{selectedEmployee.mobileNumber}</Typography>
                       </Grid>
                     )}
                     {selectedEmployee.alternateMobile && (
-                      <Grid item xs={12} sm={4} md={3}>
+                      <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                         <Typography variant="caption" color="textSecondary">Alt. Mobile</Typography>
                         <Typography variant="body2">{selectedEmployee.alternateMobile}</Typography>
                       </Grid>
                     )}
                     {selectedEmployee.email && (
-                      <Grid item xs={12} sm={4} md={3}>
+                      <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                         <Typography variant="caption" color="textSecondary">Email</Typography>
                         <Typography variant="body2">{selectedEmployee.email}</Typography>
                       </Grid>
                     )}
                     {selectedEmployee.address && (
-                      <Grid item xs={12} sm={12} md={3}>
+                      <Grid    size={{ xs: 12, sm: 12, md: 3 }}>
                         <Typography variant="caption" color="textSecondary">Address</Typography>
                         <Typography variant="body2">{selectedEmployee.address}</Typography>
                       </Grid>
                     )}
                     {selectedEmployee.state && (
-                      <Grid item xs={12} sm={4} md={3}>
+                      <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                         <Typography variant="caption" color="textSecondary">State</Typography>
                         <Typography variant="body2">{selectedEmployee.state}</Typography>
                       </Grid>
                     )}
                     {selectedEmployee.pincode && (
-                      <Grid item xs={12} sm={4} md={3}>
+                      <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                         <Typography variant="caption" color="textSecondary">Pincode</Typography>
                         <Typography variant="body2">{selectedEmployee.pincode}</Typography>
                       </Grid>
@@ -385,57 +385,57 @@ const EmployeeMonitor: React.FC<EmployeeMonitorProps> = ({ employees }) => {
             )}
 
             {/* Employment & Identification */}
-            <Grid item xs={12}>
+            <Grid  size={{ xs: 12 }}>
               <Divider sx={{ my: 1 }} />
             </Grid>
-            <Grid item xs={12}>
+            <Grid  size={{ xs: 12 }}>
               <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 1 }}>Employment & ID</Typography>
               <Grid container spacing={2}>
                 {selectedEmployee.department && (
-                  <Grid item xs={12} sm={4} md={3}>
+                  <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                     <Typography variant="caption" color="textSecondary">Department</Typography>
                     <Typography variant="body2">{selectedEmployee.department}</Typography>
                   </Grid>
                 )}
                 {selectedEmployee.designation && (
-                  <Grid item xs={12} sm={4} md={3}>
+                  <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                     <Typography variant="caption" color="textSecondary">Designation</Typography>
                     <Typography variant="body2">{selectedEmployee.designation}</Typography>
                   </Grid>
                 )}
                 {selectedEmployee.dateOfJoining && (
-                  <Grid item xs={12} sm={4} md={3}>
+                  <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                     <Typography variant="caption" color="textSecondary">Date of Joining</Typography>
                     <Typography variant="body2">{selectedEmployee.dateOfJoining}</Typography>
                   </Grid>
                 )}
                 {selectedEmployee.reportingManager && (
-                  <Grid item xs={12} sm={4} md={3}>
+                  <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                     <Typography variant="caption" color="textSecondary">Reporting Mgr</Typography>
                     <Typography variant="body2">{selectedEmployee.reportingManager}</Typography>
                   </Grid>
                 )}
                 {selectedEmployee.shift && (
-                  <Grid item xs={12} sm={4} md={3}>
+                  <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                     <Typography variant="caption" color="textSecondary">Shift</Typography>
                     <Typography variant="body2">{selectedEmployee.shift}</Typography>
                   </Grid>
                 )}
                 {selectedEmployee.aadharNumber && (
-                  <Grid item xs={12} sm={4} md={3}>
+                  <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                     <Typography variant="caption" color="textSecondary">Aadhar No</Typography>
                     <Typography variant="body2">{selectedEmployee.aadharNumber}</Typography>
                   </Grid>
                 )}
                 {selectedEmployee.panNumber && (
-                  <Grid item xs={12} sm={4} md={3}>
+                  <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                     <Typography variant="caption" color="textSecondary">PAN No</Typography>
                     <Typography variant="body2">{selectedEmployee.panNumber}</Typography>
                   </Grid>
                 )}
-                <Grid item xs={12} sm={4} md={3}>
+                <Grid    size={{ xs: 12, sm: 4, md: 3 }}>
                   <Typography variant="caption" color="textSecondary">{selectedEmployee.employeeType === 'Monthly Salary' ? 'Monthly Income' : 'Daily Wages'}</Typography>
-                  <Typography variant="body2" fontWeight="500" color="success.main">
+                  <Typography variant="body2" sx={{ fontWeight: "500" }} color="success.main">
                     ₹ {selectedEmployee.employeeType === 'Monthly Salary' ? (selectedEmployee.monthlyIncome || 0) : (selectedEmployee.dailyWages || 0)}
                   </Typography>
                 </Grid>
@@ -445,29 +445,29 @@ const EmployeeMonitor: React.FC<EmployeeMonitorProps> = ({ employees }) => {
             {/* Bank & Emergency Details */}
             {((selectedEmployee.accountNumber || selectedEmployee.emergencyContactName)) && (
               <>
-                <Grid item xs={12}>
+                <Grid  size={{ xs: 12 }}>
                   <Divider sx={{ my: 1 }} />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid  size={{ xs: 12 }}>
                   <Grid container spacing={2}>
                     {(selectedEmployee.accountNumber || selectedEmployee.ifscCode || selectedEmployee.bankBranch) && (
-                      <Grid item xs={12} md={6}>
+                      <Grid  size={{ xs: 12 }} md={6}>
                         <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 1 }}>Bank Details</Typography>
                         <Grid container spacing={2}>
                           {selectedEmployee.accountNumber && (
-                            <Grid item xs={6}>
+                            <Grid  size={{ xs: 6 }}>
                               <Typography variant="caption" color="textSecondary">Account No</Typography>
                               <Typography variant="body2">{selectedEmployee.accountNumber}</Typography>
                             </Grid>
                           )}
                           {selectedEmployee.ifscCode && (
-                            <Grid item xs={6}>
+                            <Grid  size={{ xs: 6 }}>
                               <Typography variant="caption" color="textSecondary">IFSC</Typography>
                               <Typography variant="body2">{selectedEmployee.ifscCode}</Typography>
                             </Grid>
                           )}
                           {selectedEmployee.bankBranch && (
-                            <Grid item xs={12}>
+                            <Grid  size={{ xs: 12 }}>
                               <Typography variant="caption" color="textSecondary">Branch</Typography>
                               <Typography variant="body2">{selectedEmployee.bankBranch}</Typography>
                             </Grid>
@@ -476,17 +476,17 @@ const EmployeeMonitor: React.FC<EmployeeMonitorProps> = ({ employees }) => {
                       </Grid>
                     )}
                     {(selectedEmployee.emergencyContactName || selectedEmployee.emergencyContactNumber) && (
-                      <Grid item xs={12} md={6}>
+                      <Grid  size={{ xs: 12 }} md={6}>
                         <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 1 }}>Emergency Contact</Typography>
                         <Grid container spacing={2}>
                           {selectedEmployee.emergencyContactName && (
-                            <Grid item xs={6}>
+                            <Grid  size={{ xs: 6 }}>
                               <Typography variant="caption" color="textSecondary">Name</Typography>
                               <Typography variant="body2">{selectedEmployee.emergencyContactName}</Typography>
                             </Grid>
                           )}
                           {selectedEmployee.emergencyContactNumber && (
-                            <Grid item xs={6}>
+                            <Grid  size={{ xs: 6 }}>
                               <Typography variant="caption" color="textSecondary">Number</Typography>
                               <Typography variant="body2">{selectedEmployee.emergencyContactNumber}</Typography>
                             </Grid>
@@ -533,17 +533,17 @@ const EmployeeMonitor: React.FC<EmployeeMonitorProps> = ({ employees }) => {
                   <TableCell align="center"><strong>{monthlyStats.reduce((a, b) => a + b.totalDays, 0)}</strong></TableCell>
                   <TableCell align="center"><strong>{monthlyStats.reduce((a, b) => a + b.workingDays, 0)}</strong></TableCell>
                   <TableCell align="center">
-                    <Typography variant="body1" fontWeight="bold" color="success.main">
+                    <Typography variant="body1" sx={{ fontWeight: "bold" }} color="success.main">
                       {monthlyStats.reduce((a, b) => a + b.presentDays, 0)}
                     </Typography>
                   </TableCell>
                   <TableCell align="center">
-                    <Typography variant="body1" fontWeight="bold" sx={{ color: '#1565c0' }}>
+                    <Typography variant="body1" sx={{ fontWeight: "bold" }} sx={{ color: '#1565c0' }}>
                       {monthlyStats.reduce((a, b) => a + b.pnDays, 0)}
                     </Typography>
                   </TableCell>
                   <TableCell align="center">
-                    <Typography variant="body1" fontWeight="bold" color="error.main">
+                    <Typography variant="body1" sx={{ fontWeight: "bold" }} color="error.main">
                       {monthlyStats.reduce((a, b) => a + b.absentDays, 0)}
                     </Typography>
                   </TableCell>

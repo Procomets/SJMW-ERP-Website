@@ -6,8 +6,8 @@ import {
   useTheme, Tabs, Tab,
 } from '@mui/material';
 import {
-  Save, Download, Lock, Unlock, RefreshCw, Plus, Trash2,
-  FileSpreadsheet, ChevronDown, FileDown,
+  Save, Lock, Unlock, RefreshCw, Plus, Trash2,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import {
@@ -189,7 +189,7 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
   const [register, setRegister] = useState<ExpenseRegisterDoc | null>(null);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   // UI state
@@ -265,7 +265,7 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
   }, [selectedYear, selectedMonth, profile, user]);
 
   // ─── Recalculate and update state ──────────────────────────────────
-  const updateCategories = useCallback((updated: ExpenseCategory[]) => {
+  const updateCategories_unused = useCallback((updated: ExpenseCategory[]) => {
     const { categories: recalced } = recalcAllTotals(updated);
     setCategories(recalced);
   }, []);
@@ -698,7 +698,7 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
                   }}>
                     Particulars
                   </th>
-                  {WEEK_LABELS.map((wl, idx) => (
+                  {WEEK_LABELS.map((wl, _idx) => (
                     <th key={wl} style={{
                       ...headerCellSx, width: 110,
                       position: 'sticky', top: 0, zIndex: 2,

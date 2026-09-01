@@ -175,7 +175,7 @@ export const YearlyExpenseSummary: React.FC<YearlyExpenseSummaryProps> = ({ year
         onClose={() => setSelectedDoc(null)} 
         maxWidth="md" 
         fullWidth
-        PaperProps={{ sx: { borderRadius: 2 } }}
+        sx={{ "& .MuiDialog-paper": {  borderRadius: 2  } }}
       >
         <DialogTitle sx={{ 
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',

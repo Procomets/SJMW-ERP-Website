@@ -163,24 +163,24 @@ export const exportExpenseRegisterToPdf = async (register: ExpenseRegisterDoc): 
       }
 
       if (data.section === 'body') {
-        if (data.row.raw[0] === 'TOTAL') {
+        if ((data.row.raw as any[])[0] === 'TOTAL') {
           data.cell.styles.fontStyle = 'bold';
           data.cell.styles.fillColor = [214, 228, 240]; // #d6e4f0 (FOOTER_BG)
           if (data.column.index === 0) {
             data.cell.colSpan = 2;
             data.cell.styles.halign = 'center';
           }
-        } else if (data.row.raw[0] === '' && data.row.raw[1] !== '') {
+        } else if ((data.row.raw as any[])[0] === '' && (data.row.raw as any[])[1] !== '') {
           data.cell.styles.textColor = [100, 116, 139]; 
           data.cell.styles.fillColor = [255, 255, 255]; // #ffffff (SUB_ROW_BG)
-        } else if (data.row.raw[0] !== 'TOTAL' && data.row.raw[0] !== '') {
+        } else if ((data.row.raw as any[])[0] !== 'TOTAL' && (data.row.raw as any[])[0] !== '') {
           data.cell.styles.fillColor = [248, 250, 252]; // #f8fafc (CATEGORY_BG)
           if (data.column.index === 1) {
             data.cell.styles.fontStyle = 'bold';
           }
         }
         
-        if (data.column.index === 6 && data.row.raw[0] !== 'TOTAL') {
+        if (data.column.index === 6 && (data.row.raw as any[])[0] !== 'TOTAL') {
            data.cell.styles.fillColor = [245, 196, 161]; // #f5c4a1 (TOTAL_COL_BG)
         }
       }

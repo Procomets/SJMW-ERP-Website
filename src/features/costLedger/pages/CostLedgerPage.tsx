@@ -6,7 +6,7 @@ import {
   FormControl, InputLabel, TextField, useTheme, useMediaQuery
 } from '@mui/material';
 import {
-  Search, Plus, Edit, Trash2, RefreshCw, FileSpreadsheet,
+  Search, Plus, Edit, Trash2, RefreshCw,
   ArrowUpDown, ChevronLeft, ChevronRight, X, Maximize2, Minimize2
 } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';

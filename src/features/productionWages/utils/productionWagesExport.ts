@@ -167,7 +167,7 @@ export const exportProductionWagesToExcel = async (params: ExportProductionWages
   const calculatedMaintenance = maintenanceDetails.reduce((acc, row) => acc + (row.persons * row.costPerDay), 0);
 
   // Footer Rows
-  const setFooterRow = (rNum: number, leftLabel: string, leftVal: any, rightLabel: string, rightVal: any, isInput = false) => {
+  const setFooterRow = (rNum: number, leftLabel: string, leftVal: any, rightLabel: string, rightVal: any, ) => {
     const r = ws.getRow(rNum);
     r.getCell(1).value = leftLabel;
     r.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' };

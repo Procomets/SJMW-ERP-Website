@@ -7,7 +7,6 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Box,
 } from '@mui/material';
 
 interface ImageCropperProps {

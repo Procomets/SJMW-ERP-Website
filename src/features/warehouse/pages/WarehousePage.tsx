@@ -8,8 +8,7 @@ import {
 import {
   Warehouse, Package, AlertTriangle, TrendingDown, RefreshCw,
   Search, Trash2, X, CheckCircle2, ArrowUpDown, ChevronLeft,
-  ChevronRight, Eye, Edit, Plus, IndianRupee, Maximize2, Minimize2,
-  FileSpreadsheet
+  ChevronRight, Eye, Edit, Plus, IndianRupee, Maximize2, Minimize2
 } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
 import ExcelJS from 'exceljs';

@@ -12,7 +12,6 @@ import {
   FormControlLabel,
   Button,
 } from '@mui/material';
-import { FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { format } from 'date-fns';
 import { getEmployees } from '../../employeeMaster/services/employeeService';
@@ -231,7 +230,7 @@ const AttendancePage: React.FC = () => {
   if (isTimeBlocked) {
     return (
       <Box sx={{ p: 5, textAlign: 'center', mt: 10 }}>
-        <Typography variant="h4" color="error" fontWeight="bold">Access Denied</Typography>
+        <Typography variant="h4" color="error" sx={{ fontWeight: "bold" }}>Access Denied</Typography>
         <Typography variant="h6" sx={{ mt: 2, color: '#475569' }}>
           The Attendance module is currently locked.
         </Typography>
@@ -253,7 +252,7 @@ const AttendancePage: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h5" fontWeight="bold">
+        <Typography variant="h5" sx={{ fontWeight: "bold" }}>
           Attendance Management
         </Typography>
         {isAdmin && (
@@ -289,7 +288,7 @@ const AttendancePage: React.FC = () => {
                   />
                 }
                 label={
-                  <Typography variant="body2" color={settings.isBlocked ? 'error' : 'textSecondary'} fontWeight="bold">
+                  <Typography variant="body2" color={settings.isBlocked ? 'error' : 'textSecondary'} sx={{ fontWeight: "bold" }}>
                     {settings.isBlocked ? 'Attendance Locked' : 'Attendance Unlocked'}
                   </Typography>
                 }

@@ -20,11 +20,11 @@ interface EmployeeViewModalProps {
 }
 
 const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <Grid item xs={12} sm={6}>
+  <Grid   size={{ xs: 12, sm: 6 }}>
     <Typography variant="caption" color="textSecondary">
       {label}
     </Typography>
-    <Typography variant="body1" fontWeight="500">
+    <Typography variant="body1" sx={{ fontWeight: "500" }}>
       {value || '-'}
     </Typography>
   </Grid>
@@ -45,11 +45,11 @@ const EmployeeViewModal: React.FC<EmployeeViewModalProps> = ({ open, onClose, em
       </DialogTitle>
       <DialogContent dividers>
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom color="primary">
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} gutterBottom color="primary">
             Employment Info
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+            <Grid   size={{ xs: 12, sm: 6 }}>
               <Typography variant="caption" color="textSecondary">Status</Typography>
               <Box>
                 <Chip 
@@ -66,7 +66,7 @@ const EmployeeViewModal: React.FC<EmployeeViewModalProps> = ({ open, onClose, em
         <Divider sx={{ my: 2 }} />
 
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom color="primary">
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} gutterBottom color="primary">
             Personal Information
           </Typography>
           <Grid container spacing={2}>
@@ -81,7 +81,7 @@ const EmployeeViewModal: React.FC<EmployeeViewModalProps> = ({ open, onClose, em
         <Divider sx={{ my: 2 }} />
 
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom color="primary">
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} gutterBottom color="primary">
             Address & Identification
           </Typography>
           <Grid container spacing={2}>
@@ -99,7 +99,7 @@ const EmployeeViewModal: React.FC<EmployeeViewModalProps> = ({ open, onClose, em
         <Divider sx={{ my: 2 }} />
 
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom color="primary">
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} gutterBottom color="primary">
             Emergency Contact
           </Typography>
           <Grid container spacing={2}>
@@ -111,7 +111,7 @@ const EmployeeViewModal: React.FC<EmployeeViewModalProps> = ({ open, onClose, em
         <Divider sx={{ my: 2 }} />
 
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom color="primary">
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} gutterBottom color="primary">
             Compensation & Work Details
           </Typography>
           <Grid container spacing={2}>
@@ -136,7 +136,7 @@ const EmployeeViewModal: React.FC<EmployeeViewModalProps> = ({ open, onClose, em
           <>
             <Divider sx={{ my: 2 }} />
             <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle1" fontWeight="bold" gutterBottom color="primary">
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} gutterBottom color="primary">
                 Bank Details
               </Typography>
               <Grid container spacing={2}>

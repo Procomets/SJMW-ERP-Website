@@ -142,7 +142,7 @@ const EmployeeMasterPage: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" fontWeight="bold">
+        <Typography variant="h5" sx={{ fontWeight: "bold" }}>
           Employee Master
         </Typography>
         <Box>
@@ -162,8 +162,8 @@ const EmployeeMasterPage: React.FC = () => {
 
       {/* Filters */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={4}>
+        <Grid container spacing={2} sx={{ alignItems: "center" }}>
+          <Grid   size={{ xs: 12, sm: 4 }}>
             <TextField
               fullWidth
               size="small"
@@ -173,7 +173,7 @@ const EmployeeMasterPage: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid   size={{ xs: 12, sm: 3 }}>
             <TextField
               select
               fullWidth
@@ -187,7 +187,7 @@ const EmployeeMasterPage: React.FC = () => {
               <MenuItem value="Labour">Labour</MenuItem>
             </TextField>
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid   size={{ xs: 12, sm: 3 }}>
             <TextField
               select
               fullWidth

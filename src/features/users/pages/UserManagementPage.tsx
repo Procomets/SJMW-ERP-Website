@@ -29,8 +29,6 @@ import {
   Edit,
   Trash2,
   Key,
-  Eye,
-  EyeOff,
   Search,
   ChevronLeft,
   ChevronRight,

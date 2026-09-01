@@ -1,12 +1,16 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+// @ts-ignore
 import LandingLayout from '../features/landingPage/LandingLayout';
 import AccountsLayout from '../layouts/AccountsLayout';
 import { ProtectedRoute, AccountsProtectedRoute, ProductionProtectedRoute } from '../components/ProtectedRoute';
 import { LoginPage } from '../pages/LoginPage';
 import NotFoundPage from '../pages/NotFoundPage';
+// @ts-ignore
 import Home from '../features/landingPage/pages/Home';
+// @ts-ignore
 import About from '../features/landingPage/pages/About/About';
+// @ts-ignore
 import Catalogue from '../features/landingPage/pages/Catalogue/Catalogue';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ProductionLedgerPage from '../features/productionLedger/pages/ProductionLedgerPage';

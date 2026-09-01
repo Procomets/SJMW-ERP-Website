@@ -9,7 +9,6 @@ import {
   query,
   where,
   getDocs,
-  orderBy,
 } from 'firebase/firestore';
 import { db } from '../../../firebase/firebaseConfig';
 import type { ExpenseRegisterDoc } from '../types/expenseRegister.types';

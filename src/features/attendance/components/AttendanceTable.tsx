@@ -128,7 +128,7 @@ const AttendanceTable: React.FC<AttendanceTableProps> = ({
               <TableRow key={emp.id} hover>
                 <TableCell>{index + 1}</TableCell>
                 <TableCell>
-                  <Typography variant="body2" fontWeight="500">{emp.fullName}</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: "500" }}>{emp.fullName}</Typography>
                   <Typography variant="caption" color="textSecondary">{emp.employeeCode}</Typography>
                 </TableCell>
 
@@ -201,7 +201,7 @@ const AttendanceTable: React.FC<AttendanceTableProps> = ({
                   );
                 })}
                 <TableCell align="center">
-                  <Typography variant="body2" fontWeight="bold">
+                  <Typography variant="body2" sx={{ fontWeight: "bold" }}>
                     {totalWorkingDays} / <Box component="span" sx={{ color: '#2e7d32' }}>{presentCount}</Box>
                   </Typography>
                 </TableCell>

@@ -16,7 +16,6 @@ import {
   LayoutDashboard,
   Factory,
   Calculator,
-  Download,
   Users,
   LogOut,
   ShieldCheck,
