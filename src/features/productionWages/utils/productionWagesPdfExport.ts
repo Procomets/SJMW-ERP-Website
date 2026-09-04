@@ -82,11 +82,13 @@ export const exportProductionWagesToPdf = async (params: ExportProductionWagesPa
 
   const tableData: any[][] = [];
   let sumAmount = 0;
+  let sumQty = 0;
 
   if (entries.length > 0) {
     for (const row of entries) {
       const amount = (row.qtyInKg || 0) * rate;
       sumAmount += amount;
+      sumQty += (row.qtyInKg || 0);
       tableData.push([
         row.date || '',
         row.alloy || '',
@@ -102,7 +104,7 @@ export const exportProductionWagesToPdf = async (params: ExportProductionWagesPa
     tableData.push(['', '', '', '', '0.00']);
   }
 
-  tableData.push(['', 'TOTAL', '', '', sumAmount.toFixed(2)]);
+  tableData.push(['', 'TOTAL', sumQty === 0 ? '-' : sumQty.toString(), '', sumAmount.toFixed(2)]);
   tableData.push(['', '', '', '', rate.toFixed(2)]);
   tableData.push(['', '', '', 'TOTAL', sumAmount.toFixed(2)]);
 
@@ -146,7 +148,7 @@ export const exportProductionWagesToPdf = async (params: ExportProductionWagesPa
         const offset = rowIndex - dataLen;
         // Total Row 1
         if (offset === 0) {
-          if (data.column.index === 1) data.cell.styles.fontStyle = 'bold';
+          if (data.column.index === 1 || data.column.index === 2) data.cell.styles.fontStyle = 'bold';
         }
         // Extra Rate Row
         if (offset === 1) {

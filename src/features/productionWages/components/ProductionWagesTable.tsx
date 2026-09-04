@@ -28,17 +28,21 @@ interface ProductionWagesTableProps {
   endDate: Date | null;
   furnaces: string[];
   rate?: number;
+  readonly?: boolean;
 }
 
 export interface ProductionWagesTableRef {
   exportExcel: () => void;
   exportPdf: () => void;
+  getData: () => ProductionWageData;
 }
 
 const DARK_BLUE = '#002060';
 const BORDER_COLOR = '#000000';
 
-const EditableCell = ({ value, onChange }: { value: number; onChange: (v: number) => void }) => (
+const EditableCell = ({ value, onChange, readonly }: { value: number; onChange: (v: number) => void; readonly?: boolean }) => {
+  if (readonly) return <Box sx={{ p: 1 }}>{value}</Box>;
+  return (
   <TextField
     variant="standard"
     type="number"
@@ -54,7 +58,8 @@ const EditableCell = ({ value, onChange }: { value: number; onChange: (v: number
     }}
     sx={{ width: '100%' }}
   />
-);
+  );
+};
 
 const StyledTableCell = ({
   children,
@@ -94,12 +99,14 @@ const MaintenanceModal = ({
   open,
   onClose,
   details,
-  setDetails
+  setDetails,
+  readonly
 }: {
   open: boolean;
   onClose: () => void;
   details: MaintenanceEntry[];
   setDetails: (details: MaintenanceEntry[]) => void;
+  readonly?: boolean;
 }) => {
   const [localDetails, setLocalDetails] = useState<MaintenanceEntry[]>(details);
 
@@ -145,10 +152,18 @@ const MaintenanceModal = ({
                 <TableRow key={idx}>
                   <StyledTableCell>{row.date}</StyledTableCell>
                   <StyledTableCell>
-                    <EditableCell value={row.persons} onChange={(v) => handleChange(idx, 'persons', v)} />
+                    {readonly ? (
+                      <Box sx={{ p: 1 }}>{row.persons}</Box>
+                    ) : (
+                      <EditableCell value={row.persons} onChange={(v) => handleChange(idx, 'persons', v)} />
+                    )}
                   </StyledTableCell>
                   <StyledTableCell>
-                    <EditableCell value={row.costPerDay} onChange={(v) => handleChange(idx, 'costPerDay', v)} />
+                    {readonly ? (
+                      <Box sx={{ p: 1 }}>{row.costPerDay}</Box>
+                    ) : (
+                      <EditableCell value={row.costPerDay} onChange={(v) => handleChange(idx, 'costPerDay', v)} />
+                    )}
                   </StyledTableCell>
                   <StyledTableCell>{row.persons * row.costPerDay}</StyledTableCell>
                 </TableRow>
@@ -167,8 +182,8 @@ const MaintenanceModal = ({
         </TableContainer>
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>
-        <Button onClick={onClose} color="inherit">Cancel</Button>
-        <Button onClick={handleSave} variant="contained" sx={{ backgroundColor: DARK_BLUE }}>Save</Button>
+        <Button onClick={onClose} color="inherit">Close</Button>
+        {!readonly && <Button onClick={handleSave} variant="contained" sx={{ backgroundColor: DARK_BLUE }}>Save</Button>}
       </DialogActions>
     </Dialog>
   );
@@ -180,6 +195,7 @@ const ProductionWagesTable = forwardRef<ProductionWagesTableRef, ProductionWages
   endDate,
   furnaces,
   rate = 2.5,
+  readonly = false,
 }, ref) => {
   const [advance, setAdvance] = useState(0);
   const [transferred, setTransferred] = useState(0);
@@ -207,17 +223,21 @@ const ProductionWagesTable = forwardRef<ProductionWagesTableRef, ProductionWages
   const { entries } = data;
 
   useEffect(() => {
-    // Automatically populate unique dates
-    const uniqueDates = Array.from(new Set(entries.map(e => e.date))).filter(Boolean);
-    
-    setMaintenanceDetails(prevDetails => {
-      return uniqueDates.map(date => {
-        const existing = prevDetails.find(d => d.date === date);
-        if (existing) return existing;
-        return { date, persons: 0, costPerDay: 800 };
+    if (data?.maintenanceDetails && data.maintenanceDetails.length > 0) {
+      setMaintenanceDetails(data.maintenanceDetails);
+    } else {
+      // Automatically populate unique dates
+      const uniqueDates = Array.from(new Set(entries.map(e => e.date))).filter(Boolean);
+      
+      setMaintenanceDetails(prevDetails => {
+        return uniqueDates.map(date => {
+          const existing = prevDetails.find(d => d.date === date);
+          if (existing) return existing;
+          return { date, persons: 0, costPerDay: 800 };
+        });
       });
-    });
-  }, [entries]);
+    }
+  }, [entries, data?.maintenanceDetails]);
   
   const formatDateRange = () => {
     if (!startDate || !endDate) return 'PERIOD';
@@ -247,6 +267,7 @@ const ProductionWagesTable = forwardRef<ProductionWagesTableRef, ProductionWages
   }));
 
   const totalAmount = calculatedEntries.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+  const totalQty = calculatedEntries.reduce((acc, curr) => acc + (curr.qtyInKg || 0), 0);
 
   const calculatedMaintenance = maintenanceDetails.reduce((acc, row) => acc + (row.persons * row.costPerDay), 0);
 
@@ -301,6 +322,23 @@ const ProductionWagesTable = forwardRef<ProductionWagesTableRef, ProductionWages
   useImperativeHandle(ref, () => ({
     exportExcel: handleExport,
     exportPdf: handleExportPdf,
+    getData: () => ({
+      entries,
+      summary: {
+        advance,
+        transferred,
+        cashPaid,
+        totalLeft,
+        recovered,
+        balance,
+        maintenance: calculatedMaintenance,
+        grossPayable,
+        advancePaid: null, // no longer used?
+        paid,
+        netPayable,
+      },
+      maintenanceDetails
+    })
   }));
 
   return (
@@ -358,7 +396,7 @@ const ProductionWagesTable = forwardRef<ProductionWagesTableRef, ProductionWages
             <TableRow>
               <StyledTableCell></StyledTableCell>
               <StyledTableCell bold>TOTAL</StyledTableCell>
-              <StyledTableCell></StyledTableCell>
+              <StyledTableCell bold>{totalQty === 0 ? '-' : totalQty}</StyledTableCell>
               <StyledTableCell></StyledTableCell>
               <StyledTableCell>{totalAmount === 0 ? '-' : totalAmount}</StyledTableCell>
             </TableRow>
@@ -383,50 +421,50 @@ const ProductionWagesTable = forwardRef<ProductionWagesTableRef, ProductionWages
 
             {/* Footer Rows */}
             <TableRow>
-              <StyledTableCell align="left">ADVANCE</StyledTableCell>
-              <StyledTableCell><EditableCell value={advance} onChange={setAdvance} /></StyledTableCell>
-              <StyledTableCell></StyledTableCell>
-              <StyledTableCell align="left" sx={{ p: 0 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%', pl: 1 }}>
-                  <Box>MAINTANANCE</Box>
-                  <IconButton size="small" onClick={() => setModalOpen(true)} sx={{ p: 0.5, mr: 0.5 }}>
-                    <Edit2 size={14} color={DARK_BLUE} />
-                  </IconButton>
-                </Box>
+              <StyledTableCell>ADVANCE</StyledTableCell>
+              <StyledTableCell>
+                <EditableCell readonly={readonly} value={advance} onChange={setAdvance} />
               </StyledTableCell>
-              <StyledTableCell>{formatNum(calculatedMaintenance)}</StyledTableCell>
+              <StyledTableCell rowSpan={6}></StyledTableCell>
+              <StyledTableCell>
+                MAINTANANCE
+                <IconButton size="small" onClick={() => setModalOpen(true)} sx={{ ml: 1, p: 0.5 }}>
+                  <Edit2 size={14} />
+                </IconButton>
+              </StyledTableCell>
+              <StyledTableCell>{calculatedMaintenance}</StyledTableCell>
             </TableRow>
-
             <TableRow>
-              <StyledTableCell align="left">TRANSFERRED</StyledTableCell>
-              <StyledTableCell><EditableCell value={transferred} onChange={setTransferred} /></StyledTableCell>
-              <StyledTableCell></StyledTableCell>
+              <StyledTableCell>TRANSFERRED</StyledTableCell>
+              <StyledTableCell>
+                <EditableCell readonly={readonly} value={transferred} onChange={setTransferred} />
+              </StyledTableCell>
               <StyledTableCell></StyledTableCell>
               <StyledTableCell></StyledTableCell>
             </TableRow>
-
             <TableRow>
-              <StyledTableCell align="left">CASH PAID</StyledTableCell>
-              <StyledTableCell><EditableCell value={cashPaid} onChange={setCashPaid} /></StyledTableCell>
-              <StyledTableCell></StyledTableCell>
-              <StyledTableCell align="left">GROSS PAYABLE</StyledTableCell>
-              <StyledTableCell>{formatNum(grossPayable)}</StyledTableCell>
+              <StyledTableCell>CASH PAID</StyledTableCell>
+              <StyledTableCell sx={{ backgroundColor: '#eaf1ff' }}>
+                <EditableCell readonly={readonly} value={cashPaid} onChange={setCashPaid} />
+              </StyledTableCell>
+              <StyledTableCell>GROSS PAYABLE</StyledTableCell>
+              <StyledTableCell>{grossPayable}</StyledTableCell>
             </TableRow>
-
             <TableRow>
-              <StyledTableCell align="left">TOTAL</StyledTableCell>
-              <StyledTableCell>{formatNum(totalLeft)}</StyledTableCell>
-              <StyledTableCell></StyledTableCell>
-              <StyledTableCell align="left">Advance Paid</StyledTableCell>
-              <StyledTableCell>{formatNum(recovered)}</StyledTableCell>
+              <StyledTableCell>TOTAL</StyledTableCell>
+              <StyledTableCell>{totalLeft}</StyledTableCell>
+              <StyledTableCell>Advance Paid</StyledTableCell>
+              <StyledTableCell>
+                <EditableCell readonly={readonly} value={recovered} onChange={setRecovered} />
+              </StyledTableCell>
             </TableRow>
-
             <TableRow>
-              <StyledTableCell align="left">RECOVERED</StyledTableCell>
-              <StyledTableCell><EditableCell value={recovered} onChange={setRecovered} /></StyledTableCell>
-              <StyledTableCell></StyledTableCell>
-              <StyledTableCell align="center" bold>PAID</StyledTableCell>
-              <StyledTableCell><EditableCell value={paid} onChange={setPaid} /></StyledTableCell>
+              <StyledTableCell>RECOVERED</StyledTableCell>
+              <StyledTableCell>{recovered}</StyledTableCell>
+              <StyledTableCell>PAID</StyledTableCell>
+              <StyledTableCell>
+                <EditableCell readonly={readonly} value={paid} onChange={setPaid} />
+              </StyledTableCell>
             </TableRow>
 
             <TableRow>
@@ -446,6 +484,7 @@ const ProductionWagesTable = forwardRef<ProductionWagesTableRef, ProductionWages
         onClose={() => setModalOpen(false)} 
         details={maintenanceDetails}
         setDetails={setMaintenanceDetails}
+        readonly={readonly}
       />
     </Box>
   );

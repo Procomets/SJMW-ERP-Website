@@ -24,4 +24,19 @@ export interface ProductionWageSummary {
 export interface ProductionWageData {
   entries: ProductionWageEntry[];
   summary: ProductionWageSummary;
+  maintenanceDetails?: { date: string; persons: number; costPerDay: number }[];
 }
+
+export interface SavedProductionWageDoc {
+  id?: string;
+  startDate: any; // Timestamp in DB, string when serialized
+  endDate: any;
+  furnaces: string[];
+  rate: number;
+  data: ProductionWageData;
+  createdAt: any;
+  createdBy: string;
+  isLocked?: boolean;
+  lockedBy?: string;
+}
+

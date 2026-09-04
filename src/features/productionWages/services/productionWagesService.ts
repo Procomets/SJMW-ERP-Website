@@ -1,7 +1,7 @@
-import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, Timestamp, addDoc, serverTimestamp, orderBy, limit, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../firebase/firebaseConfig';
-import type { ProductionWageData } from '../types/productionWages';
-import { format } from 'date-fns';
+import type { ProductionWageData, SavedProductionWageDoc } from '../types/productionWages';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 
 export const getProductionWages = async (
   startDate: Date,
@@ -105,3 +105,110 @@ export const getAvailableFurnaces = async (
 
   return Array.from(furnaceSet).sort();
 };
+
+export const getSavedProductionWages = async (
+  startDate: Date,
+  endDate: Date,
+  furnaces: string[]
+): Promise<SavedProductionWageDoc | null> => {
+  const startOfDay = new Date(startDate);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(endDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const startTs = Timestamp.fromDate(startOfDay);
+  const endTs = Timestamp.fromDate(endOfDay);
+  const furnacesStr = furnaces.slice().sort().join(',');
+
+  const q = query(
+    collection(db, 'productionWages'),
+    where('startDate', '==', startTs),
+    where('endDate', '==', endTs)
+  );
+
+  const snap = await getDocs(q);
+  const match = snap.docs.find(doc => {
+    const f = doc.data().furnaces || [];
+    return f.slice().sort().join(',') === furnacesStr;
+  });
+
+  if (match) {
+    return { id: match.id, ...match.data() } as SavedProductionWageDoc;
+  }
+  return null;
+};
+
+export const saveProductionWages = async (
+  startDate: Date,
+  endDate: Date,
+  furnaces: string[],
+  rate: number,
+  data: ProductionWageData,
+  userEmail: string
+): Promise<string> => {
+  const startOfDay = new Date(startDate);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(endDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  // Check if existing first
+  const existing = await getSavedProductionWages(startDate, endDate, furnaces);
+  if (existing && existing.id) {
+    throw new Error('An entry already exists for this date range and furnaces.');
+  }
+
+  const docData = {
+    startDate: Timestamp.fromDate(startOfDay),
+    endDate: Timestamp.fromDate(endOfDay),
+    furnaces,
+    rate,
+    data,
+    createdAt: serverTimestamp(),
+    createdBy: userEmail
+  };
+
+  const docRef = await addDoc(collection(db, 'productionWages'), docData);
+  return docRef.id;
+};
+
+export const getProductionWagesHistory = async (): Promise<SavedProductionWageDoc[]> => {
+  const q = query(
+    collection(db, 'productionWages'),
+    orderBy('startDate', 'desc')
+  );
+
+  const snap = await getDocs(q);
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as SavedProductionWageDoc));
+};
+
+export const updateProductionWages = async (
+  id: string,
+  rate: number,
+  data: ProductionWageData,
+  userEmail: string
+): Promise<void> => {
+  const docRef = doc(db, 'productionWages', id);
+  await updateDoc(docRef, {
+    rate,
+    data,
+    updatedAt: serverTimestamp(),
+    updatedBy: userEmail
+  });
+};
+
+export const toggleLockProductionWages = async (
+  id: string,
+  isLocked: boolean,
+  userEmail: string
+): Promise<void> => {
+  const docRef = doc(db, 'productionWages', id);
+  await updateDoc(docRef, {
+    isLocked,
+    lockedBy: isLocked ? userEmail : null,
+    lockedAt: isLocked ? serverTimestamp() : null
+  });
+};
+
+

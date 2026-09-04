@@ -135,6 +135,9 @@ export const exportProductionWagesToExcel = async (params: ExportProductionWages
   tr1.getCell(2).value = 'TOTAL';
   tr1.getCell(2).font = BOLD_BLACK;
   tr1.getCell(2).alignment = { horizontal: 'center', vertical: 'middle' };
+  tr1.getCell(3).value = { formula: entries.length > 0 ? `SUM(C4:C${lastDataRow})` : '0', result: 0 };
+  tr1.getCell(3).font = BOLD_BLACK;
+  tr1.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
   tr1.getCell(5).value = { formula: entries.length > 0 ? `SUM(E4:E${lastDataRow})` : '0', result: 0 };
   for (let c = 1; c <= 5; c++) tr1.getCell(c).border = BORDER;
   rowNum++;
