@@ -189,7 +189,7 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
   const [register, setRegister] = useState<ExpenseRegisterDoc | null>(null);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [loading, setLoading] = useState(false);
-  const [saveLoading, setSaveLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   // UI state

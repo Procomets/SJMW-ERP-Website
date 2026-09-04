@@ -151,6 +151,10 @@ export const router = createBrowserRouter([
             element: <VendorMasterPage noDelete />,
           },
           {
+            path: 'accounts/employee-master',
+            element: <EmployeeMasterPage />,
+          },
+          {
             path: 'accounts/warehouse',
             element: <WarehousePage productionManager />,
           },
