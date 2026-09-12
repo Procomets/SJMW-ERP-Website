@@ -5,6 +5,7 @@ export interface ProductionWageEntry {
   qtyInKg: number | null;
   heatNo: string;
   amount: number | null;
+  isCustom?: boolean;
 }
 
 export interface ProductionWageSummary {

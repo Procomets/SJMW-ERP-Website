@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { ExpenseRegisterDoc } from '../types/expenseRegister.types';
-import { fmtAmount } from '../types/expenseRegister.types';
+import { fmtAmount, getWeeksForMonth } from '../types/expenseRegister.types';
 
 const getBase64ImageFromUrl = async (imageUrl: string): Promise<string> => {
   const res = await fetch(imageUrl);
@@ -48,17 +48,20 @@ export const exportExpenseRegisterToPdf = async (register: ExpenseRegisterDoc): 
   doc.text(`Weekly Expenses For ${register.month}${yearText}`, pageWidth / 2, currentY, { align: "center" });
   currentY += 25;
 
+  const weeks = getWeeksForMonth(register.year, register.month);
+
   const tableData: any[][] = [];
   let sNo = 1;
 
-  let tW1 = 0, tW2 = 0, tW3 = 0, tW4 = 0, tMonth = 0;
+  const weeklyTotals: Record<string, number> = {};
+  weeks.forEach(w => { weeklyTotals[w.key] = 0; });
+  let tMonth = 0;
 
   for (const cat of register.expenseCategories) {
-    const wa = cat.weeklyAmounts || { week1: 0, week2: 0, week3: 0, week4: 0 };
-    tW1 += wa.week1 || 0;
-    tW2 += wa.week2 || 0;
-    tW3 += wa.week3 || 0;
-    tW4 += wa.week4 || 0;
+    const wa = cat.weeklyAmounts || { week1: 0, week2: 0, week3: 0, week4: 0, week5: 0, week6: 0 };
+    weeks.forEach(w => {
+      weeklyTotals[w.key] = (weeklyTotals[w.key] || 0) + ((wa as any)[w.key] || 0);
+    });
     tMonth += cat.monthlyTotal || 0;
 
     if (cat.categoryId === 'EXP002') {
@@ -66,20 +69,14 @@ export const exportExpenseRegisterToPdf = async (register: ExpenseRegisterDoc): 
       tableData.push([
         sNo.toString(),
         'Food Expenses For Labours',
-        fmtAmount(wa.week1),
-        fmtAmount(wa.week2),
-        fmtAmount(wa.week3),
-        fmtAmount(wa.week4),
+        ...weeks.map(w => fmtAmount((wa as any)[w.key] || 0)),
         fmtAmount(cat.monthlyTotal || 0)
       ]);
-      const present = cat.weeklyPresent || { week1: 0, week2: 0, week3: 0, week4: 0 };
+      const present = cat.weeklyPresent || { week1: 0, week2: 0, week3: 0, week4: 0, week5: 0, week6: 0 };
       tableData.push([
         '',
         `No Of Present × ${foodRate}`,
-        present.week1?.toString() || '0',
-        present.week2?.toString() || '0',
-        present.week3?.toString() || '0',
-        present.week4?.toString() || '0',
+        ...weeks.map(w => (present as any)[w.key]?.toString() || '0'),
         ''
       ]);
       sNo++;
@@ -90,23 +87,16 @@ export const exportExpenseRegisterToPdf = async (register: ExpenseRegisterDoc): 
       tableData.push([
         sNo.toString(),
         isLabour ? 'Labour Wages (900 Rs per day)' : 'Fuel Expenses',
-        fmtAmount(wa.week1),
-        fmtAmount(wa.week2),
-        fmtAmount(wa.week3),
-        fmtAmount(wa.week4),
+        ...weeks.map(w => fmtAmount((wa as any)[w.key] || 0)),
         fmtAmount(cat.monthlyTotal || 0)
       ]);
 
       for (const item of items) {
-        const itemTotal = (item.week1 || 0) + (item.week2 || 0) + (item.week3 || 0) + (item.week4 || 0);
         tableData.push([
           '',
           isLabour ? (item as any).employeeName : (item as any).name,
-          fmtAmount(item.week1),
-          fmtAmount(item.week2),
-          fmtAmount(item.week3),
-          fmtAmount(item.week4),
-          fmtAmount(itemTotal)
+          ...weeks.map(w => fmtAmount((item as any)[w.key] || 0)),
+          fmtAmount(item.monthlyTotal || 0)
         ]);
       }
       sNo++;
@@ -114,10 +104,7 @@ export const exportExpenseRegisterToPdf = async (register: ExpenseRegisterDoc): 
       tableData.push([
         sNo.toString(),
         cat.categoryId === 'EXP006' ? 'Fastag (Toll Expenses)' : cat.categoryName,
-        fmtAmount(wa.week1),
-        fmtAmount(wa.week2),
-        fmtAmount(wa.week3),
-        fmtAmount(wa.week4),
+        ...weeks.map(w => fmtAmount((wa as any)[w.key] || 0)),
         fmtAmount(cat.monthlyTotal || 0)
       ]);
       sNo++;
@@ -127,35 +114,34 @@ export const exportExpenseRegisterToPdf = async (register: ExpenseRegisterDoc): 
   tableData.push([
     'TOTAL',
     '',
-    fmtAmount(tW1),
-    fmtAmount(tW2),
-    fmtAmount(tW3),
-    fmtAmount(tW4),
+    ...weeks.map(w => fmtAmount(weeklyTotals[w.key] || 0)),
     fmtAmount(tMonth)
   ]);
 
+  const totalColIdx = 2 + weeks.length;
+  const colStyles: any = {
+    0: { halign: 'center', cellWidth: 35 },
+    1: { halign: 'left', cellWidth: 'auto' },
+  };
+  weeks.forEach((_, idx) => {
+    colStyles[2 + idx] = { halign: 'right', cellWidth: weeks.length >= 6 ? 56 : weeks.length === 5 ? 68 : 80 };
+  });
+  colStyles[totalColIdx] = { halign: 'right', cellWidth: 90, fontStyle: 'bold' };
+
   autoTable(doc, {
     startY: currentY,
-    head: [['S.No', 'Particulars', '1st Week', '2nd Week', '3rd Week', '4th Week', 'Total For Month']],
+    head: [['S.No', 'Particulars', ...weeks.map(w => `${w.label}\n(${w.dateRange})`), 'Total For Month']],
     body: tableData,
     theme: 'grid',
     headStyles: { fillColor: [26, 42, 94], textColor: 255, halign: 'center', cellPadding: 6 },
-    styles: { fontSize: 10, cellPadding: 5, textColor: [30, 41, 59] },
-    columnStyles: {
-      0: { halign: 'center', cellWidth: 40 },
-      1: { halign: 'left', cellWidth: 'auto' },
-      2: { halign: 'right', cellWidth: 80 },
-      3: { halign: 'right', cellWidth: 80 },
-      4: { halign: 'right', cellWidth: 80 },
-      5: { halign: 'right', cellWidth: 80 },
-      6: { halign: 'right', cellWidth: 100, fontStyle: 'bold' }
-    },
+    styles: { fontSize: 9, cellPadding: 5, textColor: [30, 41, 59] },
+    columnStyles: colStyles,
     didParseCell: function(data) {
       data.cell.styles.lineColor = [197, 205, 216]; // #c5cdd8 (GRID_BORDER)
       data.cell.styles.lineWidth = 1;
 
       if (data.section === 'head') {
-        if (data.column.index === 6) {
+        if (data.column.index === totalColIdx) {
           data.cell.styles.fillColor = [124, 58, 20]; // #7c3a14 (TOTAL_HEADER_BG)
         } else {
           data.cell.styles.fillColor = [26, 42, 94]; // #1a2a5e (HEADER_BG)
@@ -180,7 +166,7 @@ export const exportExpenseRegisterToPdf = async (register: ExpenseRegisterDoc): 
           }
         }
         
-        if (data.column.index === 6 && (data.row.raw as any[])[0] !== 'TOTAL') {
+        if (data.column.index === totalColIdx && (data.row.raw as any[])[0] !== 'TOTAL') {
            data.cell.styles.fillColor = [245, 196, 161]; // #f5c4a1 (TOTAL_COL_BG)
         }
       }
@@ -195,3 +181,4 @@ export const exportExpenseRegisterToPdf = async (register: ExpenseRegisterDoc): 
   const yearSuffix = register.year ? `_${register.year}` : '';
   doc.save(`Expense_Register_${register.month}${yearSuffix}.pdf`);
 };
+

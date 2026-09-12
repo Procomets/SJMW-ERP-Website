@@ -86,7 +86,9 @@ export const exportProductionWagesToPdf = async (params: ExportProductionWagesPa
 
   if (entries.length > 0) {
     for (const row of entries) {
-      const amount = (row.qtyInKg || 0) * rate;
+      const amount = (row.amount !== null && row.amount !== undefined && row.amount > 0)
+        ? Number(row.amount)
+        : (row.qtyInKg || 0) * rate;
       sumAmount += amount;
       sumQty += (row.qtyInKg || 0);
       tableData.push([

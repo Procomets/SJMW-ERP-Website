@@ -22,7 +22,7 @@ import type { TooltipProps } from '@mui/material/Tooltip';
 import { styled } from '@mui/material/styles';
 import { fetchExpenseRegistersByYear } from '../services/expenseRegister.service';
 import type { ExpenseRegisterDoc } from '../types/expenseRegister.types';
-import { fmtAmount } from '../types/expenseRegister.types';
+import { fmtAmount, getWeeksForMonth } from '../types/expenseRegister.types';
 
 interface YearlyExpenseSummaryProps {
   year: string;
@@ -89,6 +89,8 @@ export const YearlyExpenseSummary: React.FC<YearlyExpenseSummaryProps> = ({ year
     );
   }
 
+  const modalWeeks = selectedDoc ? getWeeksForMonth(selectedDoc.year, selectedDoc.month) : [];
+
   return (
     <Card sx={{
       mt: 4, mb: 3, borderRadius: 1, overflow: 'hidden',
@@ -114,6 +116,8 @@ export const YearlyExpenseSummary: React.FC<YearlyExpenseSummaryProps> = ({ year
               <TableCell align="right" sx={{ fontWeight: 700 }}>Week 2</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700 }}>Week 3</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700 }}>Week 4</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700 }}>Week 5</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700 }}>Week 6</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, backgroundColor: '#f5c4a1' }}>Total Spending</TableCell>
             </TableRow>
           </TableHead>
@@ -159,6 +163,8 @@ export const YearlyExpenseSummary: React.FC<YearlyExpenseSummaryProps> = ({ year
                   <TableCell align="right">{fmtAmount(doc.weeklyTotals?.week2 || 0)}</TableCell>
                   <TableCell align="right">{fmtAmount(doc.weeklyTotals?.week3 || 0)}</TableCell>
                   <TableCell align="right">{fmtAmount(doc.weeklyTotals?.week4 || 0)}</TableCell>
+                  <TableCell align="right">{fmtAmount(doc.weeklyTotals?.week5 || 0)}</TableCell>
+                  <TableCell align="right">{fmtAmount(doc.weeklyTotals?.week6 || 0)}</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 700, backgroundColor: 'rgba(245, 196, 161, 0.3)' }}>
                     {fmtAmount(doc.grandTotal || 0)}
                   </TableCell>
@@ -173,9 +179,9 @@ export const YearlyExpenseSummary: React.FC<YearlyExpenseSummaryProps> = ({ year
       <Dialog 
         open={!!selectedDoc} 
         onClose={() => setSelectedDoc(null)} 
-        maxWidth="md" 
+        maxWidth="lg" 
         fullWidth
-        sx={{ "& .MuiDialog-paper": {  borderRadius: 2  } }}
+        sx={{ "& .MuiDialog-paper": { borderRadius: 2 } }}
       >
         <DialogTitle sx={{ 
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -196,34 +202,25 @@ export const YearlyExpenseSummary: React.FC<YearlyExpenseSummaryProps> = ({ year
                   <TableRow>
                     <TableCell sx={{ fontWeight: 700 }}>S.No</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Category</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700 }}>Week 1</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700 }}>Week 2</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700 }}>Week 3</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700 }}>Week 4</TableCell>
+                    {modalWeeks.map((w) => (
+                      <TableCell key={w.key} align="right" sx={{ fontWeight: 700 }}>
+                        <div>{w.label}</div>
+                        <div style={{ fontSize: '0.68rem', fontWeight: 500, opacity: 0.85 }}>({w.dateRange})</div>
+                      </TableCell>
+                    ))}
                     <TableCell align="right" sx={{ fontWeight: 700, backgroundColor: '#f5c4a1' }}>Total</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {(selectedDoc.expenseCategories || []).map((cat, index) => {
-                    const wa = cat.weeklyAmounts || { week1: 0, week2: 0, week3: 0, week4: 0 };
-                    // Handle special categories if they don't have standard weeklyAmounts populated properly for history
-                    // (Actually, recalcAllTotals always ensures weeklyAmounts exist for all categories except wages/fuel sub-categories which have their own fields, but they sum up to monthlyTotal. We will display standard if available, or just standard sum if not)
-                    
-                    // But to be safe and accurate based on how it's saved, let's just show the category's monthlyTotal for complex ones, 
-                    // or try to show week1-4 if available. If not available, we show '-' for weeks and total for Total.
-                    const w1 = wa.week1 || 0;
-                    const w2 = wa.week2 || 0;
-                    const w3 = wa.week3 || 0;
-                    const w4 = wa.week4 || 0;
-                    
+                    const wa = cat.weeklyAmounts || {};
                     return (
                       <TableRow key={cat.categoryId} hover>
                         <TableCell>{index + 1}</TableCell>
                         <TableCell sx={{ fontWeight: 600, color: '#334155' }}>{cat.categoryName}</TableCell>
-                        <TableCell align="right">{fmtAmount(w1)}</TableCell>
-                        <TableCell align="right">{fmtAmount(w2)}</TableCell>
-                        <TableCell align="right">{fmtAmount(w3)}</TableCell>
-                        <TableCell align="right">{fmtAmount(w4)}</TableCell>
+                        {modalWeeks.map((w) => (
+                          <TableCell key={w.key} align="right">{fmtAmount((wa as any)[w.key] || 0)}</TableCell>
+                        ))}
                         <TableCell align="right" sx={{ fontWeight: 700, backgroundColor: 'rgba(245, 196, 161, 0.3)' }}>
                           {fmtAmount(cat.monthlyTotal || 0)}
                         </TableCell>
@@ -234,10 +231,11 @@ export const YearlyExpenseSummary: React.FC<YearlyExpenseSummaryProps> = ({ year
                   {/* Grand Total Row */}
                   <TableRow sx={{ backgroundColor: '#d6e4f0' }}>
                     <TableCell colSpan={2} sx={{ fontWeight: 800, textAlign: 'center' }}>GRAND TOTAL</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 800 }}>{fmtAmount(selectedDoc.weeklyTotals?.week1 || 0)}</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 800 }}>{fmtAmount(selectedDoc.weeklyTotals?.week2 || 0)}</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 800 }}>{fmtAmount(selectedDoc.weeklyTotals?.week3 || 0)}</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 800 }}>{fmtAmount(selectedDoc.weeklyTotals?.week4 || 0)}</TableCell>
+                    {modalWeeks.map((w) => (
+                      <TableCell key={w.key} align="right" sx={{ fontWeight: 800 }}>
+                        {fmtAmount((selectedDoc.weeklyTotals as any)?.[w.key] || 0)}
+                      </TableCell>
+                    ))}
                     <TableCell align="right" sx={{ fontWeight: 800, color: '#7c2d12', backgroundColor: '#f5c4a1' }}>
                       ₹ {fmtAmount(selectedDoc.grandTotal || 0)}
                     </TableCell>

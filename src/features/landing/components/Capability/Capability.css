@@ -94,32 +94,11 @@
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
-@media (hover: hover) {
-  .sjmw-whatwedo__feature:hover {
-    background: #FFFFFF;
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04);
-    border-color: transparent;
-  }
-  
-  .sjmw-whatwedo__feature:hover::before {
-    opacity: 1;
-    transform: scaleY(1);
-  }
-}
-
 .sjmw-whatwedo__feature-id {
   font-size: 1rem;
   font-weight: 700;
   color: #BBBBBB;
   margin-top: 4px;
-  transition: color 0.4s ease;
-}
-
-@media (hover: hover) {
-  .sjmw-whatwedo__feature:hover .sjmw-whatwedo__feature-id {
-    color: #42A5F5;
-  }
 }
 
 .sjmw-whatwedo__feature-text {
@@ -139,6 +118,33 @@
   color: #666666;
   line-height: 1.5;
   margin: 0;
+}
+
+.sjmw-whatwedo__title,
+.sjmw-whatwedo__subtitle,
+.sjmw-whatwedo__feature {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.sjmw-whatwedo__content.is-visible .sjmw-whatwedo__title {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.1s;
+}
+
+.sjmw-whatwedo__content.is-visible .sjmw-whatwedo__subtitle {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.25s;
+}
+
+.sjmw-whatwedo__content.is-visible .sjmw-whatwedo__feature {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.4s;
 }
 
 /* ── Visual (Right Column) ────────────────────────────────── */
@@ -169,6 +175,15 @@
   border-radius: 20px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
   display: block;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sjmw-whatwedo__visual.is-visible .sjmw-whatwedo__video {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.3s;
 }
 
 /* ── Floating Labels ──────────────────────────────────────── */
@@ -184,12 +199,6 @@
   box-shadow: 0 10px 30px rgba(66, 165, 245, 0.3);
   z-index: 2;
   transition: transform 0.4s ease;
-}
-
-@media (hover: hover) {
-  .sjmw-whatwedo__floating-label:hover {
-    transform: translateY(-4px);
-  }
 }
 
 .label-1 {

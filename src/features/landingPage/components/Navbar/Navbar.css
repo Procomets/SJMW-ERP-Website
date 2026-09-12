@@ -159,46 +159,47 @@
 @media (max-width: 768px) {
   .navbar {
     top: 16px;
-    zoom: 0.85; /* Scale down the entire pill slightly */
+    zoom: 1.0; /* Made larger in mobile view */
   }
 
   .navbar__inner {
-    padding: 6px 12px 6px 16px;
-    gap: 16px;
+    padding: 8px 16px;
+    gap: 20px;
   }
 
   .navbar__brand-name {
-    font-size: 1rem;
+    font-size: 1.05rem;
   }
 
   .navbar__brand-tagline {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
   }
 
   .navbar__divider {
-    height: 36px;
+    height: 40px;
   }
 
   .navbar__cta {
-    gap: 16px;
+    gap: 18px;
   }
 
-  .btn-nav-about {
-    font-size: 0.95rem;
+  .navbar .btn-nav-about {
+    font-size: 1rem;
   }
 
-  .btn-nav-erp {
-    padding: 10px 20px;
-    font-size: 0.95rem;
+  .navbar .btn-nav-erp {
+    padding: 10px 22px;
+    font-size: 1rem;
   }
 }
 
 @media (max-width: 480px) {
   .navbar {
-    zoom: 0.75; /* Scale down further for very small screens */
+    zoom: 0.92; /* Increased from 0.75 so navbar stays comfortably readable & tapable */
   }
   
   .navbar__inner {
-    gap: 12px;
+    gap: 14px;
+    padding: 8px 14px;
   }
 }

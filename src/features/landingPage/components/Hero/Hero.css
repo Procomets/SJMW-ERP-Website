@@ -59,6 +59,14 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
+  opacity: 0;
+  transform: scale(1.06);
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-section.is-visible .hero__bg-video {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .hero__overlay {
@@ -80,14 +88,41 @@
   justify-content: space-between;
   align-items: center;
   height: 100%;
-  padding: 0 var(--space-12);
+  padding: 0 var(--space-12) 0 clamp(4.5rem, 8vw, 11rem);
 }
 
-/* ── Left Content (Text) ─────────────────────────────────── */
+/* ── Left Content (Text & Entrance Animations) ───────────── */
 .hero__left {
   max-width: 650px;
   color: var(--color-white);
   padding-bottom: var(--space-8);
+}
+
+.hero-section .hero__heading,
+.hero-section .hero__description,
+.hero-section .hero__buttons {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.hero-section.is-visible .hero__heading {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.15s;
+}
+
+.hero-section.is-visible .hero__description {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.3s;
+}
+
+.hero-section.is-visible .hero__buttons {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.45s;
 }
 
 .hero-section .hero__heading {

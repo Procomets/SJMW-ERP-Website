@@ -31,6 +31,7 @@ import {
   recalcAllTotals,
   fmtAmount,
   MONTH_NUMBER_MAP,
+  getWeeksForMonth,
 } from '../types/expenseRegister.types';
 import { getAttendanceForMonth } from '../../attendance/services/attendanceService';
 import { getEmployees } from '../../employeeMaster/services/employeeService';
@@ -223,7 +224,11 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
 
         const labourIds = new Set(employees.filter(e => e.employeeType === 'Labour').map(e => e.employeeId));
 
-        let w1 = 0, w2 = 0, w3 = 0, w4 = 0;
+        const monthWeeks = getWeeksForMonth(selectedYear, selectedMonth);
+        const weeklyPresentCounts: Record<string, number> = {
+          week1: 0, week2: 0, week3: 0, week4: 0, week5: 0, week6: 0
+        };
+
         attendanceRecords.forEach(record => {
           if (labourIds.has(record.employeeId)) {
             let value = 0;
@@ -232,10 +237,10 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
 
             if (value > 0) {
               const day = parseInt(record.date.split('-')[2]);
-              if (day <= 7) w1 += value;
-              else if (day <= 14) w2 += value;
-              else if (day <= 21) w3 += value;
-              else w4 += value;
+              const foundWeek = monthWeeks.find(w => day >= w.startDay && day <= w.endDay);
+              if (foundWeek) {
+                weeklyPresentCounts[foundWeek.key] = (weeklyPresentCounts[foundWeek.key] || 0) + value;
+              }
             }
           }
         });
@@ -244,7 +249,14 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
           if (cat.categoryId === 'EXP002') {
             return {
               ...cat,
-              weeklyPresent: { week1: w1, week2: w2, week3: w3, week4: w4 }
+              weeklyPresent: {
+                week1: weeklyPresentCounts.week1 || 0,
+                week2: weeklyPresentCounts.week2 || 0,
+                week3: weeklyPresentCounts.week3 || 0,
+                week4: weeklyPresentCounts.week4 || 0,
+                week5: weeklyPresentCounts.week5 || 0,
+                week6: weeklyPresentCounts.week6 || 0,
+              }
             };
           }
           return cat;
@@ -270,8 +282,10 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
     setCategories(recalced);
   }, []);
 
+  type WeekKey = 'week1' | 'week2' | 'week3' | 'week4' | 'week5' | 'week6';
+
   // ─── Update a standard category weekly amount ─────────────────────
-  const updateWeeklyAmount = useCallback((catId: string, week: 'week1' | 'week2' | 'week3' | 'week4', value: number) => {
+  const updateWeeklyAmount = useCallback((catId: string, week: WeekKey, value: number) => {
     setCategories((prev) => {
       const updated = prev.map((cat) => {
         if (cat.categoryId !== catId) return cat;
@@ -289,7 +303,7 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
   }, []);
 
   // ─── Update food expense present count ────────────────────────────
-  const updateFoodPresent = useCallback((week: 'week1' | 'week2' | 'week3' | 'week4', value: number) => {
+  const updateFoodPresent = useCallback((week: WeekKey, value: number) => {
     setCategories((prev) => {
       const updated = prev.map((cat) => {
         if (cat.categoryId !== 'EXP002') return cat;
@@ -319,7 +333,7 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
   }, []);
 
   // ─── Update employee weekly amount ────────────────────────────────
-  const updateEmployeeWeek = useCallback((empId: string, week: 'week1' | 'week2' | 'week3' | 'week4', value: number) => {
+  const updateEmployeeWeek = useCallback((empId: string, week: WeekKey, value: number) => {
     setCategories((prev) => {
       const updated = prev.map((cat) => {
         if (cat.categoryId !== 'EXP003') return cat;
@@ -342,7 +356,7 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
     const newEmp: LabourEmployee = {
       employeeId: empId,
       employeeName: newLabourName.trim(),
-      week1: 0, week2: 0, week3: 0, week4: 0, monthlyTotal: 0,
+      week1: 0, week2: 0, week3: 0, week4: 0, week5: 0, week6: 0, monthlyTotal: 0,
     };
     setCategories((prev) => {
       const updated = prev.map((cat) => {
@@ -371,7 +385,7 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
   }, []);
 
   // ─── Update fuel sub-category ─────────────────────────────────────
-  const updateSubCategoryWeek = useCallback((subName: string, week: 'week1' | 'week2' | 'week3' | 'week4', value: number) => {
+  const updateSubCategoryWeek = useCallback((subName: string, week: WeekKey, value: number) => {
     setCategories((prev) => {
       const updated = prev.map((cat) => {
         if (cat.categoryId !== 'EXP004') return cat;
@@ -452,9 +466,8 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
   // Calculate totals for display
   const { weeklyTotals, grandTotal } = recalcAllTotals(categories);
 
-  // Week keys helper
-  const WEEKS: Array<'week1' | 'week2' | 'week3' | 'week4'> = ['week1', 'week2', 'week3', 'week4'];
-  const WEEK_LABELS = ['1st Week', '2nd Week', '3rd Week', '4th Week'];
+  // Dynamic weeks helper for selected month
+  const weeks = getWeeksForMonth(selectedYear, selectedMonth);
 
   // ─── Table cell style helpers ─────────────────────────────────────
   const cellSx = {
@@ -698,12 +711,15 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
                   }}>
                     Particulars
                   </th>
-                  {WEEK_LABELS.map((wl, _idx) => (
-                    <th key={wl} style={{
-                      ...headerCellSx, width: 110,
+                  {weeks.map((w) => (
+                    <th key={w.key} style={{
+                      ...headerCellSx, width: 115,
                       position: 'sticky', top: 0, zIndex: 2,
                     }}>
-                      {wl}
+                      <div>{w.label}</div>
+                      <div style={{ fontSize: '0.68rem', fontWeight: 500, opacity: 0.85, marginTop: 2 }}>
+                        ({w.dateRange})
+                      </div>
                     </th>
                   ))}
                   <th style={{
@@ -721,8 +737,8 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
                   // ─── Food Expenses (EXP002) ──────────────────────
                   if (cat.categoryId === 'EXP002') {
                     sNo++;
-                    const present = cat.weeklyPresent || { week1: 0, week2: 0, week3: 0, week4: 0 };
-                    const wa = cat.weeklyAmounts || { week1: 0, week2: 0, week3: 0, week4: 0 };
+                    const present = cat.weeklyPresent || { week1: 0, week2: 0, week3: 0, week4: 0, week5: 0 };
+                    const wa = cat.weeklyAmounts || { week1: 0, week2: 0, week3: 0, week4: 0, week5: 0 };
                     return (
                       <React.Fragment key={cat.categoryId}>
                         {/* Header row */}
@@ -733,9 +749,9 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
                           <td style={{ ...cellSx, fontWeight: 700, fontSize: '0.82rem', padding: '8px 12px' }}>
                             Food Expenses For Labours
                           </td>
-                          {WEEKS.map((wk) => (
-                            <td key={wk} style={cellSx}>
-                              <DisplayCell value={wa[wk]} />
+                          {weeks.map((w) => (
+                            <td key={w.key} style={cellSx}>
+                              <DisplayCell value={wa[w.key] || 0} />
                             </td>
                           ))}
                           <td style={cellSx}>
@@ -763,11 +779,11 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
                               </Tooltip>
                             )}
                           </td>
-                          {WEEKS.map((wk) => (
-                            <td key={wk} style={cellSx}>
+                          {weeks.map((w) => (
+                            <td key={w.key} style={cellSx}>
                               <EditableCell
-                                value={present[wk]}
-                                onChange={(v) => updateFoodPresent(wk, v)}
+                                value={present[w.key] || 0}
+                                onChange={(v) => updateFoodPresent(w.key, v)}
                                 disabled={!isEditable}
                                 placeholder="0"
                               />
@@ -803,8 +819,8 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
                               </Tooltip>
                             )}
                           </td>
-                          {WEEKS.map((wk) => (
-                            <td key={wk} style={cellSx}></td>
+                          {weeks.map((w) => (
+                            <td key={w.key} style={cellSx}></td>
                           ))}
                           <td style={cellSx}>
                             <DisplayCell value={cat.monthlyTotal || 0} isTotalCol bold />
@@ -828,11 +844,11 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
                                 </Tooltip>
                               )}
                             </td>
-                            {WEEKS.map((wk) => (
-                              <td key={wk} style={cellSx}>
+                            {weeks.map((w) => (
+                              <td key={w.key} style={cellSx}>
                                 <EditableCell
-                                  value={emp[wk]}
-                                  onChange={(v) => updateEmployeeWeek(emp.employeeId, wk, v)}
+                                  value={emp[w.key] || 0}
+                                  onChange={(v) => updateEmployeeWeek(emp.employeeId, w.key, v)}
                                   disabled={!isEditable}
                                 />
                               </td>
@@ -859,8 +875,8 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
                           <td style={{ ...cellSx, fontWeight: 700, fontSize: '0.82rem', padding: '8px 12px' }}>
                             Fuel Expenses
                           </td>
-                          {WEEKS.map((wk) => (
-                            <td key={wk} style={cellSx}></td>
+                          {weeks.map((w) => (
+                            <td key={w.key} style={cellSx}></td>
                           ))}
                           <td style={cellSx}>
                             <DisplayCell value={cat.monthlyTotal || 0} isTotalCol bold />
@@ -873,11 +889,11 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
                             <td style={{ ...cellSx, padding: '4px 12px 4px 24px', fontSize: '0.8rem', color: '#475569' }}>
                               {sub.name}
                             </td>
-                            {WEEKS.map((wk) => (
-                              <td key={wk} style={cellSx}>
+                            {weeks.map((w) => (
+                              <td key={w.key} style={cellSx}>
                                 <EditableCell
-                                  value={sub[wk]}
-                                  onChange={(v) => updateSubCategoryWeek(sub.name, wk, v)}
+                                  value={sub[w.key] || 0}
+                                  onChange={(v) => updateSubCategoryWeek(sub.name, w.key, v)}
                                   disabled={!isEditable}
                                 />
                               </td>
@@ -893,7 +909,7 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
 
                   // ─── Standard single-row categories ──────────────
                   sNo++;
-                  const wa = cat.weeklyAmounts || { week1: 0, week2: 0, week3: 0, week4: 0 };
+                  const wa = cat.weeklyAmounts || { week1: 0, week2: 0, week3: 0, week4: 0, week5: 0 };
                   const displayName = cat.categoryId === 'EXP006'
                     ? 'Fastag (Toll Expenses)'
                     : cat.categoryName;
@@ -906,11 +922,11 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
                       <td style={{ ...cellSx, fontWeight: 700, fontSize: '0.82rem', padding: '8px 12px' }}>
                         {displayName}
                       </td>
-                      {WEEKS.map((wk) => (
-                        <td key={wk} style={cellSx}>
+                      {weeks.map((w) => (
+                        <td key={w.key} style={cellSx}>
                           <EditableCell
-                            value={wa[wk]}
-                            onChange={(v) => updateWeeklyAmount(cat.categoryId, wk, v)}
+                            value={wa[w.key] || 0}
+                            onChange={(v) => updateWeeklyAmount(cat.categoryId, w.key, v)}
                             disabled={!isEditable}
                           />
                         </td>
@@ -939,14 +955,14 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
                   >
                     TOTAL
                   </td>
-                  {WEEKS.map((wk) => (
-                    <td key={wk} style={{ ...cellSx, padding: 0 }}>
+                  {weeks.map((w) => (
+                    <td key={w.key} style={{ ...cellSx, padding: 0 }}>
                       <Box sx={{
                         display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
                         px: 1, py: 1, backgroundColor: FOOTER_BG,
                       }}>
                         <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#1e293b', fontFamily: '"Inter", monospace' }}>
-                          {fmtAmount(weeklyTotals[wk])}
+                          {fmtAmount(weeklyTotals[w.key] || 0)}
                         </Typography>
                       </Box>
                     </td>
@@ -966,7 +982,7 @@ const MonthlyExpenseRegisterPage = ({ accountsMode = false }: Props) => {
                 {/* ─── Grand Total Row ─────────────────────────────── */}
                 <tr style={{ backgroundColor: FOOTER_BG }}>
                   <td
-                    colSpan={6}
+                    colSpan={2 + weeks.length}
                     style={{
                       ...cellSx,
                       textAlign: 'center',

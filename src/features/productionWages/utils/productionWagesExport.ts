@@ -107,7 +107,12 @@ export const exportProductionWagesToExcel = async (params: ExportProductionWages
       r.getCell(2).value = row.alloy || '';
       r.getCell(3).value = row.qtyInKg || 0;
       r.getCell(4).value = row.heatNo || '';
-      r.getCell(5).value = { formula: `C${rowNum}*${rate}`, result: (row.qtyInKg || 0) * rate };
+      const amt = (row.amount !== null && row.amount !== undefined && row.amount > 0)
+        ? Number(row.amount)
+        : (row.qtyInKg || 0) * rate;
+      r.getCell(5).value = (row.amount !== null && row.amount !== undefined && row.amount > 0)
+        ? amt
+        : { formula: `C${rowNum}*${rate}`, result: amt };
       
       for (let c = 1; c <= 5; c++) {
         r.getCell(c).border = BORDER;

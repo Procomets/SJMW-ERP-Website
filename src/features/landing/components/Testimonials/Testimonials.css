@@ -32,6 +32,26 @@
   flex-direction: column;
 }
 
+.sjmw-testimonials__header,
+.sjmw-carousel-wrapper {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.sjmw-testimonials.is-visible .sjmw-testimonials__header {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.1s;
+}
+
+.sjmw-testimonials.is-visible .sjmw-carousel-wrapper {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.3s;
+}
+
 /* ── Section Header ──────────────────────────────────────── */
 .sjmw-testimonials__header {
   text-align: center;

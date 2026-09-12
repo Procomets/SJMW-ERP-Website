@@ -47,7 +47,15 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sjmw-commitment__visual.is-visible .sjmw-commitment__video {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.2s;
 }
 
 .sjmw-commitment__video-overlay {
@@ -77,6 +85,33 @@
 .sjmw-commitment__content.is-visible {
   opacity: 1;
   transform: translateX(0);
+}
+
+.sjmw-commitment__title,
+.sjmw-commitment__desc,
+.sjmw-commitment__point {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.sjmw-commitment__content.is-visible .sjmw-commitment__title {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.1s;
+}
+
+.sjmw-commitment__content.is-visible .sjmw-commitment__desc {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.25s;
+}
+
+.sjmw-commitment__content.is-visible .sjmw-commitment__point {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.4s;
 }
 
 .sjmw-commitment__badge {
