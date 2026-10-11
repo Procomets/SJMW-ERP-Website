@@ -17,6 +17,7 @@ import {
     addProductionEntry,
     updateProductionEntry,
     deleteProductionEntry,
+    syncMissingQcNotifications,
 } from '../services/productionLedger.service';
 import type {
     ProductionLedgerEntry,
@@ -137,6 +138,9 @@ const ProductionLedgerPage = () => {
                     .map((fg) => fg.heatNo)
             );
             setApprovedHeats(approved);
+            syncMissingQcNotifications().catch((e) =>
+                console.error("Failed to auto-sync missing QC notifications:", e)
+            );
         } catch (err) {
             console.error("Failed to load production data:", err);
         } finally {

@@ -131,6 +131,7 @@ const MonthlySalaryTable = React.forwardRef<SalaryTableRef, MonthlySalaryTablePr
   };
 
   // Compute Totals
+  let totalSalary = 0;
   let totalGross = 0;
   let totalBasic = 0;
   let totalHRA = 0;
@@ -193,12 +194,14 @@ const MonthlySalaryTable = React.forwardRef<SalaryTableRef, MonthlySalaryTablePr
             const salary = (parseFloat(String(emp.monthlyIncome || 0)) || 0) + (rowState.hike || 0);
             const perDayPay = noOfDays > 0 ? (salary / noOfDays) : 0;
             
-            // Calc Present
+            // Calc Present & 2 Days Paid Leave
             const empAtt = attendanceRecords.filter(r => r.employeeId === emp.employeeId);
             const noOfPresent = empAtt.filter(r => r.status === 'Present' || r.status === 'N').length;
-            const noOfLeave = noOfDays - noOfPresent; // Or calculate absent directly
+            const noOfLeave = Math.max(0, noOfDays - noOfPresent);
+            const paidLeave = Math.min(noOfLeave, 2);
+            const paidDays = Math.min(noOfDays, noOfPresent + paidLeave);
             
-            const grossSalary = perDayPay * noOfPresent;
+            const grossSalary = paidDays === noOfDays ? salary : (perDayPay * paidDays);
             const basic = grossSalary * 0.5;
             const hra = grossSalary * 0.2;
             const sa = grossSalary * 0.2;
@@ -213,6 +216,7 @@ const MonthlySalaryTable = React.forwardRef<SalaryTableRef, MonthlySalaryTablePr
             const netSalary = grossSalary - pf - esi - advance - lop;
 
             // Accumulate
+            totalSalary += salary;
             totalGross += grossSalary;
             totalBasic += basic;
             totalHRA += hra;
@@ -286,11 +290,11 @@ const MonthlySalaryTable = React.forwardRef<SalaryTableRef, MonthlySalaryTablePr
 
           {/* TOTALS ROW */}
           <TableRow sx={{ backgroundColor: '#002060' }}>
-            <TableCell colSpan={6} align="center" sx={{ color: '#fff', fontWeight: 'bold', fontSize: '0.85rem' }}>TOTAL</TableCell>
-            <TableCell align="right" sx={{ color: '#fff', fontWeight: 'bold' }}>
-              {employees.reduce((acc, emp) => acc + (parseFloat(String(emp.monthlyIncome || 0)) || 0), 0).toFixed(0)}
-            </TableCell>
-            <TableCell colSpan={3}></TableCell>
+            <TableCell colSpan={5} align="center" sx={{ color: '#fff', fontWeight: 'bold', fontSize: '0.85rem' }}>TOTAL</TableCell>
+            <TableCell align="right" sx={{ color: '#fff', fontWeight: 'bold' }}>{totalSalary.toFixed(0)}</TableCell>
+            <TableCell align="center" sx={{ color: '#fff' }}></TableCell>
+            <TableCell align="right" sx={{ color: '#fff' }}></TableCell>
+            <TableCell align="center" sx={{ color: '#fff' }}></TableCell>
             <TableCell align="right" sx={{ color: '#fff', fontWeight: 'bold' }}>{totalGross.toFixed(0)}</TableCell>
             <TableCell align="right" sx={{ color: '#fff', fontWeight: 'bold' }}>{totalBasic.toFixed(0)}</TableCell>
             <TableCell align="right" sx={{ color: '#fff', fontWeight: 'bold' }}>{totalHRA.toFixed(0)}</TableCell>
@@ -300,7 +304,7 @@ const MonthlySalaryTable = React.forwardRef<SalaryTableRef, MonthlySalaryTablePr
             <TableCell align="right" sx={{ color: '#fff', fontWeight: 'bold' }}>{totalPF.toFixed(0)}</TableCell>
             <TableCell align="right" sx={{ color: '#fff', fontWeight: 'bold' }}>{totalESI.toFixed(0)}</TableCell>
             <TableCell align="right" sx={{ color: '#fff', fontWeight: 'bold' }}>{totalAdvance.toFixed(0)}</TableCell>
-            <TableCell colSpan={1}></TableCell>
+            <TableCell align="center" sx={{ color: '#fff' }}></TableCell>
             <TableCell align="right" sx={{ color: '#fff', fontWeight: 'bold' }}>{totalLOP.toFixed(0)}</TableCell>
             <TableCell align="right" sx={{ color: '#fff', fontWeight: 'bold' }}>{totalNet.toFixed(0)}</TableCell>
             <TableCell colSpan={5}></TableCell>

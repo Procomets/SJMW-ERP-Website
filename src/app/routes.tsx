@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 // @ts-ignore
 import LandingLayout from '../features/landingPage/LandingLayout';
@@ -31,6 +31,8 @@ import EmployeeMasterPage from '../features/employeeMaster/pages/EmployeeMasterP
 import AttendancePage from '../features/attendance/pages/AttendancePage';
 import SalarySheetPage from '../features/salarySheet/pages/SalarySheetPage';
 import ProductionWagesPage from '../features/productionWages/pages/ProductionWagesPage';
+import PurchaseOrderPage from '../features/purchaseOrder/pages/PurchaseOrderPage';
+import ProformaInvoicePage from '../features/proformaInvoice/pages/ProformaInvoicePage';
 
 export const router = createBrowserRouter([
   {
@@ -127,6 +129,22 @@ export const router = createBrowserRouter([
             path: 'production-wages',
             element: <ProductionWagesPage />,
           },
+          {
+            path: 'purchase-order',
+            element: <PurchaseOrderPage />,
+          },
+          {
+            path: 'purchase-orders',
+            element: <Navigate to="/purchase-order" replace />,
+          },
+          {
+            path: 'proforma-invoice',
+            element: <ProformaInvoicePage />,
+          },
+          {
+            path: 'proforma-invoices',
+            element: <Navigate to="/proforma-invoice" replace />,
+          },
         ],
       },
     ],
@@ -149,6 +167,22 @@ export const router = createBrowserRouter([
           {
             path: 'accounts/vendor-master',
             element: <VendorMasterPage noDelete />,
+          },
+          {
+            path: 'accounts/purchase-order',
+            element: <PurchaseOrderPage accountsMode />,
+          },
+          {
+            path: 'accounts/purchase-orders',
+            element: <Navigate to="/accounts/purchase-order" replace />,
+          },
+          {
+            path: 'accounts/proforma-invoice',
+            element: <ProformaInvoicePage accountsMode />,
+          },
+          {
+            path: 'accounts/proforma-invoices',
+            element: <Navigate to="/accounts/proforma-invoice" replace />,
           },
           {
             path: 'accounts/employee-master',

@@ -84,9 +84,11 @@ export const exportMonthlySalaryToPdf = async (
     
     const empAtt = attendanceRecords.filter(r => r.employeeId === emp.employeeId);
     const noOfPresent = empAtt.filter(r => r.status === 'Present' || r.status === 'N').length;
-    const noOfLeave = noOfDays - noOfPresent;
+    const noOfLeave = Math.max(0, noOfDays - noOfPresent);
+    const paidLeave = Math.min(noOfLeave, 2);
+    const paidDays = Math.min(noOfDays, noOfPresent + paidLeave);
     
-    const grossSalary = perDayPay * noOfPresent;
+    const grossSalary = paidDays === noOfDays ? salary : (perDayPay * paidDays);
     const basic = grossSalary * 0.5;
     const hra = grossSalary * 0.2;
     const sa = grossSalary * 0.2;

@@ -1,3 +1,4 @@
+import { Box } from '@mui/material';
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell,
   PieChart, Pie, Legend,
@@ -27,24 +28,24 @@ const QualitySection = ({ analytics, loading }: Props) => (
       <span className="text-sm font-black text-slate-700 uppercase tracking-wider">Quality &amp; Efficiency Analytics</span>
     </div>
 
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
 
       {/* 1. Efficiency Trend */}
       <ChartCard title="Efficiency Trend" subtitle="Average recovery efficiency per day (%)" loading={loading} empty={analytics.efficiencyTrend.length === 0} accentColor={GREEN}>
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={260} minWidth={440} minHeight={260}>
           <LineChart data={analytics.efficiencyTrend} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
             <XAxis dataKey="date" tick={axisStyle} axisLine={false} tickLine={false} interval="preserveStartEnd" />
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} width={44} domain={[70, 100]} />
             <Tooltip {...tooltipStyle} formatter={(v: any) => [`${Number(v).toFixed(2)}%`, 'Efficiency']} />
-            <Line type="monotone" dataKey="value" stroke={GREEN} strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: GREEN }} />
+            <Line type="monotone" dataKey="value" stroke={GREEN} strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: GREEN }} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </ChartCard>
 
       {/* 2. Quality PASS/FAIL */}
       <ChartCard title="Quality Control Results" subtitle="PASS vs FAIL distribution" loading={loading} empty={analytics.qualityPassFail.every(q => q.value === 0)} accentColor={GREEN}>
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={260} minWidth={440} minHeight={260}>
           <PieChart>
             <Pie
               data={analytics.qualityPassFail.filter(q => q.value > 0)}
@@ -57,6 +58,7 @@ const QualitySection = ({ analytics, loading }: Props) => (
               paddingAngle={3}
               label={({ name, value, percent }) => `${name}: ${value} (${percent !== undefined ? (percent * 100).toFixed(0) : 0}%)`}
               labelLine
+              isAnimationActive={false}
             >
               {analytics.qualityPassFail.map((entry, idx) => (
                 <Cell key={idx} fill={entry.color || BLUE} />
@@ -70,13 +72,13 @@ const QualitySection = ({ analytics, loading }: Props) => (
 
       {/* 3. Shift Performance */}
       <ChartCard title="Shift Performance" subtitle="Average efficiency by shift" loading={loading} empty={analytics.shiftPerformance.every(s => s.value === 0)} accentColor={BLUE}>
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={260} minWidth={440} minHeight={260}>
           <BarChart data={analytics.shiftPerformance} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
             <XAxis dataKey="name" tick={axisStyle} axisLine={false} tickLine={false} />
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} domain={[0, 100]} width={44} />
             <Tooltip {...tooltipStyle} formatter={(v: any) => [`${Number(v).toFixed(2)}%`, 'Avg Efficiency']} />
-            <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+            <Bar dataKey="value" radius={[6, 6, 0, 0]} isAnimationActive={false}>
               {analytics.shiftPerformance.map((entry, idx) => (
                 <Cell key={idx} fill={entry.color || BLUE} />
               ))}
@@ -85,15 +87,15 @@ const QualitySection = ({ analytics, loading }: Props) => (
         </ResponsiveContainer>
       </ChartCard>
 
-      {/* 4. Loss Analysis (Input → Production Loss → Finished → Dispatched) */}
+      {/* 4. Loss Analysis */}
       <ChartCard title="Loss Analysis" subtitle="Material flow: Input → Finished → Dispatched (kg)" loading={loading} empty={analytics.lossAnalysis.every(l => l.value === 0)} accentColor={RED}>
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={260} minWidth={440} minHeight={260}>
           <BarChart data={analytics.lossAnalysis} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
             <XAxis dataKey="name" tick={{ ...axisStyle, fontSize: '0.62rem' }} axisLine={false} tickLine={false} />
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(1)}T` : `${v}kg`} width={52} />
             <Tooltip {...tooltipStyle} formatter={(v: any) => [`${Number(v).toLocaleString('en-IN')} kg`, '']} />
-            <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+            <Bar dataKey="value" radius={[6, 6, 0, 0]} isAnimationActive={false}>
               {analytics.lossAnalysis.map((entry, idx) => (
                 <Cell key={idx} fill={entry.color || BLUE} />
               ))}
@@ -102,7 +104,7 @@ const QualitySection = ({ analytics, loading }: Props) => (
         </ResponsiveContainer>
       </ChartCard>
 
-    </div>
+    </Box>
   </div>
 );
 

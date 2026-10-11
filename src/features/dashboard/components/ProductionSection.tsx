@@ -1,3 +1,4 @@
+import { Box } from '@mui/material';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, AreaChart, Area, Cell } from 'recharts';
 import ChartCard from './ChartCard';
 import type { DashboardAnalytics } from '../types/dashboard.types';
@@ -26,11 +27,11 @@ const ProductionSection = ({ analytics, loading }: Props) => (
       <span className="text-sm font-black text-slate-700 uppercase tracking-wider">Production Analytics</span>
     </div>
 
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
 
       {/* 1. Daily Production Trend */}
       <ChartCard title="Daily Production Trend" subtitle="Good ingots output per day (kg)" loading={loading} empty={analytics.dailyProductionTrend.length === 0} accentColor={TREND_COLOR}>
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={260} minWidth={440} minHeight={260}>
           <AreaChart data={analytics.dailyProductionTrend} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="prodGrad" x1="0" y1="0" x2="0" y2="1">
@@ -42,35 +43,35 @@ const ProductionSection = ({ analytics, loading }: Props) => (
             <XAxis dataKey="date" tick={axisStyle} axisLine={false} tickLine={false} interval="preserveStartEnd" />
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}kg`} width={52} />
             <Tooltip {...tooltipStyle} formatter={(v: any) => [`${Number(v).toLocaleString('en-IN')} kg`, 'Production']} />
-            <Area type="monotone" dataKey="value" stroke={TREND_COLOR} strokeWidth={2.5} fill="url(#prodGrad)" dot={false} activeDot={{ r: 4, fill: TREND_COLOR }} />
+            <Area type="monotone" dataKey="value" stroke={TREND_COLOR} strokeWidth={2.5} fill="url(#prodGrad)" dot={false} activeDot={{ r: 4, fill: TREND_COLOR }} isAnimationActive={false} />
           </AreaChart>
         </ResponsiveContainer>
       </ChartCard>
 
       {/* 2. Input vs Output */}
       <ChartCard title="Input vs Output" subtitle="Total input vs good ingots per heat (kg)" loading={loading} empty={analytics.inputVsOutput.length === 0} accentColor={INPUT_COLOR}>
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={260} minWidth={440} minHeight={260}>
           <BarChart data={analytics.inputVsOutput} margin={{ top: 8, right: 16, left: 0, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
             <XAxis dataKey="name" tick={{ ...axisStyle, fontSize: '0.58rem' }} axisLine={false} tickLine={false} angle={-30} textAnchor="end" />
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}kg`} width={52} />
             <Tooltip {...tooltipStyle} formatter={(v: any, name: any) => [`${Number(v).toLocaleString('en-IN')} kg`, name]} />
             <Legend wrapperStyle={{ fontSize: '0.68rem', fontWeight: 700 }} />
-            <Bar dataKey="value" name="Output" fill={OUTPUT_COLOR} radius={[3, 3, 0, 0]} />
-            <Bar dataKey="value2" name="Input" fill={INPUT_COLOR} radius={[3, 3, 0, 0]} />
+            <Bar dataKey="value" name="Output" fill={OUTPUT_COLOR} radius={[3, 3, 0, 0]} isAnimationActive={false} />
+            <Bar dataKey="value2" name="Input" fill={INPUT_COLOR} radius={[3, 3, 0, 0]} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>
 
       {/* 3. Alloy-wise Production */}
       <ChartCard title="Alloy-wise Production" subtitle="Total good ingots by alloy type (kg)" loading={loading} empty={analytics.alloyWiseProduction.length === 0} accentColor={TREND_COLOR}>
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={260} minWidth={440} minHeight={260}>
           <BarChart layout="vertical" data={analytics.alloyWiseProduction} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
             <XAxis type="number" tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}kg`} />
             <YAxis dataKey="name" type="category" tick={{ ...axisStyle, fontSize: '0.68rem' }} axisLine={false} tickLine={false} width={72} />
             <Tooltip {...tooltipStyle} formatter={(v: any) => [`${Number(v).toLocaleString('en-IN')} kg`, 'Production']} />
-            <Bar dataKey="value" radius={[0, 3, 3, 0]}>
+            <Bar dataKey="value" radius={[0, 3, 3, 0]} isAnimationActive={false}>
               {analytics.alloyWiseProduction.map((entry, idx) => (
                 <Cell key={idx} fill={entry.color || TREND_COLOR} />
               ))}
@@ -81,7 +82,7 @@ const ProductionSection = ({ analytics, loading }: Props) => (
 
       {/* 4. Production Hours */}
       <ChartCard title="Production Hours Trend" subtitle="Total shift hours per day" loading={loading} empty={analytics.productionHoursTrend.length === 0} accentColor={HOURS_COLOR}>
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={260} minWidth={440} minHeight={260}>
           <AreaChart data={analytics.productionHoursTrend} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="hoursGrad" x1="0" y1="0" x2="0" y2="1">
@@ -93,12 +94,12 @@ const ProductionSection = ({ analytics, loading }: Props) => (
             <XAxis dataKey="date" tick={axisStyle} axisLine={false} tickLine={false} interval="preserveStartEnd" />
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}h`} width={40} />
             <Tooltip {...tooltipStyle} formatter={(v: any) => [`${Number(v).toFixed(1)} hrs`, 'Hours']} />
-            <Area type="monotone" dataKey="value" stroke={HOURS_COLOR} strokeWidth={2.5} fill="url(#hoursGrad)" dot={false} activeDot={{ r: 4, fill: HOURS_COLOR }} />
+            <Area type="monotone" dataKey="value" stroke={HOURS_COLOR} strokeWidth={2.5} fill="url(#hoursGrad)" dot={false} activeDot={{ r: 4, fill: HOURS_COLOR }} isAnimationActive={false} />
           </AreaChart>
         </ResponsiveContainer>
       </ChartCard>
 
-    </div>
+    </Box>
   </div>
 );
 

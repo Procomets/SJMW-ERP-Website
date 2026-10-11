@@ -24,6 +24,8 @@ import {
   Receipt,
   Banknote,
   Users,
+  FileText,
+  ReceiptText,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -38,6 +40,8 @@ const ACCOUNTS_MENU = [
   { text: 'Finished Goods', icon: <PackageCheck size={20} />, path: '/accounts/finished-goods', desc: 'View Only' },
   { text: 'Dispatch Management', icon: <Truck size={20} />, path: '/accounts/dispatch', desc: 'View Only' },
   { text: 'Vendor Master', icon: <Building2 size={20} />, path: '/accounts/vendor-master', desc: 'Edit Access' },
+  { text: 'Purchase Order', icon: <FileText size={20} />, path: '/accounts/purchase-order', desc: 'Create & View' },
+  { text: 'Proforma Invoice', icon: <ReceiptText size={20} />, path: '/accounts/proforma-invoice', desc: 'Create & View' },
   { text: 'Warehouse', icon: <Warehouse size={20} />, path: '/accounts/warehouse', desc: 'Edit Access' },
   { text: 'Employee Master', icon: <Users size={20} />, path: '/accounts/employee-master', desc: 'Edit Access' },
   { text: 'Expense Register', icon: <NotebookText size={20} />, path: '/accounts/expense-register', desc: 'Entry & Edit' },

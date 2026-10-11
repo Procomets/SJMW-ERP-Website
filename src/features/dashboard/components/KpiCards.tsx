@@ -47,7 +47,7 @@ const KpiCard = ({ kpi, loading }: KpiCardProps) => {
   const ChangIcon = isNeutral ? Minus : isPositive ? ArrowUpRight : ArrowDownRight;
 
   return (
-    <Card sx={{
+    <Card className="pdf-printable-card" sx={{
       borderRadius: 1.5,
       boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
       border: '1px solid #e2e8f0',

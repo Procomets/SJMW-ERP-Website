@@ -92,7 +92,9 @@ export const exportMonthlySalaryToExcel = async (
     const salary = (parseFloat(String(emp.monthlyIncome || 0)) || 0) + (rowState.hike || 0);
     const empAtt = attendanceRecords.filter(r => r.employeeId === emp.employeeId);
     const noOfPresent = empAtt.filter(r => r.status === 'Present' || r.status === 'N').length;
-    const noOfLeave = noOfDays - noOfPresent;
+    const noOfLeave = Math.max(0, noOfDays - noOfPresent);
+    const paidLeave = Math.min(noOfLeave, 2);
+    const paidDays = Math.min(noOfDays, noOfPresent + paidLeave);
 
     const row = ws.getRow(rowNum);
     
@@ -116,8 +118,11 @@ export const exportMonthlySalaryToExcel = async (
     row.getCell(8).value = { formula: `IF(G${rowNum}>0,F${rowNum}/G${rowNum},0)`, result: noOfDays > 0 ? salary / noOfDays : 0 };
     // I: No Of Present
     row.getCell(9).value = noOfPresent;
-    // J: Gross Salary = H * I
-    row.getCell(10).value = { formula: `H${rowNum}*I${rowNum}`, result: (noOfDays > 0 ? salary / noOfDays : 0) * noOfPresent };
+    // J: Gross Salary = H * MIN(G, I + 2) [2 Days Paid Leave]
+    row.getCell(10).value = { 
+      formula: `IF(G${rowNum}>0, H${rowNum}*MIN(G${rowNum}, I${rowNum}+2), 0)`, 
+      result: paidDays === noOfDays ? salary : ((noOfDays > 0 ? salary / noOfDays : 0) * paidDays) 
+    };
     row.getCell(10).fill = GREEN_FILL;
     row.getCell(10).font = BOLD_BLACK;
     // K: Basic 50% = J * 0.5
@@ -159,6 +164,37 @@ export const exportMonthlySalaryToExcel = async (
       if (![2, 3, 24, 25].includes(c)) row.getCell(c).alignment = { horizontal: 'center', vertical: 'middle' };
     }
     rowNum++;
+  }
+
+  // TOTAL ROW
+  ws.mergeCells(rowNum, 1, rowNum, 5);
+  const totalLabel = ws.getCell(rowNum, 1);
+  totalLabel.value = 'TOTAL';
+  totalLabel.fill = HEADER_FILL;
+  totalLabel.font = BOLD_WHITE;
+  totalLabel.alignment = { horizontal: 'center', vertical: 'middle' };
+
+  ws.getCell(rowNum, 6).value = { formula: `SUM(F4:F${rowNum - 1})` }; // Salary
+  ws.getCell(rowNum, 10).value = { formula: `SUM(J4:J${rowNum - 1})` }; // Gross
+  ws.getCell(rowNum, 11).value = { formula: `SUM(K4:K${rowNum - 1})` }; // Basic
+  ws.getCell(rowNum, 12).value = { formula: `SUM(L4:L${rowNum - 1})` }; // HRA
+  ws.getCell(rowNum, 13).value = { formula: `SUM(M4:M${rowNum - 1})` }; // SA
+  ws.getCell(rowNum, 14).value = { formula: `SUM(N4:N${rowNum - 1})` }; // MA
+  ws.getCell(rowNum, 15).value = { formula: `SUM(O4:O${rowNum - 1})` }; // CA
+  ws.getCell(rowNum, 16).value = { formula: `SUM(P4:P${rowNum - 1})` }; // PF
+  ws.getCell(rowNum, 17).value = { formula: `SUM(Q4:Q${rowNum - 1})` }; // ESI
+  ws.getCell(rowNum, 18).value = { formula: `SUM(R4:R${rowNum - 1})` }; // Advance
+  ws.getCell(rowNum, 20).value = { formula: `SUM(T4:T${rowNum - 1})` }; // LOP
+  ws.getCell(rowNum, 21).value = { formula: `SUM(U4:U${rowNum - 1})` }; // Net
+
+  const totalRow = ws.getRow(rowNum);
+  for (let c = 1; c <= 25; c++) {
+    totalRow.getCell(c).border = BORDER;
+    if (c > 5) {
+      totalRow.getCell(c).fill = HEADER_FILL;
+      totalRow.getCell(c).font = BOLD_WHITE;
+      totalRow.getCell(c).alignment = { horizontal: 'right', vertical: 'middle' };
+    }
   }
 
   // Download

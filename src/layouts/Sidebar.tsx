@@ -29,6 +29,8 @@ import {
   CalendarDays,
   Receipt,
   Banknote,
+  FileText,
+  ReceiptText,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -49,6 +51,8 @@ const MENU_ITEMS = [
 ];
 
 const FINANCE_ITEMS = [
+  { text: 'Purchase Order', icon: <FileText size={20} />, path: '/purchase-order' },
+  { text: 'Proforma Invoice', icon: <ReceiptText size={20} />, path: '/proforma-invoice' },
   { text: 'Cost Ledger', icon: <Calculator size={20} />, path: '/cost-ledger' },
   { text: 'Expense Register', icon: <NotebookText size={20} />, path: '/expense-register' },
   { text: 'Production Wages', icon: <Banknote size={20} />, path: '/production-wages' },

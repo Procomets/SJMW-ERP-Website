@@ -14,7 +14,7 @@ interface ChartCardProps {
 const ChartCard = ({
   title, subtitle, loading, empty, height = 280, children, accentColor = '#1565C0', badge,
 }: ChartCardProps) => (
-  <Card sx={{
+  <Card className="pdf-printable-card" sx={{
     borderRadius: 1.5,
     boxShadow: '0 1px 8px rgba(0,0,0,0.07)',
     border: '1px solid #e2e8f0',
@@ -42,7 +42,7 @@ const ChartCard = ({
       </Box>
 
       {/* Chart area */}
-      <Box sx={{ flex: 1, minHeight: height }}>
+      <Box sx={{ flex: 1, minHeight: height, minWidth: 440, width: '100%' }}>
         {loading ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, pt: 1 }}>
             {Array.from({ length: 5 }).map((_, i) => (

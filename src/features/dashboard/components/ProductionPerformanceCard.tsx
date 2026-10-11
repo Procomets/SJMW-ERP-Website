@@ -124,7 +124,7 @@ const ProductionPerformanceCard = ({ analytics, kpi, filters, setFilters }: Prop
 
         {/* Main Area Chart */}
         <Box sx={{ width: '100%', height: 260, position: 'relative' }}>
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={440} minHeight={260}>
             <AreaChart
               data={analytics.dailyProductionTrend}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
@@ -186,6 +186,7 @@ const ProductionPerformanceCard = ({ analytics, kpi, filters, setFilters }: Prop
                 fill="url(#performanceGrad)"
                 dot={false}
                 activeDot={{ r: 5, fill: '#3b82f6', strokeWidth: 2, stroke: '#ffffff' }}
+                isAnimationActive={false}
               />
             </AreaChart>
           </ResponsiveContainer>

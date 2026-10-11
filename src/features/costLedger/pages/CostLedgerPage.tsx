@@ -786,9 +786,11 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
             <thead className="bg-slate-100 sticky top-0 z-30 shadow-sm text-slate-700 font-bold uppercase tracking-wider text-[10px]">
               {/* Header row 1: Section Labels */}
               <tr>
-                <th className="px-3 py-2 text-center border-b border-r border-slate-200 sticky left-0 z-40 bg-slate-100 w-12"></th>
-                <th className="px-4 py-2 text-center border-b border-r border-slate-200 sticky left-12 z-40 bg-slate-100 w-28"></th>
-                <th colSpan={3} className="px-4 py-1.5 text-center border-b border-r border-slate-200 bg-slate-100/80 font-extrabold text-slate-600">
+                <th className={`px-3 py-2 text-center border-b border-r border-slate-200 sticky left-0 z-40 ${isDark ? 'bg-[#1e2638]' : 'bg-slate-100'} w-[52px] min-w-[52px]`}></th>
+                <th className={`px-4 py-2 text-center border-b border-r border-slate-200 sticky left-[52px] z-40 ${isDark ? 'bg-[#1e2638]' : 'bg-slate-100'} w-[110px] min-w-[110px]`}></th>
+                <th className={`px-4 py-2 text-center border-b border-r border-slate-200 sticky left-[162px] z-40 ${isDark ? 'bg-[#1e2638]' : 'bg-slate-100'} w-[110px] min-w-[110px]`}></th>
+                <th className={`px-4 py-2 text-center border-b border-r-2 border-slate-300 sticky left-[272px] z-40 ${isDark ? 'bg-[#1e2638]' : 'bg-slate-100'} w-[100px] min-w-[100px]`}></th>
+                <th className="px-4 py-1.5 text-center border-b border-r border-slate-200 bg-slate-100/80 font-extrabold text-slate-600 w-36">
                   General Info
                 </th>
                 {costMaterials.map(f => (
@@ -809,7 +811,7 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
               <tr>
                 <th
                   onClick={() => requestSort('serialNo')}
-                  className="px-3 py-2 text-center border-b border-r border-slate-200 sticky left-0 z-40 bg-slate-100 w-12 cursor-pointer hover:bg-slate-200 transition-colors"
+                  className={`px-3 py-2 text-center border-b border-r border-slate-200 sticky left-0 z-40 ${isDark ? 'bg-[#1e2638]' : 'bg-slate-100'} w-[52px] min-w-[52px] cursor-pointer hover:bg-slate-200 transition-colors`}
                 >
                   <div className="flex items-center justify-center gap-1">
                     SI NO <ArrowUpDown size={10} />
@@ -817,20 +819,30 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
                 </th>
                 <th
                   onClick={() => requestSort('heatNo')}
-                  className="px-4 py-2 text-left border-b border-r border-slate-200 sticky left-12 z-40 bg-slate-100 w-28 cursor-pointer hover:bg-slate-200 transition-colors"
+                  className={`px-4 py-2 text-left border-b border-r border-slate-200 sticky left-[52px] z-40 ${isDark ? 'bg-[#1e2638]' : 'bg-slate-100'} w-[110px] min-w-[110px] cursor-pointer hover:bg-slate-200 transition-colors`}
                 >
                   <div className="flex items-center gap-1">
                     HEAT NO <ArrowUpDown size={10} />
                   </div>
                 </th>
+                <th
+                  onClick={() => requestSort('date')}
+                  className={`px-4 py-2 text-left border-b border-r border-slate-200 sticky left-[162px] z-40 ${isDark ? 'bg-[#1e2638]' : 'bg-slate-100'} w-[110px] min-w-[110px] cursor-pointer hover:bg-slate-200 transition-colors`}
+                >
+                  <div className="flex items-center gap-1">
+                    Date <ArrowUpDown size={10} />
+                  </div>
+                </th>
+                <th
+                  onClick={() => requestSort('alloyType')}
+                  className={`px-4 py-2 text-left border-b border-r-2 border-slate-300 sticky left-[272px] z-40 ${isDark ? 'bg-[#1e2638]' : 'bg-slate-100'} w-[100px] min-w-[100px] cursor-pointer hover:bg-slate-200 transition-colors`}
+                >
+                  <div className="flex items-center gap-1">
+                    Alloy <ArrowUpDown size={10} />
+                  </div>
+                </th>
 
                 {/* General columns */}
-                <th onClick={() => requestSort('date')} className="px-4 py-2 border-b border-r border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors w-28">
-                  <div className="flex items-center gap-1">Date <ArrowUpDown size={10} /></div>
-                </th>
-                <th onClick={() => requestSort('alloyType')} className="px-4 py-2 border-b border-r border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors w-28">
-                  <div className="flex items-center gap-1">Alloy <ArrowUpDown size={10} /></div>
-                </th>
                 <th onClick={() => requestSort('employeeName')} className="px-4 py-2 border-b border-r border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors w-36">
                   <div className="flex items-center gap-1">Employee <ArrowUpDown size={10} /></div>
                 </th>
@@ -880,13 +892,14 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
                 // Skeletons
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="hover:bg-slate-50">
-                    <td className="px-3 py-2.5 sticky left-0 bg-white border-r border-slate-200 text-center"><Skeleton width={16} /></td>
-                    <td className="px-3 py-2.5 sticky left-12 bg-white border-r border-slate-200 text-center"><Skeleton width={20} /></td>
-                    <td className="px-4 py-2.5 sticky left-24 bg-white border-r border-slate-200 font-bold"><Skeleton width={60} /></td>
-                    {Array.from({ length: 3 + (costMaterials.length * 3) + 3 + 6 }).map((__, j) => (
+                    <td className="px-3 py-2.5 sticky left-0 z-20 bg-white border-r border-slate-200 text-center w-[52px] min-w-[52px]"><Skeleton width={16} /></td>
+                    <td className="px-3 py-2.5 sticky left-[52px] z-20 bg-white border-r border-slate-200 text-center w-[110px] min-w-[110px]"><Skeleton width={20} /></td>
+                    <td className="px-4 py-2.5 sticky left-[162px] z-20 bg-white border-r border-slate-200 font-bold w-[110px] min-w-[110px]"><Skeleton width={60} /></td>
+                    <td className="px-4 py-2.5 sticky left-[272px] z-20 bg-white border-r-2 border-slate-300 font-bold w-[100px] min-w-[100px]"><Skeleton width={40} /></td>
+                    {Array.from({ length: 1 + (costMaterials.length * 3) + 3 + 6 }).map((__, j) => (
                       <td key={j} className="px-4 py-2.5 border-r border-slate-100"><Skeleton width={40} /></td>
                     ))}
-                    <td className="px-4 py-2.5 sticky right-0 bg-white text-center"><Skeleton width={50} /></td>
+                    <td className="px-4 py-2.5 sticky right-0 z-20 bg-white text-center"><Skeleton width={50} /></td>
                   </tr>
                 ))
               ) : filteredData.length === 0 ? (
@@ -905,6 +918,9 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
                   const rowBg = isEven
                     ? 'bg-white'
                     : 'bg-slate-50/30';
+                  const stickyCellBg = isEven
+                    ? (isDark ? 'bg-[#161b27]' : 'bg-white')
+                    : (isDark ? 'bg-[#1c2333]' : 'bg-slate-50/70');
 
                   return (
                     <tr
@@ -912,22 +928,28 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
                       className={`hover:bg-blue-50/20 transition-colors group ${rowBg}`}
                     >
                       {/* SI No */}
-                      <td className={`px-3 py-2 text-center border-r border-slate-200 sticky left-0 z-20 font-mono text-slate-500 font-bold ${isEven ? 'bg-white' : 'bg-slate-50/70'} group-hover:bg-blue-50`}>
+                      <td className={`px-3 py-2 text-center border-r border-slate-200 sticky left-0 z-20 font-mono text-slate-500 font-bold w-[52px] min-w-[52px] ${stickyCellBg} group-hover:bg-blue-50`}>
                         {(currentPage - 1) * pageSize + index + 1}
                       </td>
 
                       {/* Heat No */}
-                      <td className={`px-4 py-2 border-r border-slate-200 sticky left-12 z-20 font-bold text-blue-700 ${isEven ? 'bg-white' : 'bg-slate-50/70'} group-hover:bg-blue-50`}>
+                      <td className={`px-4 py-2 border-r border-slate-200 sticky left-[52px] z-20 font-bold text-blue-700 w-[110px] min-w-[110px] ${stickyCellBg} group-hover:bg-blue-50`}>
                         {row.heatNo}
                       </td>
 
-                      {/* General Values */}
-                      <td className="px-4 py-2 border-r border-slate-100 whitespace-nowrap">{fmtDate(row.date)}</td>
-                      <td className="px-4 py-2 border-r border-slate-100">
+                      {/* Date */}
+                      <td className={`px-4 py-2 border-r border-slate-200 sticky left-[162px] z-20 whitespace-nowrap font-medium text-slate-700 w-[110px] min-w-[110px] ${stickyCellBg} group-hover:bg-blue-50`}>
+                        {fmtDate(row.date)}
+                      </td>
+
+                      {/* Alloy */}
+                      <td className={`px-4 py-2 border-r-2 border-slate-300 sticky left-[272px] z-20 w-[100px] min-w-[100px] ${stickyCellBg} group-hover:bg-blue-50 shadow-[2px_0_5px_rgba(0,0,0,0.06)]`}>
                         <span className="bg-blue-50 text-blue-800 font-bold px-2 py-0.5 rounded text-[10px]">
                           {row.alloyType}
                         </span>
                       </td>
+
+                      {/* Employee */}
                       <td className="px-4 py-2 border-r border-slate-100 whitespace-nowrap font-medium text-slate-700">{row.employeeName || '—'}</td>
 
                       {/* Materials Loops */}
@@ -1058,10 +1080,14 @@ const CostLedgerPage = ({ productionManager = false }: Props) => {
             </tbody>
             {!isTableLoading && filteredData.length > 0 && (
               <tfoot>
-                <tr className="bg-slate-50 sticky bottom-0 z-20 border-t-2 border-slate-300">
-                  <td colSpan={5} className="px-4 py-2 text-right font-bold text-slate-700 border-r border-slate-200">
+                <tr className="bg-slate-50 sticky bottom-0 z-30 border-t-2 border-slate-300">
+                  <td className={`px-3 py-2 text-center border-r border-slate-200 sticky left-0 z-40 ${isDark ? 'bg-[#1e2638]' : 'bg-slate-100'} w-[52px] min-w-[52px]`}></td>
+                  <td className={`px-4 py-2 text-left border-r border-slate-200 sticky left-[52px] z-40 ${isDark ? 'bg-[#1e2638]' : 'bg-slate-100'} w-[110px] min-w-[110px]`}></td>
+                  <td className={`px-4 py-2 text-left border-r border-slate-200 sticky left-[162px] z-40 ${isDark ? 'bg-[#1e2638]' : 'bg-slate-100'} w-[110px] min-w-[110px]`}></td>
+                  <td className={`px-4 py-2 text-center border-r-2 border-slate-300 sticky left-[272px] z-40 ${isDark ? 'bg-[#1e2638]' : 'bg-slate-100'} w-[100px] min-w-[100px] font-bold text-slate-700`}>
                     Total
                   </td>
+                  <td className="px-4 py-2 border-r border-slate-200 w-36"></td>
                   {costMaterials.map((f) => {
                     const t = totals.materials[f.id] || { qty: 0, amt: 0, rateSum: 0, rateCount: 0 };
                     const avgRate = t.rateCount > 0 ? t.rateSum / t.rateCount : 0;

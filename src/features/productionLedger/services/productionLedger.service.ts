@@ -7,6 +7,7 @@ import {
   getDoc,
   getDocs,
   query,
+  where,
   orderBy,
   Timestamp,
   serverTimestamp,
@@ -115,6 +116,23 @@ export const addProductionEntry = async (
   };
 
   const ref = await addDoc(collection(db, COL), payload);
+
+  // Generate QC notification for Supervisor in supervisor app
+  try {
+    await addDoc(collection(db, 'notifications'), {
+      alloyType: form.alloyType.trim(),
+      createdAt: serverTimestamp(),
+      heatNo: form.heatNo.trim(),
+      isRead: false,
+      message: `Quality Control Entry Required Heat No: ${form.heatNo.trim()} Awaiting QC Entry`,
+      productionLedgerId: ref.id,
+      referenceId: ref.id,
+      targetRole: 'Supervisor',
+      type: 'qc_entry',
+    });
+  } catch (err) {
+    console.error("Failed to create QC notification for supervisor on production add:", err);
+  }
 
   // Sync with Warehouse Inventory
   try {
@@ -318,6 +336,38 @@ export const updateProductionEntry = async (
   } catch (err) {
     console.error("Failed to auto-sync finished goods on production update:", err);
   }
+
+  // Ensure QC notification exists for this heat
+  try {
+    const notifQ = query(
+      collection(db, 'notifications'),
+      where('heatNo', '==', form.heatNo.trim())
+    );
+    const notifSnap = await getDocs(notifQ);
+    if (notifSnap.empty) {
+      await addDoc(collection(db, 'notifications'), {
+        alloyType: form.alloyType.trim(),
+        createdAt: serverTimestamp(),
+        heatNo: form.heatNo.trim(),
+        isRead: false,
+        message: `Quality Control Entry Required Heat No: ${form.heatNo.trim()} Awaiting QC Entry`,
+        productionLedgerId: id,
+        referenceId: id,
+        targetRole: 'Supervisor',
+        type: 'qc_entry',
+      });
+    } else if (oldHeatNo && oldHeatNo !== form.heatNo.trim()) {
+      for (const d of notifSnap.docs) {
+        await updateDoc(doc(db, 'notifications', d.id), {
+          heatNo: form.heatNo.trim(),
+          alloyType: form.alloyType.trim(),
+          message: `Quality Control Entry Required Heat No: ${form.heatNo.trim()} Awaiting QC Entry`,
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Failed to verify/create QC notification on production update:", err);
+  }
 };
 
 // ─── Delete entry ─────────────────────────────────────────────────────────────
@@ -372,3 +422,49 @@ export const deleteProductionEntry = async (id: string): Promise<void> => {
     }
   }
 };
+
+/**
+ * Backfills missing QC notifications for recent production entries
+ */
+export const syncMissingQcNotifications = async (): Promise<number> => {
+  try {
+    const qProd = query(collection(db, COL), orderBy('serialNo', 'desc'));
+    const snap = await getDocs(qProd);
+    if (snap.empty) return 0;
+
+    let createdCount = 0;
+    const recentDocs = snap.docs.slice(0, 20);
+
+    for (const prodDoc of recentDocs) {
+      const data = prodDoc.data();
+      const heatNo = data.heatNo?.trim();
+      if (!heatNo) continue;
+
+      const notifQ = query(
+        collection(db, 'notifications'),
+        where('heatNo', '==', heatNo)
+      );
+      const notifSnap = await getDocs(notifQ);
+
+      if (notifSnap.empty) {
+        await addDoc(collection(db, 'notifications'), {
+          alloyType: data.alloyType?.trim() || '',
+          createdAt: serverTimestamp(),
+          heatNo,
+          isRead: false,
+          message: `Quality Control Entry Required Heat No: ${heatNo} Awaiting QC Entry`,
+          productionLedgerId: prodDoc.id,
+          referenceId: prodDoc.id,
+          targetRole: 'Supervisor',
+          type: 'qc_entry',
+        });
+        createdCount++;
+      }
+    }
+    return createdCount;
+  } catch (err) {
+    console.error("Failed to sync missing QC notifications:", err);
+    return 0;
+  }
+};
+

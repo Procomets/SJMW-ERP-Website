@@ -62,17 +62,17 @@ const InventorySection = ({ analytics, inventoryItems, loading }: Props) => {
         <span className="text-sm font-black text-slate-700 uppercase tracking-wider">Inventory Analytics</span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
 
         {/* 1. Raw Material Stock */}
         <ChartCard title="Raw Material Stock" subtitle="Current stock per material (kg)" loading={loading} empty={analytics.rawMaterialStock.length === 0} accentColor={STOCK_AMBER}>
-          <ResponsiveContainer width="100%" height={260}>
+          <ResponsiveContainer width="100%" height={260} minWidth={440} minHeight={260}>
             <BarChart layout="vertical" data={analytics.rawMaterialStock} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
               <XAxis type="number" tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}kg`} />
               <YAxis dataKey="name" type="category" tick={{ ...axisStyle, fontSize: '0.68rem' }} axisLine={false} tickLine={false} width={68} />
               <Tooltip {...tooltipStyle} formatter={(v: any) => [`${Number(v).toLocaleString('en-IN')} kg`, 'Current Stock']} />
-              <Bar dataKey="value" radius={[0, 3, 3, 0]}>
+              <Bar dataKey="value" radius={[0, 3, 3, 0]} isAnimationActive={false}>
                 {analytics.rawMaterialStock.map((entry, idx) => (
                   <Cell key={idx} fill={entry.color || STOCK_AMBER} />
                 ))}
@@ -83,13 +83,13 @@ const InventorySection = ({ analytics, inventoryItems, loading }: Props) => {
 
         {/* 2. Material Consumption */}
         <ChartCard title="Material Consumption" subtitle="Materials used in production (kg)" loading={loading} empty={analytics.materialConsumption.length === 0} accentColor={CONSUME_TEAL}>
-          <ResponsiveContainer width="100%" height={260}>
+          <ResponsiveContainer width="100%" height={260} minWidth={440} minHeight={260}>
             <BarChart data={analytics.materialConsumption} margin={{ top: 8, right: 16, left: 0, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ ...axisStyle, fontSize: '0.6rem' }} axisLine={false} tickLine={false} angle={-30} textAnchor="end" />
               <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}kg`} width={52} />
               <Tooltip {...tooltipStyle} formatter={(v: any) => [`${Number(v).toLocaleString('en-IN')} kg`, 'Consumed']} />
-              <Bar dataKey="value" radius={[3, 3, 0, 0]}>
+              <Bar dataKey="value" radius={[3, 3, 0, 0]} isAnimationActive={false}>
                 {analytics.materialConsumption.map((entry, idx) => (
                   <Cell key={idx} fill={entry.color || CONSUME_TEAL} />
                 ))}
@@ -100,7 +100,7 @@ const InventorySection = ({ analytics, inventoryItems, loading }: Props) => {
 
         {/* 3. Material Share Pie */}
         <ChartCard title="Material Share" subtitle="% contribution of each material to production" loading={loading} empty={analytics.materialShare.length === 0} accentColor={SHARE_PURPLE}>
-          <ResponsiveContainer width="100%" height={260}>
+          <ResponsiveContainer width="100%" height={260} minWidth={440} minHeight={260}>
             <PieChart>
               <Pie
                 data={analytics.materialShare}
@@ -113,6 +113,7 @@ const InventorySection = ({ analytics, inventoryItems, loading }: Props) => {
                 paddingAngle={2}
                 label={({ name, percent }) => percent !== undefined && percent > 0.05 ? `${name} ${(percent * 100).toFixed(0)}%` : ''}
                 labelLine={false}
+                isAnimationActive={false}
               >
                 {analytics.materialShare.map((entry, idx) => (
                   <Cell key={idx} fill={entry.color || SHARE_PURPLE} />
@@ -175,7 +176,7 @@ const InventorySection = ({ analytics, inventoryItems, loading }: Props) => {
           )}
         </ChartCard>
 
-      </div>
+      </Box>
     </div>
   );
 };
