@@ -220,8 +220,24 @@ export const router = createBrowserRouter([
         element: <ProductionManagerLayout />,
         children: [
           {
+            index: true,
+            element: <Navigate to="/production/production-ledger" replace />,
+          },
+          {
+            path: 'production',
+            element: <Navigate to="/production/production-ledger" replace />,
+          },
+          {
+            path: 'production/production-ledger',
+            element: <ProductionLedgerPage />,
+          },
+          {
             path: 'production/warehouse',
             element: <WarehousePage productionManager />,
+          },
+          {
+            path: 'production/dispatch',
+            element: <DispatchPage />,
           },
           {
             path: 'production/quality-control',

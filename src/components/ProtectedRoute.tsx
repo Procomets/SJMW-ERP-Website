@@ -23,7 +23,16 @@ export const ProtectedRoute = () => {
   }
 
   if (role.includes('production')) {
-    return <Navigate to="/production/quality-control" replace />;
+    if (location.pathname === '/production-ledger' || location.pathname.startsWith('/production-ledger')) {
+      return <Navigate to="/production/production-ledger" replace />;
+    }
+    if (location.pathname === '/warehouse' || location.pathname.startsWith('/warehouse')) {
+      return <Navigate to="/production/warehouse" replace />;
+    }
+    if (location.pathname === '/dispatch' || location.pathname.startsWith('/dispatch')) {
+      return <Navigate to="/production/dispatch" replace />;
+    }
+    return <Navigate to="/production/production-ledger" replace />;
   }
 
   return <Outlet />;

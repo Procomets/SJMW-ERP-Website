@@ -3,7 +3,7 @@ import {
   Box, Typography, Divider, Button,
 } from "@mui/material";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Factory, LogOut, PackageSearch, ShieldCheck, IndianRupee } from "lucide-react";
+import { Factory, LogOut, Warehouse, Truck, ShieldCheck, IndianRupee } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 
@@ -20,9 +20,11 @@ const BLUE_BORDER = "#bfdbfe";
 const BLUE_ACTIVE_BG = "#dbeafe";
 
 const MENU = [
+  { text: "Production Ledger", icon: <Factory size={20} />, path: "/production/production-ledger" },
+  { text: "Warehouse", icon: <Warehouse size={20} />, path: "/production/warehouse" },
+  { text: "Dispatch Entry", icon: <Truck size={20} />, path: "/production/dispatch" },
   { text: "Quality Control", icon: <ShieldCheck size={20} />, path: "/production/quality-control" },
   { text: "Cost Ledger", icon: <IndianRupee size={20} />, path: "/production/cost-ledger" },
-  { text: "Warehouse", icon: <PackageSearch size={20} />, path: "/production/warehouse" },
 ];
 
 const ProductionManagerSidebar = ({ drawerWidth, mobileOpen, handleDrawerToggle, isMobile }: SidebarProps) => {
