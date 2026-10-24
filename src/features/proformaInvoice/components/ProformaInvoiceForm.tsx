@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Card,
@@ -175,9 +175,11 @@ export const ProformaInvoiceForm: React.FC<Props> = ({
       const item = { ...newItems[index], [field]: value };
 
       if (field === 'quantity' || field === 'rate') {
-        const qty = field === 'quantity' ? Number(value) || 0 : Number(item.quantity) || 0;
-        const rate = field === 'rate' ? Number(value) || 0 : Number(item.rate) || 0;
-        item.amount = qty * rate;
+        const rawQty = field === 'quantity' ? value : item.quantity;
+        const rawRate = field === 'rate' ? value : item.rate;
+        const qty = rawQty === '' ? 0 : Number(rawQty) || 0;
+        const rate = rawRate === '' ? 0 : Number(rawRate) || 0;
+        item.amount = Math.round(qty * rate * 100) / 100;
       }
 
       newItems[index] = item;
@@ -213,7 +215,9 @@ export const ProformaInvoiceForm: React.FC<Props> = ({
     });
   };
 
-  const computedTotals = computeInvoiceTotals(formData);
+  const computedTotals = useMemo(() => {
+    return computeInvoiceTotals(formData);
+  }, [formData.items, formData.taxRatePercent, formData.isInterstate]);
 
   const validateForm = (): boolean => {
     if (!formData.consignee.name.trim()) {
@@ -238,7 +242,18 @@ export const ProformaInvoiceForm: React.FC<Props> = ({
 
   const handleSubmit = async (andGeneratePdf: boolean) => {
     if (!validateForm()) return;
-    await onSave(formData, andGeneratePdf);
+    const sanitizedItems = formData.items.map((it, idx) => {
+      const q = Number(it.quantity) || 0;
+      const r = Number(it.rate) || 0;
+      return {
+        ...it,
+        slNo: idx + 1,
+        quantity: q,
+        rate: r,
+        amount: Math.round(q * r * 100) / 100,
+      };
+    });
+    await onSave({ ...formData, items: sanitizedItems }, andGeneratePdf);
   };
 
   const handlePreview = () => {
@@ -247,6 +262,18 @@ export const ProformaInvoiceForm: React.FC<Props> = ({
       return;
     }
     setFormError('');
+
+    const sanitizedItems = formData.items.map((it, idx) => {
+      const q = Number(it.quantity) || 0;
+      const r = Number(it.rate) || 0;
+      return {
+        ...it,
+        slNo: idx + 1,
+        quantity: q,
+        rate: r,
+        amount: Math.round(q * r * 100) / 100,
+      };
+    });
 
     const draftInvoice: ProformaInvoice = {
       id: initialData?.id || 'draft',
@@ -267,13 +294,9 @@ export const ProformaInvoiceForm: React.FC<Props> = ({
       customerId: formData.customerId,
       consignee: { ...formData.consignee },
       buyer: formData.sameAsConsignee ? { ...formData.consignee } : { ...formData.buyer },
-      items: formData.items.map((it, idx) => ({
-        ...it,
-        slNo: idx + 1,
-        amount: (Number(it.quantity) || 0) * (Number(it.rate) || 0),
-      })),
+      items: sanitizedItems,
       isInterstate: formData.isInterstate,
-      taxRatePercent: formData.taxRatePercent || 18,
+      taxRatePercent: formData.taxRatePercent !== undefined ? formData.taxRatePercent : 18,
       ...computedTotals,
       createdBy: initialData?.createdBy || 'User',
       createdAt: initialData?.createdAt || ({} as any),

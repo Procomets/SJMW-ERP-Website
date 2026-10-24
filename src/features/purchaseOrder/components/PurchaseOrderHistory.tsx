@@ -239,8 +239,19 @@ export const PurchaseOrderHistory: React.FC<Props> = ({
                           fontFamily: 'monospace',
                         }}
                       >
-                        R{Number(order.totalAmount || 0).toLocaleString('en-IN')}
+                        ₹ {Number(order.totalAmount || 0).toLocaleString('en-IN', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </Typography>
+                      {Boolean(order.taxAmount && order.taxAmount > 0) && (
+                        <Typography
+                          variant="caption"
+                          sx={{ display: 'block', color: '#64748b', fontSize: '0.7rem' }}
+                        >
+                          (Incl. {order.taxPercent || 18}% GST)
+                        </Typography>
+                      )}
                     </TableCell>
 
                     {/* Quotation Ref */}

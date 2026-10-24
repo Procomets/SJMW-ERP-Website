@@ -29,6 +29,7 @@ import {
   updatePurchaseOrder,
   deletePurchaseOrder,
   generateNextPoNumber,
+  calculatePurchaseOrderTotals,
 } from '../services/purchaseOrder.service';
 import { downloadPurchaseOrderPdf } from '../utils/purchaseOrderPdf';
 import { PurchaseOrderForm } from '../components/PurchaseOrderForm';
@@ -90,6 +91,11 @@ export const PurchaseOrderPage: React.FC<Props> = ({ accountsMode = false }) => 
     try {
       setIsSaving(true);
       const creatorName = profile?.name || user?.email || (isAccounts ? 'Accounts Team' : 'Admin');
+      const calc = calculatePurchaseOrderTotals(
+        formData.items,
+        formData.terms?.gstTax || '',
+        formData.includeGstInTotal
+      );
 
       let savedPoData: PurchaseOrder;
 
@@ -98,6 +104,12 @@ export const PurchaseOrderPage: React.FC<Props> = ({ accountsMode = false }) => 
         savedPoData = {
           ...editingOrder,
           ...formData,
+          items: calc.items,
+          subTotal: calc.subTotal,
+          taxPercent: calc.taxPercent,
+          taxAmount: calc.taxAmount,
+          includeGstInTotal: calc.includeGstInTotal,
+          totalAmount: calc.totalAmount,
           updatedBy: creatorName,
         };
         setSnackbar({
@@ -111,7 +123,12 @@ export const PurchaseOrderPage: React.FC<Props> = ({ accountsMode = false }) => 
         savedPoData = {
           id: newId,
           ...formData,
-          totalAmount: formData.items.reduce((s, it) => s + (Number(it.amount) || 0), 0),
+          items: calc.items,
+          subTotal: calc.subTotal,
+          taxPercent: calc.taxPercent,
+          taxAmount: calc.taxAmount,
+          includeGstInTotal: calc.includeGstInTotal,
+          totalAmount: calc.totalAmount,
           createdBy: creatorName,
           updatedBy: creatorName,
           createdAt: {} as any,

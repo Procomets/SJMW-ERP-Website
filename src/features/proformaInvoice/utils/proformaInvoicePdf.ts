@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import type { ProformaInvoice } from '../types/proformaInvoice.types';
+import { numberToWordsIndian } from '../services/proformaInvoice.service';
 
 /**
  * Builds the exact vector PDF for the Proforma Invoice matching the provided document
@@ -268,27 +269,67 @@ export const buildProformaInvoicePdfDoc = (invoice: ProformaInvoice): jsPDF => {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
 
-  const taxRate = invoice.taxRatePercent || 18;
+  const round2 = (n: number): number => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
+  const computedSubTotal = round2(
+    items.reduce(
+      (sum, it) => sum + round2((Number(it.quantity) || 0) * (Number(it.rate) || 0)),
+      0
+    )
+  );
+
+  const subTotal =
+    invoice.subTotal !== undefined && invoice.subTotal > 0 ? invoice.subTotal : computedSubTotal;
+  const taxRate = invoice.taxRatePercent !== undefined ? Number(invoice.taxRatePercent) : 18;
   const halfRate = taxRate / 2;
 
-  if (!invoice.isInterstate) {
-    // CGST OUTPUT 9%
-    doc.text(`CGST OUTPUT ${halfRate}%`, gX3 - 10, curItemY, { align: 'right' });
-    doc.text(`${halfRate} %`, gX6 - 6, curItemY, { align: 'right' });
-    doc.text(Number(invoice.cgstAmount || 0).toFixed(2), gX8 - 6, curItemY, { align: 'right' });
+  let cgstAmount = invoice.cgstAmount;
+  let sgstAmount = invoice.sgstAmount;
+  let igstAmount = invoice.igstAmount;
 
-    curItemY += 12;
-    // SGST OUTPUT 9%
-    doc.text(`SGST OUTPUT ${halfRate}%`, gX3 - 10, curItemY, { align: 'right' });
-    doc.text(`${halfRate} %`, gX6 - 6, curItemY, { align: 'right' });
-    doc.text(Number(invoice.sgstAmount || 0).toFixed(2), gX8 - 6, curItemY, { align: 'right' });
-    curItemY += 12;
-  } else {
-    // IGST OUTPUT 18%
-    doc.text(`IGST OUTPUT ${taxRate}%`, gX3 - 10, curItemY, { align: 'right' });
-    doc.text(`${taxRate} %`, gX6 - 6, curItemY, { align: 'right' });
-    doc.text(Number(invoice.igstAmount || 0).toFixed(2), gX8 - 6, curItemY, { align: 'right' });
-    curItemY += 12;
+  if (taxRate > 0 && subTotal > 0) {
+    if (invoice.isInterstate) {
+      if (igstAmount === undefined || igstAmount === null || igstAmount === 0) {
+        igstAmount = round2((subTotal * taxRate) / 100);
+      }
+    } else {
+      if (cgstAmount === undefined || cgstAmount === null || cgstAmount === 0) {
+        cgstAmount = round2((subTotal * halfRate) / 100);
+        sgstAmount = cgstAmount;
+      }
+    }
+  }
+
+  const totalTaxAmount =
+    invoice.totalTaxAmount !== undefined && invoice.totalTaxAmount > 0
+      ? invoice.totalTaxAmount
+      : round2(invoice.isInterstate ? (igstAmount || 0) : ((cgstAmount || 0) + (sgstAmount || 0)));
+
+  const grandTotal =
+    invoice.grandTotal !== undefined && invoice.grandTotal > 0
+      ? invoice.grandTotal
+      : round2(subTotal + totalTaxAmount);
+
+  if (taxRate > 0) {
+    if (!invoice.isInterstate) {
+      // CGST OUTPUT 9%
+      doc.text(`CGST OUTPUT ${halfRate}%`, gX3 - 10, curItemY, { align: 'right' });
+      doc.text(`${halfRate} %`, gX6 - 6, curItemY, { align: 'right' });
+      doc.text(Number(cgstAmount || 0).toFixed(2), gX8 - 6, curItemY, { align: 'right' });
+
+      curItemY += 12;
+      // SGST OUTPUT 9%
+      doc.text(`SGST OUTPUT ${halfRate}%`, gX3 - 10, curItemY, { align: 'right' });
+      doc.text(`${halfRate} %`, gX6 - 6, curItemY, { align: 'right' });
+      doc.text(Number(sgstAmount || 0).toFixed(2), gX8 - 6, curItemY, { align: 'right' });
+      curItemY += 12;
+    } else {
+      // IGST OUTPUT 18%
+      doc.text(`IGST OUTPUT ${taxRate}%`, gX3 - 10, curItemY, { align: 'right' });
+      doc.text(`${taxRate} %`, gX6 - 6, curItemY, { align: 'right' });
+      doc.text(Number(igstAmount || 0).toFixed(2), gX8 - 6, curItemY, { align: 'right' });
+      curItemY += 12;
+    }
   }
 
   // Total row of Goods Table
@@ -308,7 +349,7 @@ export const buildProformaInvoicePdfDoc = (invoice: ProformaInvoice): jsPDF => {
   }
 
   // Grand Total
-  doc.text(Number(invoice.grandTotal || 0).toFixed(2), gX8 - 6, goodsEndY + 12, { align: 'right' });
+  doc.text(Number(grandTotal || 0).toFixed(2), gX8 - 6, goodsEndY + 12, { align: 'right' });
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
@@ -404,15 +445,15 @@ export const buildProformaInvoicePdfDoc = (invoice: ProformaInvoice): jsPDF => {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7.5);
   doc.text('Total', (tX0 + tX1) / 2, taxTotalY, { align: 'center' });
-  doc.text(Number(invoice.subTotal || 0).toFixed(2), tX2 - 6, taxTotalY, { align: 'right' });
+  doc.text(Number(subTotal || 0).toFixed(2), tX2 - 6, taxTotalY, { align: 'right' });
 
   if (!invoice.isInterstate) {
-    doc.text(Number(invoice.cgstAmount || 0).toFixed(2), tX4 - 6, taxTotalY, { align: 'right' });
-    doc.text(Number(invoice.sgstAmount || 0).toFixed(2), tX6 - 6, taxTotalY, { align: 'right' });
+    doc.text(Number(cgstAmount || 0).toFixed(2), tX4 - 6, taxTotalY, { align: 'right' });
+    doc.text(Number(sgstAmount || 0).toFixed(2), tX6 - 6, taxTotalY, { align: 'right' });
   } else {
-    doc.text(Number(invoice.igstAmount || 0).toFixed(2), tX6 - 6, taxTotalY, { align: 'right' });
+    doc.text(Number(igstAmount || 0).toFixed(2), tX6 - 6, taxTotalY, { align: 'right' });
   }
-  doc.text(Number(invoice.totalTaxAmount || 0).toFixed(2), tX7 - 6, taxTotalY, { align: 'right' });
+  doc.text(Number(totalTaxAmount || 0).toFixed(2), tX7 - 6, taxTotalY, { align: 'right' });
 
   const taxTableBottomY = taxTotalY + 3;
 
@@ -420,8 +461,11 @@ export const buildProformaInvoicePdfDoc = (invoice: ProformaInvoice): jsPDF => {
   const footerStartY = taxTableBottomY + 5;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
+  const taxWords =
+    invoice.taxAmountInWords ||
+    (totalTaxAmount > 0 ? `INR ${numberToWordsIndian(totalTaxAmount)}` : '');
   doc.text(
-    `Tax Amount (in words) : ${invoice.taxAmountInWords || ''}`,
+    `Tax Amount (in words) : ${taxWords}`,
     startX + 6,
     footerStartY + 9
   );

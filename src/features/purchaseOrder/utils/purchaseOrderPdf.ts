@@ -28,12 +28,14 @@ const drawDiamondBullet = (doc: jsPDF, x: number, y: number, radius = 2.2) => {
 };
 
 /**
- * Formats amount into clean string representation (e.g. "R190000" or "190000")
+ * Formats amount into clean string representation (e.g. "Rs. 1,90,000")
  */
 const fmtAmountStr = (val: number | string): string => {
   const n = Number(val) || 0;
-  // In the reference image, it shows "R190000" (or 190000)
-  return `R${n}`;
+  if (n % 1 === 0) {
+    return `Rs. ${n.toLocaleString('en-IN')}`;
+  }
+  return `Rs. ${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 /**
@@ -173,10 +175,44 @@ export const buildPurchaseOrderPdfDoc = (po: PurchaseOrder): jsPDF => {
   doc.text(`: ${po.quotationRef || 'By Telephonic'}`, metaX + 84, sec2StartY + metaRowHeight * 2 + 18);
 
   // 3. Section 3: Items Table
+  // Totals calculations
+  const subTotal =
+    po.subTotal !== undefined
+      ? po.subTotal
+      : (po.items || []).reduce((sum, it) => sum + (Number(it.amount) || 0), 0);
+
+  const gstMatch = (po.terms?.gstTax || '').match(/(\d+(?:\.\d+)?)\s*%/);
+  const taxPercent =
+    po.taxPercent !== undefined ? po.taxPercent : gstMatch ? parseFloat(gstMatch[1]) : 0;
+  const isExtra = /extra/i.test(po.terms?.gstTax || '');
+  const hasTax =
+    po.includeGstInTotal !== undefined
+      ? po.includeGstInTotal && (po.taxAmount ? po.taxAmount > 0 : taxPercent > 0)
+      : taxPercent > 0 && isExtra;
+
+  const taxAmount =
+    po.taxAmount !== undefined
+      ? po.taxAmount
+      : hasTax
+      ? Math.round(((subTotal * taxPercent) / 100) * 100) / 100
+      : 0;
+
+  const totalAmount =
+    po.totalAmount !== undefined
+      ? po.totalAmount
+      : hasTax
+      ? Math.round((subTotal + taxAmount) * 100) / 100
+      : subTotal;
+
+  const summaryRowHeight = 18;
+  const numSummaryRows = hasTax && taxAmount > 0 ? 2 : 1;
+  const summaryTotalHeight = numSummaryRows * summaryRowHeight;
+
   const tableStartY = sec2EndY;
   const tableHeaderHeight = 22;
-  const tableContentHeight = Math.max(140, (po.items?.length || 1) * 26 + 60);
+  const tableContentHeight = Math.max(120, (po.items?.length || 1) * 24 + 25) + summaryTotalHeight;
   const tableEndY = tableStartY + tableHeaderHeight + tableContentHeight;
+  const summaryStartY = tableEndY - summaryTotalHeight;
 
   // Column definitions
   const colSiNoW = 42;
@@ -202,17 +238,17 @@ export const buildPurchaseOrderPdfDoc = (po: PurchaseOrder): jsPDF => {
   doc.text('AMOUNT', (cX4 + cX5) / 2, tableStartY + 15, { align: 'center' });
 
   // Table Content Rows
-  let itemY = tableStartY + tableHeaderHeight + 20;
+  let itemY = tableStartY + tableHeaderHeight + 18;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
 
-  po.items.forEach((item, idx) => {
+  (po.items || []).forEach((item, idx) => {
     // SI.NO
     doc.text(`${item.siNo || idx + 1}.`, (cX0 + cX1) / 2, itemY, { align: 'center' });
 
     // DESCRIPTION (bold text in reference)
     doc.setFont('helvetica', 'bold');
-    doc.text(item.description || '—', cX1 + 12, itemY);
+    doc.text(item.description || '—', cX1 + 10, itemY);
 
     // QUANTITY (bold text in reference)
     doc.text(String(item.quantity ?? '—'), (cX2 + cX3) / 2, itemY, { align: 'center' });
@@ -220,12 +256,33 @@ export const buildPurchaseOrderPdfDoc = (po: PurchaseOrder): jsPDF => {
     // RATE / UNIT (bold text in reference)
     doc.text(String(item.rate ?? '—'), (cX3 + cX4) / 2, itemY, { align: 'center' });
 
-    // AMOUNT (with 'R' prefix as shown in reference)
+    // AMOUNT
     doc.text(fmtAmountStr(item.amount), (cX4 + cX5) / 2, itemY, { align: 'center' });
 
     doc.setFont('helvetica', 'normal');
-    itemY += 24;
+    itemY += 22;
   });
+
+  // Table Summary / Total Rows
+  if (numSummaryRows === 2) {
+    // Row 1: Sub Total
+    const r1Y = summaryStartY + 12.5;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.text('SUB TOTAL', cX4 - 10, r1Y, { align: 'right' });
+    doc.text(fmtAmountStr(subTotal), (cX4 + cX5) / 2, r1Y, { align: 'center' });
+
+    // Row 2: Grand Total
+    const r2Y = summaryStartY + summaryRowHeight + 12.5;
+    doc.text(`TOTAL (Incl. ${taxPercent}% GST)`, cX4 - 10, r2Y, { align: 'right' });
+    doc.text(fmtAmountStr(totalAmount), (cX4 + cX5) / 2, r2Y, { align: 'center' });
+  } else {
+    const r1Y = summaryStartY + 12.5;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('TOTAL', (cX0 + cX4) / 2, r1Y, { align: 'center' });
+    doc.text(fmtAmountStr(totalAmount), (cX4 + cX5) / 2, r1Y, { align: 'center' });
+  }
 
   // 4. Section 4: Terms & Conditions Box
   const tcStartY = tableEndY;
@@ -315,13 +372,20 @@ export const buildPurchaseOrderPdfDoc = (po: PurchaseOrder): jsPDF => {
   // Table header horizontal line
   doc.line(startX, tableStartY + tableHeaderHeight, endX, tableStartY + tableHeaderHeight);
 
+  // Summary row divider horizontal line(s)
+  doc.line(startX, summaryStartY, endX, summaryStartY);
+  if (numSummaryRows === 2) {
+    doc.line(startX, summaryStartY + summaryRowHeight, endX, summaryStartY + summaryRowHeight);
+  }
+
   // Table bottom horizontal line
   doc.line(startX, tableEndY, endX, tableEndY);
 
-  // Table vertical columns (extending from tableStartY to tableEndY)
-  doc.line(cX1, tableStartY, cX1, tableEndY);
-  doc.line(cX2, tableStartY, cX2, tableEndY);
-  doc.line(cX3, tableStartY, cX3, tableEndY);
+  // Table vertical columns (extending from tableStartY to summaryStartY for SI.NO, DESC, QTY)
+  doc.line(cX1, tableStartY, cX1, summaryStartY);
+  doc.line(cX2, tableStartY, cX2, summaryStartY);
+  doc.line(cX3, tableStartY, cX3, summaryStartY);
+  // Column cX4 extends to tableEndY to separate summary label and total amount
   doc.line(cX4, tableStartY, cX4, tableEndY);
 
   // Terms & Conditions bottom horizontal line

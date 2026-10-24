@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Card,
@@ -21,6 +21,8 @@ import {
   Tooltip,
   CircularProgress,
   Chip,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import {
   Plus,
@@ -41,6 +43,7 @@ import { getEmptyPurchaseOrderForm } from '../types/purchaseOrder.types';
 import { fetchVendors } from '../../vendorMaster/services/vendorMaster.service';
 import type { VendorMaster } from '../../vendorMaster/types/vendorMaster.types';
 import { downloadPurchaseOrderPdf } from '../utils/purchaseOrderPdf';
+import { calculatePurchaseOrderTotals } from '../services/purchaseOrder.service';
 
 interface Props {
   initialData?: PurchaseOrder | null;
@@ -98,8 +101,13 @@ export const PurchaseOrderForm: React.FC<Props> = ({
         vendorGst: initialData.vendorGst,
         vendorAddress: initialData.vendorAddress,
         quotationRef: initialData.quotationRef,
-        items: initialData.items.map((it) => ({ ...it })),
+        items: initialData.items.map((it) => ({
+          ...it,
+          amount: Math.round((Number(it.quantity) || 0) * (Number(it.rate) || 0) * 100) / 100,
+        })),
         terms: { ...initialData.terms },
+        includeGstInTotal:
+          initialData.includeGstInTotal !== undefined ? initialData.includeGstInTotal : true,
       });
       // Try to find matching vendor in list
       const matched = vendors.find(
@@ -110,6 +118,7 @@ export const PurchaseOrderForm: React.FC<Props> = ({
       setFormData((prev) => ({
         ...getEmptyPurchaseOrderForm(),
         poNumber: nextPoNumberSuggestion || prev.poNumber || 'SJMW/024/26-27',
+        includeGstInTotal: true,
       }));
       setSelectedVendor(null);
     }
@@ -157,9 +166,11 @@ export const PurchaseOrderForm: React.FC<Props> = ({
       const item = { ...newItems[index], [field]: value };
 
       if (field === 'quantity' || field === 'rate') {
-        const qty = field === 'quantity' ? Number(value) || 0 : Number(item.quantity) || 0;
-        const rate = field === 'rate' ? Number(value) || 0 : Number(item.rate) || 0;
-        item.amount = qty * rate;
+        const rawQty = field === 'quantity' ? value : item.quantity;
+        const rawRate = field === 'rate' ? value : item.rate;
+        const qty = rawQty === '' ? 0 : Number(rawQty) || 0;
+        const rate = rawRate === '' ? 0 : Number(rawRate) || 0;
+        item.amount = Math.round(qty * rate * 100) / 100;
       }
 
       newItems[index] = item;
@@ -193,10 +204,14 @@ export const PurchaseOrderForm: React.FC<Props> = ({
     });
   };
 
-  const totalCalculatedAmount = formData.items.reduce(
-    (sum, it) => sum + (Number(it.amount) || 0),
-    0
-  );
+  // Dynamically calculate subtotal, tax amount, and grand total
+  const computedTotals = useMemo(() => {
+    return calculatePurchaseOrderTotals(
+      formData.items,
+      formData.terms?.gstTax || '',
+      formData.includeGstInTotal
+    );
+  }, [formData.items, formData.terms?.gstTax, formData.includeGstInTotal]);
 
   const validateForm = (): boolean => {
     if (!formData.vendorName.trim()) {
@@ -221,7 +236,16 @@ export const PurchaseOrderForm: React.FC<Props> = ({
 
   const handleSubmit = async (andGeneratePdf: boolean) => {
     if (!validateForm()) return;
-    await onSave(formData, andGeneratePdf);
+    const submissionData: PurchaseOrderFormData = {
+      ...formData,
+      items: computedTotals.items,
+      subTotal: computedTotals.subTotal,
+      taxPercent: computedTotals.taxPercent,
+      taxAmount: computedTotals.taxAmount,
+      includeGstInTotal: computedTotals.includeGstInTotal,
+      totalAmount: computedTotals.totalAmount,
+    };
+    await onSave(submissionData, andGeneratePdf);
   };
 
   const handlePreview = () => {
@@ -239,12 +263,12 @@ export const PurchaseOrderForm: React.FC<Props> = ({
       vendorGst: formData.vendorGst,
       vendorAddress: formData.vendorAddress,
       quotationRef: formData.quotationRef,
-      items: formData.items.map((it, idx) => ({
-        ...it,
-        siNo: idx + 1,
-        amount: (Number(it.quantity) || 0) * (Number(it.rate) || 0),
-      })),
-      totalAmount: totalCalculatedAmount,
+      items: computedTotals.items,
+      subTotal: computedTotals.subTotal,
+      taxPercent: computedTotals.taxPercent,
+      taxAmount: computedTotals.taxAmount,
+      includeGstInTotal: computedTotals.includeGstInTotal,
+      totalAmount: computedTotals.totalAmount,
       terms: formData.terms,
       createdBy: initialData?.createdBy || 'User',
       createdAt: initialData?.createdAt || ({} as any),
@@ -258,6 +282,7 @@ export const PurchaseOrderForm: React.FC<Props> = ({
     setFormData({
       ...getEmptyPurchaseOrderForm(),
       poNumber: nextPoNumberSuggestion || 'SJMW/024/26-27',
+      includeGstInTotal: true,
     });
     setSelectedVendor(null);
     setFormError('');
@@ -552,9 +577,13 @@ export const PurchaseOrderForm: React.FC<Props> = ({
                       <TextField
                         type="number"
                         size="small"
-                        value={item.quantity}
+                        value={item.quantity === 0 && !item.description ? '' : item.quantity}
                         onChange={(e) =>
-                          handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)
+                          handleItemChange(
+                            index,
+                            'quantity',
+                            e.target.value === '' ? '' : parseFloat(e.target.value) || 0
+                          )
                         }
                         variant="standard"
                         InputProps={{ disableUnderline: true }}
@@ -573,9 +602,13 @@ export const PurchaseOrderForm: React.FC<Props> = ({
                       <TextField
                         type="number"
                         size="small"
-                        value={item.rate}
+                        value={item.rate === 0 && !item.description ? '' : item.rate}
                         onChange={(e) =>
-                          handleItemChange(index, 'rate', parseFloat(e.target.value) || 0)
+                          handleItemChange(
+                            index,
+                            'rate',
+                            e.target.value === '' ? '' : parseFloat(e.target.value) || 0
+                          )
                         }
                         variant="standard"
                         InputProps={{ disableUnderline: true }}
@@ -591,7 +624,10 @@ export const PurchaseOrderForm: React.FC<Props> = ({
                       />
                     </TableCell>
                     <TableCell align="right" sx={{ fontWeight: 700, color: '#0f172a' }}>
-                      R{Number(item.amount || 0).toLocaleString('en-IN')}
+                      ₹ {Number(item.amount || 0).toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </TableCell>
                     <TableCell align="center">
                       <Tooltip title="Remove row">
@@ -613,29 +649,106 @@ export const PurchaseOrderForm: React.FC<Props> = ({
             </Table>
           </TableContainer>
 
-          {/* Table Footer Total Amount */}
+          {/* Table Footer Totals Breakdown */}
           <Box
             sx={{
               display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              mt: 1.5,
-              gap: 2,
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              mt: 2,
+              gap: 1,
+              bgcolor: '#f8fafc',
+              p: 2.5,
+              borderRadius: 2.5,
+              border: '1px solid #e2e8f0',
             }}
           >
-            <Typography sx={{ fontWeight: 600, color: '#64748b', fontSize: '0.9rem' }}>
-              Total Order Value:
-            </Typography>
-            <Typography
+            <Box
               sx={{
-                fontWeight: 800,
-                color: '#1565C0',
-                fontSize: '1.25rem',
-                fontFamily: 'monospace',
+                display: 'flex',
+                justifyContent: 'space-between',
+                width: { xs: '100%', sm: 360 },
               }}
             >
-              R{totalCalculatedAmount.toLocaleString('en-IN')}
-            </Typography>
+              <Typography sx={{ fontWeight: 600, color: '#64748b', fontSize: '0.9rem' }}>
+                Subtotal (Items Total):
+              </Typography>
+              <Typography sx={{ fontWeight: 700, color: '#0f172a', fontFamily: 'monospace' }}>
+                ₹ {computedTotals.subTotal.toLocaleString('en-IN', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </Typography>
+            </Box>
+
+            {computedTotals.taxPercent > 0 && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  width: { xs: '100%', sm: 360 },
+                }}
+              >
+                <Typography sx={{ fontWeight: 600, color: '#64748b', fontSize: '0.9rem' }}>
+                  GST Tax ({computedTotals.taxPercent}%):
+                </Typography>
+                <Typography sx={{ fontWeight: 700, color: '#16a34a', fontFamily: 'monospace' }}>
+                  + ₹ {computedTotals.taxAmount.toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </Typography>
+              </Box>
+            )}
+
+            <Divider sx={{ width: { xs: '100%', sm: 360 }, my: 0.5 }} />
+
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                width: { xs: '100%', sm: 360 },
+              }}
+            >
+              <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1rem' }}>
+                Total Order Value:
+              </Typography>
+              <Typography
+                sx={{
+                  fontWeight: 900,
+                  color: '#1565C0',
+                  fontSize: '1.3rem',
+                  fontFamily: 'monospace',
+                }}
+              >
+                ₹ {computedTotals.totalAmount.toLocaleString('en-IN', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </Typography>
+            </Box>
+
+            {computedTotals.taxPercent > 0 && (
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={Boolean(computedTotals.includeGstInTotal)}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, includeGstInTotal: e.target.checked }))
+                      }
+                    />
+                  }
+                  label={
+                    <Typography sx={{ fontSize: '0.8rem', color: '#64748b' }}>
+                      Add {computedTotals.taxPercent}% GST to Grand Total
+                    </Typography>
+                  }
+                />
+              </Box>
+            )}
           </Box>
         </Box>
 

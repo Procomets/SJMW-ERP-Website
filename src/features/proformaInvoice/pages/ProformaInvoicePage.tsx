@@ -29,6 +29,7 @@ import {
   updateProformaInvoice,
   deleteProformaInvoice,
   generateNextInvoiceNumber,
+  computeInvoiceTotals,
 } from '../services/proformaInvoice.service';
 import { downloadProformaInvoicePdf } from '../utils/proformaInvoicePdf';
 import { ProformaInvoiceForm } from '../components/ProformaInvoiceForm';
@@ -93,6 +94,22 @@ export const ProformaInvoicePage: React.FC<Props> = ({ accountsMode = false }) =
       setIsSaving(true);
       const creatorName = profile?.name || user?.email || (isAccounts ? 'Accounts Team' : 'Admin');
 
+      const totals = computeInvoiceTotals(formData);
+      const sanitizedItems = (formData.items || []).map((it, idx) => {
+        const q = Number(it.quantity) || 0;
+        const r = Number(it.rate) || 0;
+        return {
+          id: it.id || String(idx + 1),
+          slNo: idx + 1,
+          description: (it.description || '').trim(),
+          hsnSac: (it.hsnSac || '76012010').trim(),
+          quantity: q,
+          rate: r,
+          per: it.per || 'KGS',
+          amount: Math.round(q * r * 100) / 100,
+        };
+      });
+
       let savedInvoice: ProformaInvoice;
 
       if (editingInvoice) {
@@ -100,6 +117,8 @@ export const ProformaInvoicePage: React.FC<Props> = ({ accountsMode = false }) =
         savedInvoice = {
           ...editingInvoice,
           ...formData,
+          items: sanitizedItems,
+          ...totals,
           updatedBy: creatorName,
         };
         setSnackbar({
@@ -113,12 +132,8 @@ export const ProformaInvoicePage: React.FC<Props> = ({ accountsMode = false }) =
         savedInvoice = {
           id: newId,
           ...formData,
-          subTotal: formData.items.reduce((s, it) => s + (Number(it.amount) || 0), 0),
-          cgstAmount: 0,
-          sgstAmount: 0,
-          igstAmount: 0,
-          totalTaxAmount: 0,
-          grandTotal: 0,
+          items: sanitizedItems,
+          ...totals,
           createdBy: creatorName,
           updatedBy: creatorName,
           createdAt: {} as any,

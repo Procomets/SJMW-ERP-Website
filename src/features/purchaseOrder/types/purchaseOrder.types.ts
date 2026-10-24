@@ -26,6 +26,10 @@ export interface PurchaseOrder {
   vendorAddress: string;
   quotationRef: string;
   items: PurchaseOrderItem[];
+  subTotal?: number;
+  taxPercent?: number;
+  taxAmount?: number;
+  includeGstInTotal?: boolean;
   totalAmount: number;
   terms: PurchaseOrderTerms;
   notes?: string;
@@ -44,6 +48,11 @@ export interface PurchaseOrderFormData {
   vendorAddress: string;
   quotationRef: string;
   items: PurchaseOrderItem[];
+  subTotal?: number;
+  taxPercent?: number;
+  taxAmount?: number;
+  includeGstInTotal?: boolean;
+  totalAmount?: number;
   terms: PurchaseOrderTerms;
 }
 

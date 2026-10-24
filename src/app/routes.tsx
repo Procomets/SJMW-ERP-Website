@@ -220,10 +220,6 @@ export const router = createBrowserRouter([
         element: <ProductionManagerLayout />,
         children: [
           {
-            index: true,
-            element: <Navigate to="/production/production-ledger" replace />,
-          },
-          {
             path: 'production',
             element: <Navigate to="/production/production-ledger" replace />,
           },

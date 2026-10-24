@@ -92,13 +92,66 @@ export const fetchPurchaseOrders = async (): Promise<PurchaseOrder[]> => {
 };
 
 /**
+ * Calculates complete PO amounts: line item amounts, subtotal, GST tax, and grand total
+ */
+export const calculatePurchaseOrderTotals = (
+  items: PurchaseOrderItem[],
+  gstTaxStr: string = '18% Extra',
+  includeGstInTotal?: boolean
+) => {
+  const cleanItems = (items || []).map((it, idx) => {
+    const qty = Number(it.quantity) || 0;
+    const rate = Number(it.rate) || 0;
+    const amount = Math.round(qty * rate * 100) / 100;
+    return {
+      ...it,
+      id: it.id || String(idx + 1),
+      siNo: idx + 1,
+      description: (it.description || '').trim(),
+      quantity: qty,
+      rate: rate,
+      amount,
+    };
+  });
+
+  const subTotal = cleanItems.reduce((sum, it) => sum + it.amount, 0);
+
+  // Parse tax percent from terms (e.g., "18% Extra", "18%", "5%", "12%", "28%", "Nil")
+  const gstMatch = (gstTaxStr || '').match(/(\d+(?:\.\d+)?)\s*%/);
+  const taxPercent = gstMatch ? parseFloat(gstMatch[1]) : 0;
+  const taxAmount = taxPercent > 0 ? Math.round(((subTotal * taxPercent) / 100) * 100) / 100 : 0;
+
+  // Default to adding tax if taxPercent > 0 unless explicitly opted out
+  const shouldAddTax = includeGstInTotal !== undefined 
+    ? includeGstInTotal 
+    : (taxPercent > 0 && (/extra/i.test(gstTaxStr || '') || taxPercent > 0));
+
+  const totalAmount = shouldAddTax
+    ? Math.round((subTotal + taxAmount) * 100) / 100
+    : subTotal;
+
+  return {
+    items: cleanItems,
+    subTotal,
+    taxPercent,
+    taxAmount,
+    totalAmount,
+    includeGstInTotal: shouldAddTax,
+  };
+};
+
+/**
  * Create a new purchase order
  */
 export const createPurchaseOrder = async (
   form: PurchaseOrderFormData,
   createdBy: string
 ): Promise<string> => {
-  const totalAmount = form.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  const calculated = calculatePurchaseOrderTotals(
+    form.items,
+    form.terms?.gstTax || '',
+    form.includeGstInTotal
+  );
 
   const payload = {
     poNumber: form.poNumber.trim(),
@@ -108,15 +161,12 @@ export const createPurchaseOrder = async (
     vendorGst: form.vendorGst.trim(),
     vendorAddress: form.vendorAddress.trim(),
     quotationRef: form.quotationRef.trim(),
-    items: form.items.map((it, idx) => ({
-      id: it.id || String(idx + 1),
-      siNo: idx + 1,
-      description: it.description.trim(),
-      quantity: Number(it.quantity) || 0,
-      rate: Number(it.rate) || 0,
-      amount: Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.rate) || 0),
-    })),
-    totalAmount,
+    items: calculated.items,
+    subTotal: calculated.subTotal,
+    taxPercent: calculated.taxPercent,
+    taxAmount: calculated.taxAmount,
+    includeGstInTotal: calculated.includeGstInTotal,
+    totalAmount: calculated.totalAmount,
     terms: {
       paymentTerms: form.terms.paymentTerms.trim(),
       gstTax: form.terms.gstTax.trim(),
@@ -141,7 +191,11 @@ export const updatePurchaseOrder = async (
   form: PurchaseOrderFormData,
   updatedBy: string
 ): Promise<void> => {
-  const totalAmount = form.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  const calculated = calculatePurchaseOrderTotals(
+    form.items,
+    form.terms?.gstTax || '',
+    form.includeGstInTotal
+  );
 
   const payload = {
     poNumber: form.poNumber.trim(),
@@ -151,15 +205,12 @@ export const updatePurchaseOrder = async (
     vendorGst: form.vendorGst.trim(),
     vendorAddress: form.vendorAddress.trim(),
     quotationRef: form.quotationRef.trim(),
-    items: form.items.map((it, idx) => ({
-      id: it.id || String(idx + 1),
-      siNo: idx + 1,
-      description: it.description.trim(),
-      quantity: Number(it.quantity) || 0,
-      rate: Number(it.rate) || 0,
-      amount: Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.rate) || 0),
-    })),
-    totalAmount,
+    items: calculated.items,
+    subTotal: calculated.subTotal,
+    taxPercent: calculated.taxPercent,
+    taxAmount: calculated.taxAmount,
+    includeGstInTotal: calculated.includeGstInTotal,
+    totalAmount: calculated.totalAmount,
     terms: {
       paymentTerms: form.terms.paymentTerms.trim(),
       gstTax: form.terms.gstTax.trim(),

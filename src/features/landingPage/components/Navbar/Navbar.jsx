@@ -90,7 +90,7 @@ export default function Navbar() {
         <div className="navbar__inner">
 
           {/* Brand / Logo */}
-          <a className="navbar__brand" href="/#home" aria-label="Sri Jothi Moulding Works – Home">
+          <Link to="/" className="navbar__brand" aria-label="Sri Jothi Moulding Works – Home">
             <img
               src={sjmwLogo}
               alt="SJMW Logo"
@@ -102,7 +102,7 @@ export default function Navbar() {
               <span className="navbar__brand-name">SJMW</span>
               <span className="navbar__brand-tagline">Sri Jothi Moulding Works</span>
             </span>
-          </a>
+          </Link>
 
           {/* Vertical Divider */}
           <div className="navbar__divider" />

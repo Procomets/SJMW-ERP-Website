@@ -137,29 +137,39 @@ export const generateNextInvoiceNumber = (
 };
 
 /**
+ * Helper to round to 2 decimal places accurately avoiding floating point errors
+ */
+const round2 = (n: number): number => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
+/**
  * Computes subtotal, taxes, and grand totals from form
  */
 export const computeInvoiceTotals = (form: ProformaInvoiceFormData) => {
-  const subTotal = form.items.reduce(
-    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.rate) || 0),
-    0
+  const subTotal = round2(
+    (form.items || []).reduce(
+      (sum, item) => sum + round2((Number(item.quantity) || 0) * (Number(item.rate) || 0)),
+      0
+    )
   );
 
   let cgstAmount = 0;
   let sgstAmount = 0;
   let igstAmount = 0;
 
-  const totalRate = form.taxRatePercent || 18;
-  if (form.isInterstate) {
-    igstAmount = (subTotal * totalRate) / 100;
-  } else {
-    const halfRate = totalRate / 2;
-    cgstAmount = (subTotal * halfRate) / 100;
-    sgstAmount = (subTotal * halfRate) / 100;
+  const totalRate = form.taxRatePercent !== undefined ? Number(form.taxRatePercent) : 18;
+
+  if (totalRate > 0 && subTotal > 0) {
+    if (form.isInterstate) {
+      igstAmount = round2((subTotal * totalRate) / 100);
+    } else {
+      const halfRate = totalRate / 2;
+      cgstAmount = round2((subTotal * halfRate) / 100);
+      sgstAmount = cgstAmount;
+    }
   }
 
-  const totalTaxAmount = igstAmount + cgstAmount + sgstAmount;
-  const grandTotal = subTotal + totalTaxAmount;
+  const totalTaxAmount = round2(form.isInterstate ? igstAmount : cgstAmount + sgstAmount);
+  const grandTotal = round2(subTotal + totalTaxAmount);
 
   return {
     subTotal,
@@ -213,36 +223,40 @@ export const createProformaInvoice = async (
   const payload = {
     invoiceNo: form.invoiceNo.trim(),
     date: form.date.trim(),
-    eWayBillNo: form.eWayBillNo.trim(),
-    deliveryNote: form.deliveryNote.trim(),
-    modeTermsOfPayment: form.modeTermsOfPayment.trim(),
-    referenceNoAndDate: form.referenceNoAndDate.trim(),
-    otherReferences: form.otherReferences.trim(),
-    buyerOrderNo: form.buyerOrderNo.trim(),
-    buyerOrderDate: form.buyerOrderDate.trim(),
-    dispatchDocNo: form.dispatchDocNo.trim(),
-    deliveryNoteDate: form.deliveryNoteDate.trim(),
-    dispatchedThrough: form.dispatchedThrough.trim(),
-    destination: form.destination.trim(),
-    termsOfDelivery: form.termsOfDelivery.trim(),
+    eWayBillNo: (form.eWayBillNo || '').trim(),
+    deliveryNote: (form.deliveryNote || '').trim(),
+    modeTermsOfPayment: (form.modeTermsOfPayment || '').trim(),
+    referenceNoAndDate: (form.referenceNoAndDate || '').trim(),
+    otherReferences: (form.otherReferences || '').trim(),
+    buyerOrderNo: (form.buyerOrderNo || '').trim(),
+    buyerOrderDate: (form.buyerOrderDate || '').trim(),
+    dispatchDocNo: (form.dispatchDocNo || '').trim(),
+    deliveryNoteDate: (form.deliveryNoteDate || '').trim(),
+    dispatchedThrough: (form.dispatchedThrough || '').trim(),
+    destination: (form.destination || '').trim(),
+    termsOfDelivery: (form.termsOfDelivery || '').trim(),
 
     customerId: form.customerId || '',
     consignee: { ...form.consignee },
     buyer: form.sameAsConsignee ? { ...form.consignee } : { ...form.buyer },
 
-    items: form.items.map((it, idx) => ({
-      id: it.id || String(idx + 1),
-      slNo: idx + 1,
-      description: it.description.trim(),
-      hsnSac: it.hsnSac.trim() || '76012010',
-      quantity: Number(it.quantity) || 0,
-      rate: Number(it.rate) || 0,
-      per: it.per || 'KGS',
-      amount: (Number(it.quantity) || 0) * (Number(it.rate) || 0),
-    })),
+    items: (form.items || []).map((it, idx) => {
+      const q = Number(it.quantity) || 0;
+      const r = Number(it.rate) || 0;
+      return {
+        id: it.id || String(idx + 1),
+        slNo: idx + 1,
+        description: (it.description || '').trim(),
+        hsnSac: (it.hsnSac || '76012010').trim(),
+        quantity: q,
+        rate: r,
+        per: it.per || 'KGS',
+        amount: round2(q * r),
+      };
+    }),
 
-    isInterstate: form.isInterstate,
-    taxRatePercent: form.taxRatePercent || 18,
+    isInterstate: Boolean(form.isInterstate),
+    taxRatePercent: form.taxRatePercent !== undefined ? Number(form.taxRatePercent) : 18,
 
     ...totals,
 
@@ -269,36 +283,40 @@ export const updateProformaInvoice = async (
   const payload = {
     invoiceNo: form.invoiceNo.trim(),
     date: form.date.trim(),
-    eWayBillNo: form.eWayBillNo.trim(),
-    deliveryNote: form.deliveryNote.trim(),
-    modeTermsOfPayment: form.modeTermsOfPayment.trim(),
-    referenceNoAndDate: form.referenceNoAndDate.trim(),
-    otherReferences: form.otherReferences.trim(),
-    buyerOrderNo: form.buyerOrderNo.trim(),
-    buyerOrderDate: form.buyerOrderDate.trim(),
-    dispatchDocNo: form.dispatchDocNo.trim(),
-    deliveryNoteDate: form.deliveryNoteDate.trim(),
-    dispatchedThrough: form.dispatchedThrough.trim(),
-    destination: form.destination.trim(),
-    termsOfDelivery: form.termsOfDelivery.trim(),
+    eWayBillNo: (form.eWayBillNo || '').trim(),
+    deliveryNote: (form.deliveryNote || '').trim(),
+    modeTermsOfPayment: (form.modeTermsOfPayment || '').trim(),
+    referenceNoAndDate: (form.referenceNoAndDate || '').trim(),
+    otherReferences: (form.otherReferences || '').trim(),
+    buyerOrderNo: (form.buyerOrderNo || '').trim(),
+    buyerOrderDate: (form.buyerOrderDate || '').trim(),
+    dispatchDocNo: (form.dispatchDocNo || '').trim(),
+    deliveryNoteDate: (form.deliveryNoteDate || '').trim(),
+    dispatchedThrough: (form.dispatchedThrough || '').trim(),
+    destination: (form.destination || '').trim(),
+    termsOfDelivery: (form.termsOfDelivery || '').trim(),
 
     customerId: form.customerId || '',
     consignee: { ...form.consignee },
     buyer: form.sameAsConsignee ? { ...form.consignee } : { ...form.buyer },
 
-    items: form.items.map((it, idx) => ({
-      id: it.id || String(idx + 1),
-      slNo: idx + 1,
-      description: it.description.trim(),
-      hsnSac: it.hsnSac.trim() || '76012010',
-      quantity: Number(it.quantity) || 0,
-      rate: Number(it.rate) || 0,
-      per: it.per || 'KGS',
-      amount: (Number(it.quantity) || 0) * (Number(it.rate) || 0),
-    })),
+    items: (form.items || []).map((it, idx) => {
+      const q = Number(it.quantity) || 0;
+      const r = Number(it.rate) || 0;
+      return {
+        id: it.id || String(idx + 1),
+        slNo: idx + 1,
+        description: (it.description || '').trim(),
+        hsnSac: (it.hsnSac || '76012010').trim(),
+        quantity: q,
+        rate: r,
+        per: it.per || 'KGS',
+        amount: round2(q * r),
+      };
+    }),
 
-    isInterstate: form.isInterstate,
-    taxRatePercent: form.taxRatePercent || 18,
+    isInterstate: Boolean(form.isInterstate),
+    taxRatePercent: form.taxRatePercent !== undefined ? Number(form.taxRatePercent) : 18,
 
     ...totals,
 
