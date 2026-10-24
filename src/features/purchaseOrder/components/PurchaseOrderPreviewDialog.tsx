@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -8,8 +8,9 @@ import {
   Box,
   Typography,
   IconButton,
+  Tooltip,
 } from '@mui/material';
-import { X, Download, Printer } from 'lucide-react';
+import { X, Download, Printer, Maximize2, Minimize2 } from 'lucide-react';
 import type { PurchaseOrder } from '../types/purchaseOrder.types';
 import { downloadPurchaseOrderPdf, getPurchaseOrderPdfDataUri } from '../utils/purchaseOrderPdf';
 
@@ -20,6 +21,8 @@ interface Props {
 }
 
 export const PurchaseOrderPreviewDialog: React.FC<Props> = ({ open, onClose, purchaseOrder }) => {
+  const [isFullScreen, setIsFullScreen] = useState<boolean>(false);
+
   if (!purchaseOrder) return null;
 
   let pdfDataUri = '';
@@ -43,19 +46,33 @@ export const PurchaseOrderPreviewDialog: React.FC<Props> = ({ open, onClose, pur
     }
   };
 
+  const paperStyles = {
+    borderRadius: isFullScreen ? 0 : 3,
+    height: isFullScreen ? '100vh' : '92vh',
+    maxHeight: isFullScreen ? '100vh' : '92vh',
+    width: isFullScreen ? '100vw' : '96vw',
+    maxWidth: isFullScreen ? '100vw' : '1240px',
+    m: isFullScreen ? 0 : 2,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+  };
+
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      fullScreen={isFullScreen}
+      maxWidth="lg"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 3,
-          height: '90vh',
-          display: 'flex',
-          flexDirection: 'column',
+      slotProps={{
+        paper: {
+          sx: paperStyles,
         },
+      }}
+      PaperProps={{
+        sx: paperStyles,
       }}
     >
       <DialogTitle
@@ -63,7 +80,8 @@ export const PurchaseOrderPreviewDialog: React.FC<Props> = ({ open, onClose, pur
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          pb: 1.5,
+          px: 3,
+          py: 1.5,
           borderBottom: '1px solid #e2e8f0',
         }}
       >
@@ -75,12 +93,30 @@ export const PurchaseOrderPreviewDialog: React.FC<Props> = ({ open, onClose, pur
             {purchaseOrder.poNumber} &bull; {purchaseOrder.vendorName}
           </Typography>
         </Box>
-        <IconButton size="small" onClick={onClose}>
-          <X size={20} />
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Tooltip title={isFullScreen ? 'Exit Full Screen' : 'Full Screen'}>
+            <IconButton size="small" onClick={() => setIsFullScreen((prev) => !prev)}>
+              {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+            </IconButton>
+          </Tooltip>
+          <IconButton size="small" onClick={onClose}>
+            <X size={20} />
+          </IconButton>
+        </Box>
       </DialogTitle>
 
-      <DialogContent sx={{ p: 0, flex: 1, bgcolor: '#f1f5f9' }}>
+      <DialogContent
+        sx={{
+          p: 0,
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          bgcolor: '#525659',
+          overflow: 'hidden',
+          height: isFullScreen ? 'calc(100vh - 130px)' : 'calc(92vh - 130px)',
+          minHeight: '600px',
+        }}
+      >
         {pdfDataUri ? (
           <iframe
             id="po-pdf-preview-frame"
@@ -89,8 +125,11 @@ export const PurchaseOrderPreviewDialog: React.FC<Props> = ({ open, onClose, pur
             style={{
               width: '100%',
               height: '100%',
+              flex: 1,
+              minHeight: '600px',
               border: 'none',
               backgroundColor: '#525659',
+              display: 'block',
             }}
           />
         ) : (

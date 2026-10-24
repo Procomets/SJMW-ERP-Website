@@ -89,7 +89,33 @@ const AttendanceTable: React.FC<AttendanceTableProps> = ({
   };
 
   return (
-    <TableContainer component={Paper} sx={{ maxHeight: '70vh', overflow: 'auto' }}>
+    <TableContainer
+      component={Paper}
+      sx={{
+        maxHeight: '70vh',
+        overflow: 'auto',
+        scrollbarWidth: 'thin',
+        scrollbarColor: '#ffffff #f8fafc',
+        '&::-webkit-scrollbar': {
+          width: 8,
+          height: 8,
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#f8fafc',
+          borderRadius: 4,
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#ffffff',
+          borderRadius: 4,
+          border: '1.5px solid #cbd5e1',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.08)',
+          '&:hover': {
+            background: '#f1f5f9',
+            borderColor: '#94a3b8',
+          },
+        },
+      }}
+    >
       <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
         <TableHead>
           <TableRow>
